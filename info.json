@@ -1,0 +1,11 @@
+{
+  "name": "Build-Express",
+  "version": "0.0.1",
+  "title": "Build Express",
+  "author": "Nowow",
+  "contact": "",
+  "homepage": "",
+  "factorio_version" : "1.1",
+  "description": "Allows for a automated train based factory expansion",
+  "dependencies": ["base"]
+}
