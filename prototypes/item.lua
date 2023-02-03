@@ -19,7 +19,7 @@ test_train_stop_item.place_result = "test-train-stop"
 test_train_stop_item.icons = {
     {icon = test_train_stop_item.icon}, {
         icon = "__Build-Express__/resources/test_icon.png",
-        tint = {r=1,g=0,b=0,a=0.3}
+        tint = {r=1,g=0,b=1,a=0.3}
       }
 }
 
