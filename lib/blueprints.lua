@@ -56,14 +56,34 @@ end
 function solveBoundingBoxSubdivision(bounding_box, max_side_length)
     local bb_width = bounding_box.right_bottom.x - bounding_box.left_top.x
     local bb_height = bounding_box.right_bottom.y - bounding_box.left_top.y
+    local subtask_width = 0
+    local subtask_height = 0
     if bb_width >= bb_height then
-        local subtask_height = max_side_length
-        local subtask_width = max_side_length*bb_height/bb_width
+        subtask_width = max_side_length
+        subtask_height = max_side_length*bb_height/bb_width
     else
-        local subtask_width = max_side_length
-        local subtask_height = max_side_length*bb_width/bb_height
+        subtask_height = max_side_length
+        subtask_width = max_side_length*bb_width/bb_height
     end
-    
+    local side_x_ceil = math.ceil(bb_width/subtask_width)
+    local side_y_ceil = math.ceil(bb_height/subtask_height)
+    local subtasks = {}
+    local subtask_left_top_x
+    local subtask_left_top_y
+    local subtask_right_bottom_x
+    local subtask_right_bottom_y
+    table.insert(subtasks, {{subtask_left_top_x, subtask_left_top_y}, {subtask_right_bottom_x, subtask_right_bottom_y}})
+
+    for i=1, side_x_ceil do
+        for j=1, sidside_y_ceile_b_ceil do
+            subtask_left_top_x = bounding_box.left_top.x + subtask_width*(i-1)
+            subtask_left_top_y = bounding_box.left_top.y + subtask_height*(j-1)
+            subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*i
+            subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*j
+            table.insert(subtasks, {{subtask_left_top_x, subtask_left_top_y}, {subtask_right_bottom_x, subtask_right_bottom_y}})
+        end
+    end
+    return subtasks
 
 end
 
