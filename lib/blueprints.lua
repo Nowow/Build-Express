@@ -74,7 +74,7 @@ function solveBoundingBoxSubdivision(bounding_box, max_side_length)
     local subtask_right_bottom_y
 
     for i=1, side_x_ceil do
-        for j=1, sidside_y_ceile_b_ceil do
+        for j=1, side_y_ceil do
             subtask_left_top_x = bounding_box.left_top.x + subtask_width*(i-1)
             subtask_left_top_y = bounding_box.left_top.y + subtask_height*(j-1)
             subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*i
