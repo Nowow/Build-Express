@@ -14,6 +14,7 @@ end
 
 function hightlightEntity(entity, radius)
 
+    
     local color = {r = 0, g = 1, b = 0}
     
     
@@ -24,4 +25,18 @@ function hightlightEntity(entity, radius)
         surface=entity.surface,
         time_to_live=300
     })   
+end
+
+function hightligtBoundingoBox(bounding_box, border_offset)
+
+    local border_offset = border_offset or border_offset==nil and 0.2
+    local color = {r = 0, g = 1, b = 0}
+
+    rendering.draw_rectangle({
+        left_top=bounding_box.left_top,
+        right_bottom=bounding_box.right_bottom,
+        color=color,
+        surface=game.players[1].surface,
+        time_to_live=300
+    })
 end
