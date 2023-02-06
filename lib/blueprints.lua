@@ -79,7 +79,10 @@ function solveBoundingBoxSubdivision(bounding_box, max_side_length)
             subtask_left_top_y = bounding_box.left_top.y + subtask_height*(j-1)
             subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*i
             subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*j
-            table.insert(subtasks, {{subtask_left_top_x, subtask_left_top_y}, {subtask_right_bottom_x, subtask_right_bottom_y}})
+            table.insert(subtasks, {
+                left_top={x=subtask_left_top_x, y=subtask_left_top_y},
+                right_bottom={x=subtask_right_bottom_x, y=subtask_right_bottom_y}
+            })
         end
     end
     return subtasks
