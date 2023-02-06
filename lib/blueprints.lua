@@ -72,7 +72,6 @@ function solveBoundingBoxSubdivision(bounding_box, max_side_length)
     local subtask_left_top_y
     local subtask_right_bottom_x
     local subtask_right_bottom_y
-    table.insert(subtasks, {{subtask_left_top_x, subtask_left_top_y}, {subtask_right_bottom_x, subtask_right_bottom_y}})
 
     for i=1, side_x_ceil do
         for j=1, sidside_y_ceile_b_ceil do
