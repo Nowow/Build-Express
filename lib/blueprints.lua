@@ -5,7 +5,25 @@ last_tick = nil
 
 blueprint_entity_cache = {}
 blueprint_bounding_box = {}
+construction_tasks = {}
 
+
+function createTask(tick, player_index, ghosts_to_build)
+    return {
+        tick=tick,
+        player_index=player_index,
+        ghosts_to_build=ghosts_to_build,
+        bounding_box=nil,
+        subtasks=nil
+    }
+end
+
+function createSubtask(bounding_box)
+    return {
+        bounding_box=bounding_box,
+        ghosts={}
+    }
+end
 
 
 function HightlightCachedEntities(entities)
@@ -49,6 +67,10 @@ function findBlueprintBoundigBox(entities, hightlight)
             time_to_live=300
         })
     end
+    return {
+        left_top={x=left_top_x,y=left_top_y},
+        right_bottom={x=right_bottom_x, y=right_bottom_y}
+    }
 
 end
 
@@ -79,17 +101,15 @@ function solveBoundingBoxSubdivision(bounding_box, max_side_length)
             subtask_left_top_y = bounding_box.left_top.y + subtask_height*(j-1)
             subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*i
             subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*j
-            table.insert(subtasks, {
+            table.insert(subtasks, createSubtask({
                 left_top={x=subtask_left_top_x, y=subtask_left_top_y},
                 right_bottom={x=subtask_right_bottom_x, y=subtask_right_bottom_y}
-            })
+            }))
         end
     end
     return subtasks
-
 end
-
-
+ 
 -- algorithm:
 
 -- 1. Calculate bounding box for a blueprint

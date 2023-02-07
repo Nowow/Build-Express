@@ -27,9 +27,8 @@ function hightlightEntity(entity, radius)
     })   
 end
 
-function hightligtBoundingoBox(bounding_box, border_offset)
+function hightligtBoundingBox(bounding_box)
 
-    local border_offset = border_offset or border_offset==nil and 0.2
     local color = {r = 0, g = 1, b = 0}
 
     rendering.draw_rectangle({
@@ -39,4 +38,24 @@ function hightligtBoundingoBox(bounding_box, border_offset)
         surface=game.players[1].surface,
         time_to_live=300
     })
+end
+
+
+function rectangleOverlapsRectangle(bb1, bb2)
+    if
+        (
+            bb1.left_top.x < bb2.right_bottom.x
+        and bb1.left_top.y < bb2.right_bottom.y
+        )
+        or
+        (
+            bb1.right_bottom.x > bb2.left_top.x
+        and bb1.right_bottom.y > bb2.left_top.y
+        )
+    then
+        return true
+    else
+        return false
+    end
+
 end

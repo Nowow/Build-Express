@@ -3,7 +3,7 @@ require("lib.trains")
 require("lib.test_buttons")
 require("lib.blueprints")
 
-
+local next = next
 
 
 function initGlobal()
@@ -92,10 +92,37 @@ script.on_event(defines.events.on_built_entity, function(event)
     --hightlightEntity(e)
     
     if game.players[event.player_index].is_cursor_blueprint() then
-        table.insert(blueprint_entity_cache, event.created_entity)
-        if first_tick == nil then first_tick = event.tick
-        last_tick = event.tick
+        local event_tick = event.tick
+        local player_index = event.player_index
+        if not blueprint_entity_cache[player_index] then
+            blueprint_entity_cache[player_index] = {}
         end
+        if not blueprint_entity_cache[player_index][event_tick] then
+            blueprint_entity_cache[player_index][event_tick] = {}
+        end
+        table.insert(blueprint_entity_cache[player_index][event_tick], event.created_entity)
     end
     
 end, {{filter = "ghost"}})
+
+
+script.on_nth_tick(30, function(event)
+    if next(blueprint_entity_cache) == nil then
+        return
+    end
+    
+    for player_index, tick_cache in pairs(blueprint_entity_cache) do
+        for tick, cache in pairs(tick_cache) do
+            if tick == event.tick then
+                return
+            end
+            local task = createTask(tick, player_index, cache)
+            task.bounding_box = findBlueprintBoundigBox(task.ghosts_to_build)
+            task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
+            table.insert(construction_tasks, task)
+            for _, st in pairs(task.subtasks) do
+                hightligtBoundingBox(st.bounding_box)
+            end
+        end
+    end
+end)
