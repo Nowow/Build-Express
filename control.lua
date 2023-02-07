@@ -117,12 +117,20 @@ script.on_nth_tick(30, function(event)
                 return
             end
             local task = createTask(tick, player_index, cache)
-            task.bounding_box = findBlueprintBoundigBox(task.ghosts_to_build)
+            task.bounding_box = findBlueprintBoundigBox(task.ghosts)
             task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
+            task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
             table.insert(construction_tasks, task)
-            for _, st in pairs(task.subtasks) do
-                hightligtBoundingBox(st.bounding_box)
+            for i, st in pairs(task.subtasks) do
+                game.print(i)
+                local color = {r = math.random(), g = math.random(), b = math.random()}
+                hightligtBoundingBox(st.bounding_box, color)
+                for _, e in pairs(st.ghosts) do
+                    hightlightEntity(e, 1, color)
+                end
             end
+        blueprint_entity_cache[player_index][tick] = nil
         end
+    blueprint_entity_cache[player_index] = nil
     end
 end)

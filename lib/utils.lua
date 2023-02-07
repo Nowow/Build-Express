@@ -12,10 +12,10 @@ function PrintTrainWhereabouts(train)
     game.print('Train ' .. train_id .. ' at a position ' .. gps .. ' is now in a state: ' .. TRAIN_STATES[train_state + 1])
 end
 
-function hightlightEntity(entity, radius)
+function hightlightEntity(entity, radius, color)
 
     
-    local color = {r = 0, g = 1, b = 0}
+    --local color = {r = 0, g = 1, b = 0}
     
     
     rendering.draw_circle({
@@ -27,9 +27,9 @@ function hightlightEntity(entity, radius)
     })   
 end
 
-function hightligtBoundingBox(bounding_box)
+function hightligtBoundingBox(bounding_box, color)
 
-    local color = {r = 0, g = 1, b = 0}
+    --local color = {r = math.random(), g = math.random(), b = math.random()}
 
     rendering.draw_rectangle({
         left_top=bounding_box.left_top,
@@ -47,7 +47,7 @@ function rectangleOverlapsRectangle(bb1, bb2)
             bb1.left_top.x < bb2.right_bottom.x
         and bb1.left_top.y < bb2.right_bottom.y
         )
-        or
+        and
         (
             bb1.right_bottom.x > bb2.left_top.x
         and bb1.right_bottom.y > bb2.left_top.y

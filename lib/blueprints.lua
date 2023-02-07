@@ -8,11 +8,11 @@ blueprint_bounding_box = {}
 construction_tasks = {}
 
 
-function createTask(tick, player_index, ghosts_to_build)
+function createTask(tick, player_index, ghosts)
     return {
         tick=tick,
         player_index=player_index,
-        ghosts_to_build=ghosts_to_build,
+        ghosts=ghosts,
         bounding_box=nil,
         subtasks=nil
     }
@@ -109,6 +109,24 @@ function solveBoundingBoxSubdivision(bounding_box, max_side_length)
     end
     return subtasks
 end
+
+function attributeGhostsToSubtask(ghosts, subtasks)
+    for ghost_i, ghost in pairs(ghosts) do
+        local ghost_bb = ghost.ghost_prototype.selection_box
+        ghost_bb.left_top.x = ghost_bb.left_top.x + ghost.position.x
+        ghost_bb.left_top.y = ghost_bb.left_top.y + ghost.position.y
+        ghost_bb.right_bottom.x = ghost_bb.right_bottom.x + ghost.position.x
+        ghost_bb.right_bottom.y = ghost_bb.right_bottom.y + ghost.position.y
+        for subtask_i, subtask in pairs(subtasks) do
+            if rectangleOverlapsRectangle(ghost_bb, subtask.bounding_box) then
+                table.insert(subtask.ghosts, ghost)
+                break
+            end
+        end
+    end
+    return subtasks
+end
+
  
 -- algorithm:
 
