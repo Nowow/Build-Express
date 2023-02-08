@@ -78,22 +78,19 @@ function checkIfTrainCanGetToRail(train, rail)
     
 end
 
-function FindNearestRails(surface, position, offset)
-    local area = {
-        {position.x - offset, position.y - offset},
-        {position.x + offset, position.y + offset}
+function FindNearestRails(surface, bounding_box, search_offset)
+    local search_area = {
+        {bounding_box.left_top.x - search_offset, bounding_box.left_top.y - search_offset},
+        {bounding_box.right_bottom.x + search_offset, bounding_box.right_bottom.y + search_offset},
     }
     local color = {r = 1, g = 0, b = 1}
-    rendering.draw_rectangle({left_top=area[1], right_bottom=area[2], color=color, surface=surface, time_to_live=300})
+    rendering.draw_rectangle({left_top=search_area[1], right_bottom=search_area[2], color=color, surface=surface, time_to_live=300})
 
     local found_rails = surface.find_entities_filtered({
         name={"straight-rail", "curved-rail"},
-        area = area,
-        limit=4,
+        area = search_area,
     })
     game.print("rails found: " .. #found_rails)
-    for _, rail in pairs(found_rails) do
-        hightlighRail(rail)
-    end
+    return found_rails
 end
 
