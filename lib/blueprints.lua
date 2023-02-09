@@ -1,4 +1,5 @@
 require("lib.utils")
+require("lib.events")
 
 first_tick = nil
 last_tick = nil
@@ -7,14 +8,25 @@ blueprint_entity_cache = {}
 blueprint_bounding_box = {}
 construction_tasks = {}
 
+TASK_STATES = {
+    TASK_CREATED = 1,
+    READY_TO_BE_ASSIGNED = 2,
+    ASSIGNED = 3
+}
 
-function createTask(tick, player_index, ghosts)
+
+function createTask(tick, player_index, ghosts, surface)
     return {
+        id=player_index .. '_' .. tick,
         tick=tick,
         player_index=player_index,
         ghosts=ghosts,
+        surface=game.players[player_index].surface,
         bounding_box=nil,
-        subtasks=nil
+        subtasks=nil,
+        worker=nil,
+        active_subtask=nil,
+        state=TASK_STATES.TASK_CREATED
     }
 end
 
@@ -125,6 +137,45 @@ function attributeGhostsToSubtask(ghosts, subtasks)
         end
     end
     return subtasks
+end
+
+-- entirching tasks
+script.on_event(EVENTS.GHOST_CACHE_MOVED_TO_TASK, function(event)
+    local task = construction_tasks[event.task_id]
+    task.bounding_box = findBlueprintBoundigBox(task.ghosts)
+    task.state = TASK_STATES.READY_TO_BE_ASSIGNED
+    construction_tasks[event.task_id] = task
+    script.raise_event(EVENTS.TASK_READY_FOR_ASSIGNMENT, {task_id=task.id})
+    -- task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
+    -- task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
+    -- for i, st in pairs(task.subtasks) do
+    --     game.print(i)
+    --     local color = {r = math.random(), g = math.random(), b = math.random()}
+    --     hightligtBoundingBox(st.bounding_box, color)
+    --     for _, e in pairs(st.ghosts) do
+    --         hightlightEntity(e, 1, color)
+
+    --     end
+    -- end
+
+end)
+
+function findBuildingSpot(task, offset)
+    for i, subtask in pairs(task.subtasks) do
+        candidates = findNearestRails(task.surface, subtask.bounding_box, offset)
+        game.print("found " .. #candidates .. 'rails for subtask ' .. i )
+        if #candidates > 0 then
+            game.print("Testing rails for subtask " .. i)
+            for _, rail in pairs(candidates) do
+                if checkIfTrainCanGetToRail(task.worker, rail) then
+                    hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
+                    task.subtasks[i] = nil
+                    return rail
+                end
+            end
+        end
+    end
+    return nil
 end
 
  

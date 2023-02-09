@@ -14,6 +14,43 @@ TRAIN_STATES = {
     'destination_full'
 }
 
+RegistredTrainRecord = {}
+
+function RegistredTrainRecord:new(train)
+    record = {train=train, assigned=false}
+    setmetatable(record, self)
+    self.__index = self
+    return record
+end
+
+TrainRegister = {
+    available = {},
+    busy = {}
+}
+
+function TrainRegister:register_train(train)
+    table.insert(self.available, train)
+end
+
+function TrainRegister:get_free_train_and_mark_busy()
+    local train = table.remove(self.available, 1)
+    if train then
+        --train.assigned = true
+        self.busy[train.id] = train
+        return train
+    else
+        return nil
+    end
+end
+
+function TrainRegister:mark_train_free(train)
+    self.busy[train.id] = nil
+    --strain.assigned = false
+    table.insert(self.available, train)
+end
+
+
+
 function checkIfRailIsInSameRailroad(rail)
     local rail_gps_text = "at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
     for _, train in pairs(global.registred_trains) do
@@ -42,7 +79,7 @@ function makeTrainGoToRail(rail, train)
         rail=rail
     }
     new_schedule = train.schedule
-    table.insert(new_schedule.records, schedule_entry)
+    new_schedule.records = {schedule_entry}
 
     train.schedule = new_schedule
 end
@@ -69,28 +106,34 @@ function checkIfTrainCanGetToRail(train, rail)
 
     train.schedule = new_schedule
     train.recalculate_path(true)
+    local result = false
+    local gps = " at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
     if train.state == 1 or train.state == 3 then
         game.print('The rail is not accessible')
     else
         game.print('The rail is accessible, state is ' .. TRAIN_STATES[train.state + 1])
+        result = true
     end
     train.schedule = old_schedule
+    train.recalculate_path(true)
+    return result
     
 end
 
-function FindNearestRails(surface, bounding_box, search_offset)
+function findNearestRails(surface, bounding_box, search_offset)
     local search_area = {
         {bounding_box.left_top.x - search_offset, bounding_box.left_top.y - search_offset},
         {bounding_box.right_bottom.x + search_offset, bounding_box.right_bottom.y + search_offset},
     }
-    local color = {r = 1, g = 0, b = 1}
-    rendering.draw_rectangle({left_top=search_area[1], right_bottom=search_area[2], color=color, surface=surface, time_to_live=300})
+    --local color = {r = 1, g = 0, b = 1}
+    --rendering.draw_rectangle({left_top=search_area[1], right_bottom=search_area[2], color=color, surface=surface, time_to_live=300})
+
 
     local found_rails = surface.find_entities_filtered({
         name={"straight-rail", "curved-rail"},
         area = search_area,
     })
-    game.print("rails found: " .. #found_rails)
+    --game.print("rails found: " .. #found_rails)
     return found_rails
 end
 

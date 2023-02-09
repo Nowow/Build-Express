@@ -2,6 +2,7 @@ require("lib.utils")
 require("lib.trains")
 require("lib.test_buttons")
 require("lib.blueprints")
+require("lib.events")
 
 local next = next
 
@@ -35,18 +36,14 @@ function(event)
     local station = event.train.station
 
     if station ~= nil and station.name == 'test-train-stop' and global.registred_trains[train.id] == nil then
-        global.registred_trains[train.id] = train
+        TrainRegister:register_train(train)
+        --global.registred_trains[train.id] = train
         game.print('Registred train ' .. train.id)
     end
 
-    -- local registred_train_ids = {"", 'Registed trains count: '}
-    -- for unit, _ in pairs(global.registred_trains) do
-    --     table.insert(registred_train_ids, unit)
-    -- end
-    -- game.print(registred_train_ids)
-
 end
 )
+
 
 function hightlighRail(rail)
     local color = {r = 0, g = 1, b = 0}
@@ -54,6 +51,8 @@ function hightlighRail(rail)
         {rail.position.x - 1, rail.position.y - 1},
         {rail.position.x + 1, rail.position.y + 1}
     }
+    local gps = " at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
+    game.print('Hightlighted rail' .. gps)
     rendering.draw_rectangle({
         left_top=rail_box[1],
         right_bottom=rail_box[2],
@@ -117,20 +116,56 @@ script.on_nth_tick(30, function(event)
                 return
             end
             local task = createTask(tick, player_index, cache)
-            task.bounding_box = findBlueprintBoundigBox(task.ghosts)
-            task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
-            task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
-            table.insert(construction_tasks, task)
-            for i, st in pairs(task.subtasks) do
-                game.print(i)
-                local color = {r = math.random(), g = math.random(), b = math.random()}
-                hightligtBoundingBox(st.bounding_box, color)
-                for _, e in pairs(st.ghosts) do
-                    hightlightEntity(e, 1, color)
-                end
-            end
-        blueprint_entity_cache[player_index][tick] = nil
+            construction_tasks[task.id] = task
+            script.raise_event(EVENTS.GHOST_CACHE_MOVED_TO_TASK, {task_id=task.id})
+
+            -- task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
+            -- task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
+            -- for i, st in pairs(task.subtasks) do
+            --     game.print(i)
+            --     local color = {r = math.random(), g = math.random(), b = math.random()}
+            --     hightligtBoundingBox(st.bounding_box, color)
+            --     for _, e in pairs(st.ghosts) do
+            --         hightlightEntity(e, 1, color)
+
+            --     end
+            -- end
+            blueprint_entity_cache[player_index][tick] = nil
         end
     blueprint_entity_cache[player_index] = nil
     end
+end)
+
+-- assigning train to task
+script.on_event(EVENTS.TASK_READY_FOR_ASSIGNMENT, function(event)
+    local task = construction_tasks[event.task_id]
+    local worker = TrainRegister:get_free_train_and_mark_busy()
+    if not worker then
+        game.print('No workers available')
+        return
+    end
+    task.worker = worker
+    task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 50)
+    task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
+    task.state = TASK_STATES.ASSIGNED
+    construction_tasks[task.id] = task
+    script.raise_event(EVENTS.TASK_ASSIGNED, {task_id=task.id})
+    -- for i, st in pairs(task.subtasks) do
+    --     game.print(i)
+    --     local color = {r = math.random(), g = math.random(), b = math.random()}
+    --     hightligtBoundingBox(st.bounding_box, color)
+    --     for _, e in pairs(st.ghosts) do
+    --         hightlightEntity(e, 1, color)
+
+    --     end
+    -- end
+end)
+
+-- dispatch
+script.on_event(EVENTS.TASK_ASSIGNED, function(event)
+    local task = construction_tasks[event.task_id]
+    local spot = findBuildingSpot(task, 1)
+    hightlighRail(spot)
+    makeTrainGoToRail(spot, task.worker)
+
 end)
