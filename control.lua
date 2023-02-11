@@ -3,6 +3,7 @@ require("lib.trains")
 require("lib.test_buttons")
 require("lib.blueprints")
 require("lib.events")
+require("lib.construction_manager")
 
 local next = next
 
@@ -31,7 +32,7 @@ function(event)
     --local player = game.player
     --local player_position = player.position
     local train = event.train
-    PrintTrainWhereabouts(event.train)
+    --PrintTrainWhereabouts(event.train)
 
     local station = event.train.station
 
@@ -118,18 +119,6 @@ script.on_nth_tick(30, function(event)
             local task = createTask(tick, player_index, cache)
             construction_tasks[task.id] = task
             script.raise_event(EVENTS.GHOST_CACHE_MOVED_TO_TASK, {task_id=task.id})
-
-            -- task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
-            -- task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
-            -- for i, st in pairs(task.subtasks) do
-            --     game.print(i)
-            --     local color = {r = math.random(), g = math.random(), b = math.random()}
-            --     hightligtBoundingBox(st.bounding_box, color)
-            --     for _, e in pairs(st.ghosts) do
-            --         hightlightEntity(e, 1, color)
-
-            --     end
-            -- end
             blueprint_entity_cache[player_index][tick] = nil
         end
     blueprint_entity_cache[player_index] = nil
@@ -149,6 +138,7 @@ script.on_event(EVENTS.TASK_READY_FOR_ASSIGNMENT, function(event)
     task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
     task.state = TASK_STATES.ASSIGNED
     construction_tasks[task.id] = task
+    game.print('TASK_READY_FOR_ASSIGNMENT TICK ' .. game.tick)
     script.raise_event(EVENTS.TASK_ASSIGNED, {task_id=task.id})
     -- for i, st in pairs(task.subtasks) do
     --     game.print(i)
@@ -163,6 +153,7 @@ end)
 
 -- dispatch
 script.on_event(EVENTS.TASK_ASSIGNED, function(event)
+    game.print('TASK_ASSIGNED ' .. game.tick)
     local task = construction_tasks[event.task_id]
     local spot = findBuildingSpot(task, 1)
     hightlighRail(spot)

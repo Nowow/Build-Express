@@ -145,6 +145,7 @@ script.on_event(EVENTS.GHOST_CACHE_MOVED_TO_TASK, function(event)
     task.bounding_box = findBlueprintBoundigBox(task.ghosts)
     task.state = TASK_STATES.READY_TO_BE_ASSIGNED
     construction_tasks[event.task_id] = task
+    game.print('GHOST_CACHE_MOVED_TO_TASK Tick' .. game.tick)
     script.raise_event(EVENTS.TASK_READY_FOR_ASSIGNMENT, {task_id=task.id})
     -- task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
     -- task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
