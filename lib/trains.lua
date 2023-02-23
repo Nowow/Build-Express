@@ -14,42 +14,25 @@ TRAIN_STATES = {
     'destination_full'
 }
 
-RegistredTrainRecord = {}
-
-function RegistredTrainRecord:new(train)
-    record = {train=train, assigned=false}
-    setmetatable(record, self)
-    self.__index = self
-    return record
+function registerTrain(train)
+    global.train_register.available[train.id] = train
 end
 
-TrainRegister = {
-    available = {},
-    busy = {}
-}
-
-function TrainRegister:register_train(train)
-    table.insert(self.available, train)
-end
-
-function TrainRegister:get_free_train_and_mark_busy()
-    local train = table.remove(self.available, 1)
+function getFreeTrain()
+    local i, train = next(global.train_register.available)
     if train then
-        --train.assigned = true
-        self.busy[train.id] = train
+        table.remove(global.train_register.available, i)
+        global.train_register.busy[train.id] = train
         return train
     else
         return nil
     end
 end
 
-function TrainRegister:mark_train_free(train)
-    self.busy[train.id] = nil
-    --strain.assigned = false
-    table.insert(self.available, train)
+function setTrainFree(train)
+    global.train_register.busy[train.id] = nil
+    global.train_register.available[train.id] = train
 end
-
-
 
 function checkIfRailIsInSameRailroad(rail)
     local rail_gps_text = "at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'

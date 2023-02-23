@@ -5,7 +5,6 @@ first_tick = nil
 last_tick = nil
 
 blueprint_entity_cache = {}
-blueprint_bounding_box = {}
 construction_tasks = {}
 
 TASK_STATES = {
@@ -138,28 +137,6 @@ function attributeGhostsToSubtask(ghosts, subtasks)
     end
     return subtasks
 end
-
--- entirching tasks
-script.on_event(EVENTS.GHOST_CACHE_MOVED_TO_TASK, function(event)
-    local task = construction_tasks[event.task_id]
-    task.bounding_box = findBlueprintBoundigBox(task.ghosts)
-    task.state = TASK_STATES.READY_TO_BE_ASSIGNED
-    construction_tasks[event.task_id] = task
-    game.print('GHOST_CACHE_MOVED_TO_TASK Tick' .. game.tick)
-    script.raise_event(EVENTS.TASK_READY_FOR_ASSIGNMENT, {task_id=task.id})
-    -- task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 60)
-    -- task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
-    -- for i, st in pairs(task.subtasks) do
-    --     game.print(i)
-    --     local color = {r = math.random(), g = math.random(), b = math.random()}
-    --     hightligtBoundingBox(st.bounding_box, color)
-    --     for _, e in pairs(st.ghosts) do
-    --         hightlightEntity(e, 1, color)
-
-    --     end
-    -- end
-
-end)
 
 function findBuildingSpot(task, offset)
     for i, subtask in pairs(task.subtasks) do

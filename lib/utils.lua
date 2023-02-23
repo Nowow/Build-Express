@@ -59,3 +59,21 @@ function rectangleOverlapsRectangle(bb1, bb2)
     end
 
 end
+
+
+function hightlighRail(rail)
+    local color = {r = 0, g = 1, b = 0}
+    local rail_box = {
+        {rail.position.x - 1, rail.position.y - 1},
+        {rail.position.x + 1, rail.position.y + 1}
+    }
+    local gps = " at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
+    game.print('Hightlighted rail' .. gps)
+    rendering.draw_rectangle({
+        left_top=rail_box[1],
+        right_bottom=rail_box[2],
+        color=color,
+        surface=rail.surface,
+        time_to_live=300
+    })
+end
