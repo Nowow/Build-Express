@@ -10,7 +10,8 @@ construction_tasks = {}
 TASK_STATES = {
     TASK_CREATED = 1,
     READY_TO_BE_ASSIGNED = 2,
-    ASSIGNED = 3
+    ASSIGNED = 3,
+    BUILDING = 4
 }
 
 
@@ -25,6 +26,7 @@ function createTask(tick, player_index, ghosts, surface)
         subtasks=nil,
         worker=nil,
         active_subtask=nil,
+        building_spot=nil,
         state=TASK_STATES.TASK_CREATED
     }
 end
@@ -147,8 +149,9 @@ function findBuildingSpot(task, offset)
             for _, rail in pairs(candidates) do
                 if checkIfTrainCanGetToRail(task.worker, rail) then
                     hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
-                    task.subtasks[i] = nil
-                    return rail
+                    task.active_subtask_index = i
+                    task.building_spot = rail
+                    return task
                 end
             end
         end
