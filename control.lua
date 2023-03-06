@@ -47,8 +47,8 @@ function(event)
 
     if 
         station ~= nil and station.name == 'test-train-stop' 
-        and global.registred_trains.available[train.id] == nil
-        and global.registred_trains.busy[train.id] == nil
+        and global.train_register.available[train.id] == nil
+        and global.train_register.busy[train.id] == nil
     then
         registerTrain(train)
         game.print('Registred train ' .. train.id)

@@ -74,8 +74,8 @@ script.on_nth_tick(33, function(event)
     else
         game.print("found no spot")
     end
-    hightlighRail(spot)
-    makeTrainGoToRail(spot, task.worker)
+    hightlighRail(task.building_spot)
+    makeTrainGoToRail(task.building_spot, task.worker)
     task.state = TASK_STATES.BUILDING
     task.timer_tick = game.tick
     global.construction_tasks.ASSIGNED[task.id] = nil
@@ -90,7 +90,7 @@ script.on_nth_tick(34, function(event)
         return
     end
 
-    local _, task = next(global.construction_tasks.ASSIGNED)
+    local _, task = next(global.construction_tasks.BUILDING)
 
     -- hard timeout if task cound not be completed
     if task.timer_tick ~= nil then
