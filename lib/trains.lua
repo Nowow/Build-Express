@@ -63,7 +63,8 @@ function makeTrainGoToRail(rail, train)
         wait_conditions={
             {
                 type='time',
-                ticks=36000
+                ticks=36000,
+                compare_type='and'
             }
         }
     }
