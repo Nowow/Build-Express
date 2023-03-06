@@ -94,7 +94,7 @@ script.on_nth_tick(34, function(event)
 
     -- hard timeout if task cound not be completed
     if task.timer_tick ~= nil then
-        if (game.tick - task.timer_tick) > 7.200 then
+        if (game.tick - task.timer_tick) > 7200 then
             game.print("TIMEOUT FOR TASK " .. task.id)
         end
     end
