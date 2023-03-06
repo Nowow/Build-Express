@@ -59,7 +59,13 @@ end
 
 function makeTrainGoToRail(rail, train)
     schedule_entry = {
-        rail=rail
+        rail=rail,
+        wait_conditions={
+            {
+                type='time',
+                ticks=36000
+            }
+        }
     }
     new_schedule = train.schedule
     new_schedule.records = {new_schedule.records[1], schedule_entry}
