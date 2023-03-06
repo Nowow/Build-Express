@@ -58,16 +58,6 @@ script.on_nth_tick(32, function(event)
     task.state = TASK_STATES.ASSIGNED
     global.construction_tasks.UNASSIGNED[task.id] = nil
     global.construction_tasks.ASSIGNED[task.id] = task
-    -- script.raise_event(EVENTS.TASK_ASSIGNED, {task_id=task.id})
-    -- for i, st in pairs(task.subtasks) do
-    --     game.print(i)
-    --     local color = {r = math.random(), g = math.random(), b = math.random()}
-    --     hightligtBoundingBox(st.bounding_box, color)
-    --     for _, e in pairs(st.ghosts) do
-    --         hightlightEntity(e, 1, color)
-
-    --     end
-    -- end
 end) 
 
 ---- building loop ----
@@ -122,18 +112,23 @@ script.on_nth_tick(34, function(event)
 
     end
 
-    -- removing subtask and resetting task to ASSIGNED to repeat the loop
+    -- removing subtask and either restarting loop or task is finished
     if subtask_finished then
         table.remove(task.subtasks, task.active_subtask_index)
         task.active_subtask_index = nil
         task.building_spot = nil
         task.timer_tick = nil
-        task.state = TASK_STATES.ASSIGNED
         global.construction_tasks.BUILDING[task.id] = nil
-        global.construction_tasks.ASSIGNED[task.id] = task
+
+        if next(task.subtasks) == nil then
+            -- task is finished, sending back to depot
+            -- temp func
+            makeTrainGoToDepot(task.worker)
+        else
+            -- rerun loop, complete new subtask
+            task.state = TASK_STATES.ASSIGNED
+            global.construction_tasks.ASSIGNED[task.id] = task
+        end
     end
-
-    
-
 end)
 
