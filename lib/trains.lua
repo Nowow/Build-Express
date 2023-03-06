@@ -62,8 +62,15 @@ function makeTrainGoToRail(rail, train)
         rail=rail
     }
     new_schedule = train.schedule
-    new_schedule.records = {schedule_entry}
+    new_schedule.records = table.insert(new_schedule.records, schedule_entry)
+    new_schedule.current = #new_schedule + 1  -- may be bugs
 
+    train.schedule = new_schedule
+end
+
+function makeTrainGoToDepot(train)
+    new_schedule = train.schedule
+    table.remove(new_schedule.records, #new_schedule)
     train.schedule = new_schedule
 end
 
