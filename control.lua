@@ -89,7 +89,7 @@ script.on_event("test-custom-hotkey", function(event)
         --PrintSelectedBlueprintName(event)
     
         --PrintEntityCollisionMasks(selected_entity)
-    
+        
         --CheckIfRailsIsAccessible(selected_entity)
     
         -- makeRegistredTrainsGoToRail(selected_entity)

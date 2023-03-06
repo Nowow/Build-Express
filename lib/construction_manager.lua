@@ -10,6 +10,8 @@ script.on_nth_tick(30, function(event)
     if next(blueprint_entity_cache) == nil then
         return
     end
+
+    log('Reached task assembler')
     
     for player_index, tick_cache in pairs(blueprint_entity_cache) do
         for tick, cache in pairs(tick_cache) do
@@ -30,6 +32,8 @@ script.on_nth_tick(31, function(event)
     if next(global.construction_tasks.NEW) == nil then
         return
     end
+
+    log('Reached NEW handler')
     
     local _, task = next(global.construction_tasks.NEW)
     task.bounding_box = findBlueprintBoundigBox(task.ghosts)
@@ -46,6 +50,8 @@ script.on_nth_tick(32, function(event)
         return
     end
     
+    log('Reached UNASSIGNED handler')
+
     local _, task = next(global.construction_tasks.UNASSIGNED)
     local worker = getFreeTrain()
     if not worker then
@@ -67,6 +73,7 @@ script.on_nth_tick(33, function(event)
         return
     end
 
+    log('Reached ASSIGNED handler')
     
     local _, task = next(global.construction_tasks.ASSIGNED)
     local modified_task = findBuildingSpot(task, 1)
@@ -90,6 +97,9 @@ script.on_nth_tick(34, function(event)
         return
     end
 
+    log('Reached BUILDING handler')
+    
+
     local _, task = next(global.construction_tasks.BUILDING)
 
     -- hard timeout if task cound not be completed
@@ -101,16 +111,22 @@ script.on_nth_tick(34, function(event)
 
     -- checking if active subtask has valid ghosts
     local subtask = task.subtasks[task.active_subtask_index]
-    local subtask_finished = false
+    hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
+    local subtask_finished = true
     for j, ghost in pairs(subtask.ghosts) do
-        if not ghost.valid then
-            table.remove(subtask.ghosts, j)
-        else
-            subtask_finished = true
+        if ghost.valid then
+            --log('found valid ghost')
+            --hightlightEntity(ghost, 1, {r = math.random(), g = math.random(), b = math.random()})
+            subtask_finished = false
             break
+        else
+            log('removed invalidated entity')
+            hightlightEntity(ghost, 1, {r = math.random(), g = math.random(), b = math.random()})
+            table.remove(subtask.ghosts, j)
         end
-
     end
+
+    log('subtask_finished is ' .. serpent.block(subtask_finished))
 
     -- removing subtask and either restarting loop or task is finished
     if subtask_finished then
