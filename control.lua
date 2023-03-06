@@ -17,7 +17,9 @@ function initGlobal()
     if not global.construction_tasks then
 		global.construction_tasks = {
             NEW = {},
-            UNASSIGNED = {}
+            UNASSIGNED = {},
+            ASSIGNED = {},
+            BUILDING = {},
         }
 	end
 end 
@@ -74,15 +76,6 @@ script.on_event(defines.events.on_built_entity, function(event)
 end, {{filter = "ghost"}})
 
 
--- dispatch
-script.on_event(EVENTS.TASK_ASSIGNED, function(event)
-    game.print('TASK_ASSIGNED ' .. game.tick)
-    local task = construction_tasks[event.task_id]
-    local spot = findBuildingSpot(task, 1)
-    hightlighRail(spot)
-    makeTrainGoToRail(spot, task.worker)
-
-end)
 
 
 -- user triggered keyboard shortcut
