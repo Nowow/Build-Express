@@ -80,6 +80,7 @@ script.on_nth_tick(33, function(event)
     if modified_task ~= nil then task = modified_task
     else
         game.print("found no spot")
+        return
     end
     hightlighRail(task.building_spot)
     makeTrainGoToRail(task.building_spot, task.worker)
@@ -115,13 +116,10 @@ script.on_nth_tick(34, function(event)
     local subtask_finished = true
     for j, ghost in pairs(subtask.ghosts) do
         if ghost.valid then
-            --log('found valid ghost')
-            --hightlightEntity(ghost, 1, {r = math.random(), g = math.random(), b = math.random()})
             subtask_finished = false
             break
         else
             log('removed invalidated entity')
-            hightlightEntity(ghost, 1, {r = math.random(), g = math.random(), b = math.random()})
             table.remove(subtask.ghosts, j)
         end
     end
