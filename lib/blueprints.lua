@@ -142,18 +142,25 @@ end
 
 function findBuildingSpot(task, offset)
     for i, subtask in pairs(task.subtasks) do
-        candidates = findNearestRails(task.surface, subtask.bounding_box, offset)
-        game.print("found " .. #candidates .. 'rails for subtask ' .. i )
-        if #candidates > 0 then
-            game.print("Testing rails for subtask " .. i)
-            for _, rail in pairs(candidates) do
-                if checkIfTrainCanGetToRail(task.worker, rail) then
-                    hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
-                    task.active_subtask_index = i
-                    task.building_spot = rail
-                    return task
+
+        if next(subtask.ghosts) ~= nil then
+
+            candidates = findNearestRails(task.surface, subtask.bounding_box, offset)
+            game.print("found " .. #candidates .. 'rails for subtask ' .. i )
+            if #candidates > 0 then
+                game.print("Testing rails for subtask " .. i)
+                for _, rail in pairs(candidates) do
+                    if checkIfTrainCanGetToRail(task.worker, rail) then
+                        hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
+                        task.active_subtask_index = i
+                        task.building_spot = rail
+                        return task
+                    end
                 end
             end
+
+        else
+            task.subtasks[i] = nil
         end
     end
     return nil
