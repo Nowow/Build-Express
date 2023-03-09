@@ -137,9 +137,11 @@ script.on_nth_tick(34, function(event)
         if next(task.subtasks) == nil then
             -- task is finished, sending back to depot
             -- temp func
+            log("Sending worker back to depot")
             makeTrainGoToDepot(task.worker)
         else
             -- rerun loop, complete new subtask
+            log("Looping task back to ASSIGNED")
             task.state = TASK_STATES.ASSIGNED
             global.construction_tasks.ASSIGNED[task.id] = task
         end
