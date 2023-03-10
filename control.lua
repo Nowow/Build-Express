@@ -4,6 +4,7 @@ require("lib.test_buttons")
 require("lib.blueprints")
 require("lib.events")
 require("lib.construction_manager")
+require("lib.gui")
 
 local next = next
 
