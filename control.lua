@@ -23,6 +23,34 @@ function initGlobal()
             BUILDING = {},
         }
 	end
+    if not global.gui_player_info then
+        global.gui_player_info = {}
+    end
+    for i, p in pairs(game.players) do
+        if not global.gui_player_info[i] then
+            global.gui_player_info[i] = {
+                -- gui vars go here
+                gui_created=false,
+            }
+        end
+
+        if not global.gui_player_info[i].gui_created then
+
+            -- mod-gui gutton 
+            local button_flow = mod_gui.get_button_flow(p)
+            button_flow.add{type="sprite-button", name="buex_open_gui", sprite="item/locomotive", style=mod_gui.button_style}
+        
+            createTestWidget(i)
+
+            global.gui_player_info[i].gui_created = true
+
+        end
+
+    end
+
+    
+    
+
 end 
 
 script.on_configuration_changed(function(data)
@@ -31,6 +59,15 @@ end)
 
 script.on_init(function()
 	initGlobal()
+end)
+
+script.on_event(defines.events.on_player_created, function(event)
+    if not global.gui_player_info then
+        global.gui_player_info = {}
+    end
+    if not global.gui_player_info[event.player_index] then
+        global.gui_player_info[event.player_index] = {}
+    end
 end)
 
 
@@ -83,8 +120,7 @@ end, {{filter = "ghost"}})
 script.on_event("test-custom-hotkey", function(event)
     if event then
     
-        HightlightCachedEntities(blueprint_entity_cache)
-        findBlueprintBoundigBox(blueprint_entity_cache)
+        initGlobal()
     
         
         --PrintSelectedBlueprintName(event)
