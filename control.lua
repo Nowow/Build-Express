@@ -36,16 +36,16 @@ function initGlobal()
 
         if not global.gui_player_info[i].gui_created then
 
-            -- mod-gui gutton 
-            local button_flow = mod_gui.get_button_flow(p)
-            button_flow.add{type="sprite-button", name="buex_open_gui", sprite="item/locomotive", style=mod_gui.button_style}
+        -- mod-gui gutton 
+        local button_flow = mod_gui.get_button_flow(p)
+        button_flow.add{type="sprite-button", name="buex_open_gui", sprite="item/locomotive", style=mod_gui.button_style}
         
-            createTestWidget(i)
+        createTestWidget(i)
 
-            global.gui_player_info[i].gui_created = true
+        global.gui_player_info[i].gui_created = true
 
         end
-
+        
     end
 
     
@@ -60,6 +60,10 @@ end)
 script.on_init(function()
 	initGlobal()
 end)
+
+-- script.on_event(defines.events.on_tick, function(event)
+-- 	update_cam_position()
+-- end)
 
 script.on_event(defines.events.on_player_created, function(event)
     if not global.gui_player_info then

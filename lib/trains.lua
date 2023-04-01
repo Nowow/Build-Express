@@ -29,7 +29,7 @@ function getFreeTrain()
     end
 end
 
-function setTrainFree(train)
+function releaseTrain(train)
     global.train_register.busy[train.id] = nil
     global.train_register.available[train.id] = train
 end

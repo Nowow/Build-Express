@@ -2,6 +2,7 @@ require("lib.utils")
 require("lib.trains")
 require("lib.blueprints")
 require("lib.events")
+require("lib.gui")
 
 local next = next
 
@@ -11,7 +12,7 @@ script.on_nth_tick(30, function(event)
         return
     end
 
-    log('Reached task assembler')
+    log('Reached task assembl er')
     
     for player_index, tick_cache in pairs(blueprint_entity_cache) do
         for tick, cache in pairs(tick_cache) do
@@ -20,7 +21,7 @@ script.on_nth_tick(30, function(event)
             end
             local task = createTask(tick, player_index, cache)
             global.construction_tasks.NEW[task.id] = task
-            --script.raise_event(EVENTS.GHOST_CACHE_MOVED_TO_TASK, {task_id=task.id})
+            update_task_frame(task)
             blueprint_entity_cache[player_index][tick] = nil
         end
     blueprint_entity_cache[player_index] = nil
@@ -40,7 +41,7 @@ script.on_nth_tick(31, function(event)
     task.state = TASK_STATES.READY_TO_BE_ASSIGNED
     global.construction_tasks.NEW[task.id] = nil
     global.construction_tasks.UNASSIGNED[task.id] = task
-    --script.raise_event(EVENTS.TASK_READY_FOR_ASSIGNMENT, {task_id=task.id})
+    update_task_frame(task)
 
 end)
 
@@ -61,9 +62,12 @@ script.on_nth_tick(32, function(event)
     task.worker = worker
     task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 50)
     task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
+    task.subtask_count = #task.subtasks
     task.state = TASK_STATES.ASSIGNED
     global.construction_tasks.UNASSIGNED[task.id] = nil
     global.construction_tasks.ASSIGNED[task.id] = task
+    update_task_frame(task)
+
 end) 
 
 ---- building loop ----
@@ -88,6 +92,7 @@ script.on_nth_tick(33, function(event)
     task.timer_tick = game.tick
     global.construction_tasks.ASSIGNED[task.id] = nil
     global.construction_tasks.BUILDING[task.id] = task
+    update_task_frame(task)
 
 end)
 
@@ -106,7 +111,7 @@ script.on_nth_tick(34, function(event)
     -- hard timeout if task cound not be completed
     if task.timer_tick ~= nil then
         if (game.tick - task.timer_tick) > 7200 then
-            game.print("TIMEOUT FOR TASK " .. task.id)
+            game.print("TIMEOUT FOR TASK " .. task.id) -- TODO timeout logic
         end
     end
 
@@ -133,17 +138,22 @@ script.on_nth_tick(34, function(event)
         task.building_spot = nil
         task.timer_tick = nil
         global.construction_tasks.BUILDING[task.id] = nil
+        
 
         if next(task.subtasks) == nil then
             -- task is finished, sending back to depot
             -- temp func
             log("Sending worker back to depot")
+            releaseTrain(task.worker)
             makeTrainGoToDepot(task.worker)
+            update_task_frame(task, true)
+            global.construction_tasks.BUILDING[task.id] = nil
         else
             -- rerun loop, complete new subtask
             log("Looping task back to ASSIGNED")
             task.state = TASK_STATES.ASSIGNED
             global.construction_tasks.ASSIGNED[task.id] = task
+            update_task_frame(task)
         end
     end
 end)

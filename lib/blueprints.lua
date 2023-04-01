@@ -8,14 +8,14 @@ blueprint_entity_cache = {}
 construction_tasks = {}
 
 TASK_STATES = {
-    TASK_CREATED = 1,
-    READY_TO_BE_ASSIGNED = 2,
-    ASSIGNED = 3,
-    BUILDING = 4
+    TASK_CREATED = 'buex.task_state_created',
+    READY_TO_BE_ASSIGNED = 'buex.task_state_ready_to_be_assigned',
+    ASSIGNED = 'buex.task_state_assigned',
+    BUILDING = 'buex.task_state_building'
 }
 
 
-function createTask(tick, player_index, ghosts, surface)
+function createTask(tick, player_index, ghosts)
     return {
         id=player_index .. '_' .. tick,
         tick=tick,
@@ -27,7 +27,7 @@ function createTask(tick, player_index, ghosts, surface)
         worker=nil,
         active_subtask=nil,
         building_spot=nil,
-        state=TASK_STATES.TASK_CREATED
+        state=TASK_STATES.TASK_CREATED,
     }
 end
 
