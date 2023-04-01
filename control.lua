@@ -123,8 +123,10 @@ end, {{filter = "ghost"}})
 -- user triggered keyboard shortcut
 script.on_event("test-custom-hotkey", function(event)
     if event then
-    
+
         initGlobal()
+    
+        --create_entity_cam(event)
     
         
         --PrintSelectedBlueprintName(event)
