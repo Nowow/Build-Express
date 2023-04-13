@@ -65,7 +65,7 @@ function createTestWidget(player_index)
     main_frame.style.maximal_width  = 1000
     main_frame.style.minimal_height = 200
     main_frame.style.maximal_height = 600
-    main_frame.style.natural_width  = 900
+    main_frame.style.natural_width  = 500
     main_frame.style.natural_height = 400
 
     main_frame.auto_center = true
@@ -74,8 +74,8 @@ function createTestWidget(player_index)
     -- tabs
     local tabs = main_frame.add{type="tabbed-pane", name="buex_gui_tabs"}
     ---- worker tab
-    local workers_tab = tabs.add{type="tab", name="buex_workers_tab", caption={"buex.workers_tab_caption"}}
-    local workers_scroll_pane = tabs.add{type="scroll-pane", name="buex_workers_scroll_pane", caption={"buex.workers_scroll_pane_caption"}}
+    --local workers_tab = tabs.add{type="tab", name="buex_workers_tab", caption={"buex.workers_tab_caption"}}
+    --local workers_scroll_pane = tabs.add{type="scroll-pane", name="buex_workers_scroll_pane", caption={"buex.workers_scroll_pane_caption"}}
     ---- blueprints tab
     local blueprints_tab = tabs.add{type="tab", name="buex_blueprints_tab", caption={"buex.blueprints_tab_caption"}}
     local blueprints_scroll_pane = tabs.add{type="scroll-pane", name="buex_blueprints_scroll_pane", caption={"buex.blueprints_scroll_pane_caption"}}
@@ -84,15 +84,9 @@ function createTestWidget(player_index)
     local tasks_scroll_pane = tabs.add{type="scroll-pane", name="buex_tasks_scroll_pane", caption={"buex.tasks_scroll_pane_caption"}}
     tasks_scroll_pane.add{type="flow", name="buex_tasks_flow", direction="horizontal"}
 
-    tabs.add_tab(workers_tab, workers_scroll_pane)
+    --tabs.add_tab(workers_tab, workers_scroll_pane)
     tabs.add_tab(blueprints_tab, blueprints_scroll_pane)
     tabs.add_tab(tasks_tab, tasks_scroll_pane)
-
-    for j = 1, 10 do
-        workers_scroll_pane.add{
-            type="frame", caption=j
-        }
-    end
 
 end
 
@@ -112,38 +106,56 @@ end
 
 function createTaskFrame(task, task_flow)
 
-    local task_frame = task_flow.add{name="buex_task_frame_" .. task.id, type="frame", caption=task.id, direction="horizontal"}
+    local task_frame = task_flow.add{type="frame", name="buex_task_frame_".. task.id}
+    task_frame.style.height = 70
+    task_frame.style.width = 500
 
-    task_frame.style.height = 100
-    task_frame.style.width = 900
+    local task_table = task_frame.add{
+        name="buex_task_table_" .. task.id, type="table",
+        caption=task.id, column_count=2
+    }
+
+    task_table.style.cell_padding = 2
+    task_table.style.horizontal_spacing = 1
+    task_table.style.vertical_spacing = 1
+    
 
     --task state
-    task_frame.add{type="label", caption={"buex.task_state_caption"}}
-    task_frame.add{type="label", caption={task.state}}
-    task_frame.add{type="line", direction="vertical"}
+    local state_flow = task_table.add{type="flow", direction="horizontal"}
+    state_flow.style.height = 28
+    state_flow.style.width = 245
+    state_flow.style.horizontal_align = 'center'
+    
+
+
+    state_flow.add{type="label", caption="Task state: " .. task.state}
     
     -- recipie name
-    task_frame.add{type="label", caption="Blueprint: " .. task.blueprint_label}
-    task_frame.add{type="line", direction="vertical"}
+    local recipie_flow = task_table.add{type="flow", direction="horizontal"}
+    recipie_flow.style.height = 28
+    recipie_flow.style.width = 245
+    recipie_flow.style.horizontal_align = 'center'
+    recipie_flow.add{type="label", caption="Blueprint: " .. task.blueprint_label}
 
     --task worker
-    
-        task_frame.add{type="label", caption={"buex.task_worker_caption"}}
+    local worker_flow = task_table.add{type="flow", direction="horizontal"}
+    worker_flow.style.height = 28
+    worker_flow.style.width = 245
+    worker_flow.style.horizontal_align = 'center'
     if task.worker ~= nil then
-        task_frame.add{type="label", caption=task.worker.id}
-        local camera = task_frame.add{type="camera", position=task. worker.front_stock.position}
-        camera.entity = task.worker.front_stock
-
+        worker_flow.add{type="label", caption="Task worker: " .. task.worker.id}
+        local camera = worker_flow.add{type="camera", position=game.get_player(1).character.position}
+        camera.entity = game.get_player(1).character
     else
-        task_frame.add{type="label", caption='Not assigned'}
+        worker_flow.add{type="label", caption='Task worker: Not assigned'}
     end
-    task_frame.add{type="line", direction="vertical"}
-
-    
 
     --task progress
     local progress = 0.0
-    task_frame.add{type="label", caption="Task progress:"}
+    local progress_flow = task_table.add{type="flow", direction='horizontal'}
+    progress_flow.style.height = 28
+    progress_flow.style.width = 245
+    progress_flow.style.horizontal_align = 'center'
     
     if task.subtasks ~= nil then
         progress = (1.0 - (table_size(task.subtasks))/task.subtask_count)
@@ -153,8 +165,8 @@ function createTaskFrame(task, task_flow)
     else
         progress = 0.5
     end
-    task_frame.add{type="progressbar", name='progress_bar', value=progress}
-    task_frame.progress_bar.value = progress
+    progress_flow.add{type="progressbar", name='progress_bar', value=progress}
+    progress_flow.progress_bar.value = progress
 
 end
 
