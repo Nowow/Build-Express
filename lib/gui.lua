@@ -6,7 +6,7 @@ local cam = {}
 -- function create_entity_cam(event)
 --     game.print('asdassaasas')
 --     local selected_entity = game.players[event.player_index].selected
---     game.print("selected entity " .. selected_entity.prototype.name)
+--     game.print("selected entity " .. selected_entity.prototype.name)w
 --     game.print(" at [gps=" .. selected_entity.position.x .. "," .. selected_entity.position.y .. ']')
 --     local screen_element = get_player_screen(event.player_index)
 
@@ -59,7 +59,15 @@ function createTestWidget(player_index)
 
     -- main frame
     local main_frame = screen_element.add{type="frame", name="buex_main_frame", caption={"buex.gui_caption"}}
-    main_frame.style.size = {1000, 300}
+    --main_frame.style.size = {600, 300}
+
+    main_frame.style.minimal_width  = 400
+    main_frame.style.maximal_width  = 1000
+    main_frame.style.minimal_height = 200
+    main_frame.style.maximal_height = 600
+    main_frame.style.natural_width  = 900
+    main_frame.style.natural_height = 400
+
     main_frame.auto_center = true
     main_frame.visible = false
 
@@ -88,6 +96,20 @@ function createTestWidget(player_index)
 
 end
 
+function createBlueprintFrames(player_index)
+    local blueprints_scroll_pane = get_player_screen(player_index).buex_main_frame.buex_gui_tabs.buex_blueprints_scroll_pane
+    blueprints_scroll_pane.clear()
+    for recipie, stations in pairs(global.worker_station_register) do
+       local b_frame = blueprints_scroll_pane.add{type="frame", name="buex_recipies_"..recipie}
+       b_frame.style.height = 40
+       b_frame.style.width = 500
+
+       b_frame.add{type="label", caption="Recipie: " .. recipie}
+       b_frame.add{type="line", direction="vertical"}
+       b_frame.add{type="label", caption="count: " .. table_size(stations)}
+    end
+end
+
 function createTaskFrame(task, task_flow)
 
     local task_frame = task_flow.add{name="buex_task_frame_" .. task.id, type="frame", caption=task.id, direction="horizontal"}
@@ -99,6 +121,10 @@ function createTaskFrame(task, task_flow)
     task_frame.add{type="label", caption={"buex.task_state_caption"}}
     task_frame.add{type="label", caption={task.state}}
     task_frame.add{type="line", direction="vertical"}
+    
+    -- recipie name
+    task_frame.add{type="label", caption="Blueprint: " .. task.blueprint_label}
+    task_frame.add{type="line", direction="vertical"}
 
     --task worker
     
@@ -109,21 +135,26 @@ function createTaskFrame(task, task_flow)
         camera.entity = task.worker.front_stock
 
     else
-        task_frame.add{type="label", caption='NONE'}
+        task_frame.add{type="label", caption='Not assigned'}
     end
     task_frame.add{type="line", direction="vertical"}
 
+    
+
     --task progress
+    local progress = 0.0
     task_frame.add{type="label", caption="Task progress:"}
+    
     if task.subtasks ~= nil then
-        local progress = (1.0 - (#task.subtasks)/task.subtask_count)
+        progress = (1.0 - (table_size(task.subtasks))/task.subtask_count)
         game.print("PROGRESS IS "..progress)
-        game.print("#subtasks: " .. #task.subtasks)
+        game.print("#subtasks: " .. table_size(task.subtasks))
         game.print("subtask_count: " .. task.subtask_count)
     else
-        local progress = 0.5
+        progress = 0.5
     end
-    task_frame.add{type="progressbar", name='sdfdsfdsdfs', value=progress}
+    task_frame.add{type="progressbar", name='progress_bar', value=progress}
+    task_frame.progress_bar.value = progress
 
 end
 

@@ -3,6 +3,7 @@ require("lib.trains")
 require("lib.blueprints")
 require("lib.events")
 require("lib.gui")
+require("lib.station_manager")
 
 local next = next
 
@@ -12,17 +13,22 @@ script.on_nth_tick(30, function(event)
         return
     end
 
-    log('Reached task assembl er')
+    log('Reached task assembler')
     
-    for player_index, tick_cache in pairs(blueprint_entity_cache) do
-        for tick, cache in pairs(tick_cache) do
-            if tick == event.tick then
-                return
+    for player_index, blueprint_cache in pairs(blueprint_entity_cache) do
+        
+        for blueprint_label, tick_cache in pairs(blueprint_cache) do
+
+            for tick, cache in pairs(tick_cache) do
+                if tick == event.tick then
+                    return
+                end
+                local task = createTask(tick, player_index, blueprint_label, cache)
+                global.construction_tasks.NEW[task.id] = task
+                update_task_frame(task)
+                blueprint_entity_cache[player_index][blueprint_label][tick] = nil
             end
-            local task = createTask(tick, player_index, cache)
-            global.construction_tasks.NEW[task.id] = task
-            update_task_frame(task)
-            blueprint_entity_cache[player_index][tick] = nil
+            blueprint_entity_cache[player_index][blueprint_label] = nil
         end
     blueprint_entity_cache[player_index] = nil
     end
@@ -54,7 +60,7 @@ script.on_nth_tick(32, function(event)
     log('Reached UNASSIGNED handler')
 
     local _, task = next(global.construction_tasks.UNASSIGNED)
-    local worker = getFreeTrain()
+    local worker = getWorker(task.blueprint_label)
     if not worker then
         game.print('No workers available')
         return

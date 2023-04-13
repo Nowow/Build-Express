@@ -14,6 +14,29 @@ TRAIN_STATES = {
     'destination_full'
 }
 
+
+function getWorker(blueprint_name)
+    if blueprint_name ~= nil then
+        local i, station = next(global.worker_station_register[blueprint_name])
+        if station and station.valid then
+            table.remove(global.train_register.available, i)
+            local train = station.get_stopped_train()
+            if train ~= nil then
+                game.print("TRAIN IS NOT NIL")
+                local control = station.get_control_behavior()
+                if control and control.valid and not control.disabled then
+                    game.print("STATION ENABLED")
+                    return train
+                end
+            end
+            
+        else
+            return nil
+        end
+    end
+end 
+
+
 function registerTrain(train)
     global.train_register.available[train.id] = train
 end

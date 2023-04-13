@@ -1,9 +1,6 @@
 require("lib.utils")
 require("lib.events")
 
-first_tick = nil
-last_tick = nil
-
 blueprint_entity_cache = {}
 construction_tasks = {}
 
@@ -15,11 +12,12 @@ TASK_STATES = {
 }
 
 
-function createTask(tick, player_index, ghosts)
+function createTask(tick, player_index, blueprint_label, ghosts)
     return {
         id=player_index .. '_' .. tick,
         tick=tick,
         player_index=player_index,
+        blueprint_label=blueprint_label,
         ghosts=ghosts,
         surface=game.players[player_index].surface,
         bounding_box=nil,

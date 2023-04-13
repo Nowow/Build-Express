@@ -26,9 +26,3 @@ function PrintSelectedBlueprintName(event)
 
 end
 
-function PrintFirstLastTick(event)
-    game.print("First tick is " .. first_tick)
-    game.print("Last tick is " .. last_tick)
-    first_tick = nil
-    last_tick = nil
-end

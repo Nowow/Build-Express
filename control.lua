@@ -5,16 +5,22 @@ require("lib.blueprints")
 require("lib.events")
 require("lib.construction_manager")
 require("lib.gui")
+require("lib.station_manager")
 
 local next = next
 
 function initGlobal()
+
+    -- probably deprecated
 	if not global.train_register then
 		global.train_register = {
             available = {},
             busy = {}
         }
 	end
+
+    initWorkerStationRegister()
+
     if not global.construction_tasks then
 		global.construction_tasks = {
             NEW = {},
@@ -78,45 +84,90 @@ end)
 -- registring trains to a dispatch system
 -- TODO: unregistrer trains, check if .valid
 
-script.on_event(defines.events.on_train_changed_state,
-function(event)
-    --local player = game.player
-    --local player_position = player.position
-    local train = event.train
-    --PrintTrainWhereabouts(event.train)
+-- script.on_event(defines.events.on_train_changed_state,
+-- function(event)
+--     --local player = game.player
+--     --local player_position = player.position
+--     local train = event.train
+--     --PrintTrainWhereabouts(event.train)
 
-    local station = event.train.station
+--     local station = event.train.station
 
-    if 
-        station ~= nil and station.name == 'test-train-stop' 
-        and global.train_register.available[train.id] == nil
-        and global.train_register.busy[train.id] == nil
-    then
-        registerTrain(train)
-        game.print('Registred train ' .. train.id)
+--     if 
+--         station ~= nil and station.name == 'test-train-stop' 
+--         and global.train_register.available[train.id] == nil
+--         and global.train_register.busy[train.id] == nil
+--     then
+--         registerTrain(train)
+--         game.print('Registred train ' .. train.id)
+--     end
+
+-- end
+-- )
+
+-- when a train station is destroyed
+script.on_event(defines.events.on_entity_renamed, function(event)
+
+    local entity = event.entity
+    if event.entity.name == 'test-train-stop' then
+        unregisterWorkerStation(entity.backer_name, entity)
+        createBlueprintFrames(event.player_index)
     end
 
-end
-)
+end)
+
+-- when a train station is renamed
+script.on_event(defines.events.on_entity_renamed, function(event)
+
+    local entity = event.entity
+    if entity.name == 'test-train-stop' then
+        game.print("STATION NAME CHANGED FROM " .. event.old_name .. ' TO ' .. event.entity.backer_name)
+
+        unregisterWorkerStation(event.old_name, entity)
+        registerWorkerStation(entity)
+        createBlueprintFrames(event.player_index)
+        
+    end
+
+end)
 
 script.on_event(defines.events.on_built_entity, function(event)
 
-    --hightlightEntity(e)
-    
-    if game.players[event.player_index].is_cursor_blueprint() then
-        local event_tick = event.tick
-        local player_index = event.player_index
-        if not blueprint_entity_cache[player_index] then
-            blueprint_entity_cache[player_index] = {}
-        end
-        if not blueprint_entity_cache[player_index][event_tick] then
-            blueprint_entity_cache[player_index][event_tick] = {}
-        end
-        table.insert(blueprint_entity_cache[player_index][event_tick], event.created_entity)
+
+    if event.created_entity.prototype.name == 'test-train-stop' then
+
+        local entity = event.created_entity
+
+        registerWorkerStation(entity)
+        createBlueprintFrames(event.player_index)
+        return
+
     end
     
-end, {{filter = "ghost"}})
+    if game.players[event.player_index].is_cursor_blueprint() then
+        local stack = game.get_player(event.player_index).cursor_stack
+        if stack.valid_for_read then
+            local blueprint_label = stack.label
+            local event_tick = event.tick
+            local player_index = event.player_index
+            if not blueprint_entity_cache[player_index] then
+                blueprint_entity_cache[player_index] = {}
+            end
+            if not blueprint_entity_cache[player_index][blueprint_label] then
+                blueprint_entity_cache[player_index][blueprint_label] = {}
+            end
+            if not blueprint_entity_cache[player_index][blueprint_label][event_tick] then
+                blueprint_entity_cache[player_index][blueprint_label][event_tick] = {}
+            end
+            table.insert(blueprint_entity_cache[player_index][blueprint_label][event_tick], event.created_entity)
+        end
+    end
+    
+end, {{filter = "ghost"}, {filter = 'name', name = 'test-train-stop'}})
 
+script.on_event(defines.events.on_player_setup_blueprint, function(e)
+    game.print("THAT EVENT FIRED")
+end)
 
 
 
@@ -124,12 +175,12 @@ end, {{filter = "ghost"}})
 script.on_event("test-custom-hotkey", function(event)
     if event then
 
-        initGlobal()
+       
     
         --create_entity_cam(event)
     
         
-        --PrintSelectedBlueprintName(event)
+        PrintSelectedBlueprintName(event)
     
         --PrintEntityCollisionMasks(selected_entity)
         
