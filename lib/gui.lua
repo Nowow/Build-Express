@@ -106,7 +106,7 @@ end
 
 function createTaskFrame(task, task_flow)
 
-    local task_frame = task_flow.add{type="frame", name="buex_task_frame_".. task.id}
+    local task_frame = task_flow.add{type="frame", name="buex_task_frame_".. task.id, direction="horizontal"}
     task_frame.style.height = 70
     task_frame.style.width = 500
 
