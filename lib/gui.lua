@@ -138,17 +138,17 @@ function createTaskFrame(task, task_flow)
     recipie_flow.add{type="label", caption="Blueprint: " .. task.blueprint_label}
 
     --task worker
-    local worker_flow = task_table.add{type="flow", direction="horizontal"}
-    worker_flow.style.height = 28
-    worker_flow.style.width = 245
-    worker_flow.style.horizontal_align = 'center'
-    if task.worker ~= nil then
-        worker_flow.add{type="label", caption="Task worker: " .. task.worker.id}
-        local camera = worker_flow.add{type="camera", position=game.get_player(1).character.position}
-        camera.entity = game.get_player(1).character
-    else
-        worker_flow.add{type="label", caption='Task worker: Not assigned'}
-    end
+    -- local worker_flow = task_table.add{type="flow", direction="horizontal"}
+    -- worker_flow.style.height = 28
+    -- worker_flow.style.width = 245
+    -- worker_flow.style.horizontal_align = 'center'
+    -- if task.worker ~= nil then
+    --     worker_flow.add{type="label", caption="Task worker: " .. task.worker.id}
+    --     local camera = worker_flow.add{type="camera", position=game.get_player(1).character.position}
+    --     camera.entity = game.get_player(1).character
+    -- else
+    --     worker_flow.add{type="label", caption='Task worker: Not assigned'}
+    -- end
 
     --task progress
     local progress = 0.0
@@ -167,6 +167,9 @@ function createTaskFrame(task, task_flow)
     end
     progress_flow.add{type="progressbar", name='progress_bar', value=progress}
     progress_flow.progress_bar.value = progress
+
+    --delete button
+    task_table.add{type="button", name="buex_task_delete_button", tags={task_id=task.id}}
 
 end
 
