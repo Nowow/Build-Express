@@ -169,7 +169,17 @@ function createTaskFrame(task, task_flow)
     progress_flow.progress_bar.value = progress
 
     --delete button
-    task_table.add{type="button", name="buex_task_delete_button", tags={task_id=task.id}}
+    local button_flow = task_table.add{type="flow", direction='horizontal'}
+    button_flow.style.height = 28
+    button_flow.style.width = 245
+    button_flow.style.horizontal_align = 'center'
+    
+    local button = button_flow.add{
+        type="button", name="buex_task_delete_button",
+        caption = "Delete task", tags={task_id=task.id}}
+    button.style.height = 20
+    button.style.width = 150
+
 
 end
 
@@ -183,6 +193,12 @@ script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "buex_open_gui" then
 
         toggleTestWidget(event.player_index)
+        return
     end
+    if event.element.name == "buex_task_delete_button" then
+        game.print("DELETE BUTTON CALLED, TAGS ".. event.   element.tags.task_id)
+    end
+
+
 
 end)
