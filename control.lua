@@ -80,31 +80,6 @@ script.on_event(defines.events.on_player_created, function(event)
     end
 end)
 
-
--- registring trains to a dispatch system
--- TODO: unregistrer trains, check if .valid
-
--- script.on_event(defines.events.on_train_changed_state,
--- function(event)
---     --local player = game.player
---     --local player_position = player.position
---     local train = event.train
---     --PrintTrainWhereabouts(event.train)
-
---     local station = event.train.station
-
---     if 
---         station ~= nil and station.name == 'test-train-stop' 
---         and global.train_register.available[train.id] == nil
---         and global.train_register.busy[train.id] == nil
---     then
---         registerTrain(train)
---         game.print('Registred train ' .. train.id)
---     end
-
--- end
--- )
-
 -- when a train station is destroyed
 script.on_event(defines.events.on_entity_renamed, function(event)
 
