@@ -110,12 +110,11 @@ end)
 script.on_event("test-custom-hotkey", function(event)
     if event then
 
-       
-    
         --create_entity_cam(event)
-    
         
-        PrintSelectedBlueprintName(event)
+        initGlobal()
+        
+        --PrintSelectedBlueprintName(event)
     
         --PrintEntityCollisionMasks(selected_entity)
         
