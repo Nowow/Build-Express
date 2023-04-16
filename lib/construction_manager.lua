@@ -13,10 +13,20 @@ function initConstructionTasks()
     end
     for task_state, _ in pairs(TASK_STATES) do
         if global.construction_tasks[task_state] == nil then
-            game.print("CREATING EMPTY TABLE FOR " .. task_state .. "TASK STATE IN global.construction_tasks")
+            game.print("CREATING EMPTY TABLE FOR " .. task_state .. " TASK STATE IN global.construction_tasks")
             global.construction_tasks[task_state] = {}
         end
     end
+end
+
+function endTask(task)
+    game.print("ENDING TASK " .. task.id .. " IN STATE " .. task.state)
+    for _, ghost in pairs(task.ghosts) do
+        ghost.destroy()
+    end
+    makeTrainGoToDepot(task.worker)
+    update_task_frame(task, true)
+    global.construction_tasks[task.state][task.id] = nil
 end
 
 -- move create tasks from cached build ghosts 
@@ -162,9 +172,7 @@ script.on_nth_tick(34, function(event)
             -- task is finished, sending back to depot
             -- temp func
             log("Sending worker back to depot")
-            makeTrainGoToDepot(task.worker)
-            update_task_frame(task, true)
-            global.construction_tasks.BUILDING[task.id] = nil
+            endTask(task)
         else
             -- rerun loop, complete new subtask
             log("Looping task back to ASSIGNED")
@@ -175,3 +183,21 @@ script.on_nth_tick(34, function(event)
     end
 end)
 
+script.on_event(defines.events.on_gui_click, function(event)
+
+    local element = event.element
+
+    if element.name == "buex_open_gui" then
+        toggleTestWidget(event.player_index)
+        return
+    end
+
+    if element.name == "buex_task_delete_button" then
+        local element_tags = element.tags
+        local task = global.construction_tasks[element_tags.task_state][element_tags.task_id]
+        
+        game.print("END BUTTON CALLED, TAGS ".. task.id .. ', STATE ' .. task.state)
+        endTask(task)
+        return
+    end
+end)

@@ -176,7 +176,7 @@ function createTaskFrame(task, task_flow)
     
     local button = button_flow.add{
         type="button", name="buex_task_delete_button",
-        caption = "Delete task", tags={task_id=task.id}}
+        caption = "End task", tags={task_id=task.id, task_state=task.state}}
     button.style.height = 20
     button.style.width = 150
 
@@ -187,22 +187,6 @@ function toggleTestWidget(player_index)
     local element = game.get_player(player_index).gui.screen.buex_main_frame
     element.visible = not element.visible
 end
-
-script.on_event(defines.events.on_gui_click, function(event)
-
-    if event.element.name == "buex_open_gui" then
-
-        toggleTestWidget(event.player_index)
-        return
-    end
-    if event.element.name == "buex_task_delete_button" then
-        game.print("DELETE BUTTON CALLED, TAGS ".. event.   element.tags.task_id)
-    end
-
-
-
-end)
-
 
 function initPlayersGui()
     if not global.gui_player_info then
