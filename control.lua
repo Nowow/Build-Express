@@ -11,14 +11,6 @@ local next = next
 
 function initGlobal()
 
-    -- probably deprecated
-	if not global.train_register then
-		global.train_register = {
-            available = {},
-            busy = {}
-        }
-	end
-
     initWorkerStationRegister()
 
     if not global.construction_tasks then
