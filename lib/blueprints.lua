@@ -4,10 +4,10 @@ require("lib.events")
 blueprint_entity_cache = {}
 
 TASK_STATES = {
-    TASK_CREATED = 'buex.task_state_created',
-    READY_TO_BE_ASSIGNED = 'buex.task_state_ready_to_be_assigned',
-    ASSIGNED = 'buex.task_state_assigned',
-    BUILDING = 'buex.task_state_building'
+    TASK_CREATED = 'TASK_CREATED',
+    UNASSIGNED = 'UNASSIGNED',
+    ASSIGNED = 'ASSIGNED',
+    BUILDING = 'BUILDING'
 }
 
 

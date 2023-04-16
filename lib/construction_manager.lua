@@ -7,18 +7,11 @@ require("lib.station_manager")
 
 local next = next
 
-local construction_task_states = {
-    'NEW',
-    'UNASSIGNED',
-    'ASSIGNED',
-    'BUILDING'
-}
-
 function initConstructionTasks()
     if not global.construction_tasks then
         global.construction_tasks = {}
     end
-    for _, task_state in pairs(construction_task_states) do
+    for task_state, _ in pairs(TASK_STATES) do
         if global.construction_tasks[task_state] == nil then
             game.print("CREATING EMPTY TABLE FOR " .. task_state .. "TASK STATE IN global.construction_tasks")
             global.construction_tasks[task_state] = {}
@@ -43,7 +36,7 @@ script.on_nth_tick(30, function(event)
                     return
                 end
                 local task = createTask(tick, player_index, blueprint_label, cache)
-                global.construction_tasks.NEW[task.id] = task
+                global.construction_tasks.TASK_CREATED[task.id] = task
                 update_task_frame(task)
                 blueprint_entity_cache[player_index][blueprint_label][tick] = nil
             end
@@ -55,16 +48,16 @@ end)
 
 -- formulating construnstruction plan
 script.on_nth_tick(31, function(event)
-    if next(global.construction_tasks.NEW) == nil then
+    if next(global.construction_tasks.TASK_CREATED) == nil then
         return
     end
 
-    log('Reached NEW handler')
+    log('Reached TASK_CREATED handler')
     
-    local _, task = next(global.construction_tasks.NEW)
+    local _, task = next(global.construction_tasks.TASK_CREATED)
     task.bounding_box = findBlueprintBoundigBox(task.ghosts)
-    task.state = TASK_STATES.READY_TO_BE_ASSIGNED
-    global.construction_tasks.NEW[task.id] = nil
+    task.state = TASK_STATES.UNASSIGNED
+    global.construction_tasks.TASK_CREATED[task.id] = nil
     global.construction_tasks.UNASSIGNED[task.id] = task
     update_task_frame(task)
 
