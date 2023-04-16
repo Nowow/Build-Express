@@ -2,7 +2,6 @@ require("lib.utils")
 require("lib.events")
 
 blueprint_entity_cache = {}
-construction_tasks = {}
 
 TASK_STATES = {
     TASK_CREATED = 'buex.task_state_created',

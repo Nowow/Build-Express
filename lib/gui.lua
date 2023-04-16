@@ -202,3 +202,28 @@ script.on_event(defines.events.on_gui_click, function(event)
 
 
 end)
+
+
+function initPlayersGui()
+    if not global.gui_player_info then
+        global.gui_player_info = {}
+    end
+    for i, p in pairs(game.players) do
+        if not global.gui_player_info[i] then
+            global.gui_player_info[i] = {}
+        end
+
+        -- creating gui toggle button if not there
+        local button_flow = mod_gui.get_button_flow(p)
+        if button_flow.buex_open_gui == nil then
+            button_flow.add{type="sprite-button", name="buex_open_gui", sprite="item/locomotive", style=mod_gui.button_style}
+        end
+
+        -- creating mod gui if not there
+        local screen_element = get_player_screen(i)
+        if screen_element.buex_main_frame == nil then
+            createTestWidget(i)
+        end
+        
+    end
+end

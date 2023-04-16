@@ -13,42 +13,10 @@ function initGlobal()
 
     initWorkerStationRegister()
 
-    if not global.construction_tasks then
-		global.construction_tasks = {
-            NEW = {},
-            UNASSIGNED = {},
-            ASSIGNED = {},
-            BUILDING = {},
-        }
-	end
-    if not global.gui_player_info then
-        global.gui_player_info = {}
-    end
-    for i, p in pairs(game.players) do
-        if not global.gui_player_info[i] then
-            global.gui_player_info[i] = {
-                -- gui vars go here
-                gui_created=false,
-            }
-        end
+    initConstructionTasks()
 
-        if not global.gui_player_info[i].gui_created then
-
-        -- mod-gui gutton 
-        local button_flow = mod_gui.get_button_flow(p)
-        button_flow.add{type="sprite-button", name="buex_open_gui", sprite="item/locomotive", style=mod_gui.button_style}
-        
-        createTestWidget(i)
-
-        global.gui_player_info[i].gui_created = true
-
-        end
-        
-    end
-
+    initPlayersGui()
     
-    
-
 end 
 
 script.on_configuration_changed(function(data)

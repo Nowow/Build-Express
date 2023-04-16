@@ -7,6 +7,25 @@ require("lib.station_manager")
 
 local next = next
 
+local construction_task_states = {
+    'NEW',
+    'UNASSIGNED',
+    'ASSIGNED',
+    'BUILDING'
+}
+
+function initConstructionTasks()
+    if not global.construction_tasks then
+        global.construction_tasks = {}
+    end
+    for _, task_state in pairs(construction_task_states) do
+        if global.construction_tasks[task_state] == nil then
+            game.print("CREATING EMPTY TABLE FOR " .. task_state .. "TASK STATE IN global.construction_tasks")
+            global.construction_tasks[task_state] = {}
+        end
+    end
+end
+
 -- move create tasks from cached build ghosts 
 script.on_nth_tick(30, function(event)
     if next(blueprint_entity_cache) == nil then
@@ -150,7 +169,6 @@ script.on_nth_tick(34, function(event)
             -- task is finished, sending back to depot
             -- temp func
             log("Sending worker back to depot")
-            releaseTrain(task.worker)
             makeTrainGoToDepot(task.worker)
             update_task_frame(task, true)
             global.construction_tasks.BUILDING[task.id] = nil
