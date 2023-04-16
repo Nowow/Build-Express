@@ -163,7 +163,7 @@ function createTaskFrame(task, task_flow)
         game.print("#subtasks: " .. table_size(task.subtasks))
         game.print("subtask_count: " .. task.subtask_count)
     else
-        progress = 0.5
+        progress = 0.0
     end
     progress_flow.add{type="progressbar", name='progress_bar', value=progress}
     progress_flow.progress_bar.value = progress
@@ -224,6 +224,6 @@ function initPlayersGui()
         if screen_element.buex_main_frame == nil then
             createTestWidget(i)
         end
-        
+
     end
 end
