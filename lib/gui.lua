@@ -82,7 +82,7 @@ function createTestWidget(player_index)
     ---- tasks tab
     local tasks_tab = tabs.add{type="tab", name="buex_tasks_tab", caption={"buex.tasks_tab_caption"}}
     local tasks_scroll_pane = tabs.add{type="scroll-pane", name="buex_tasks_scroll_pane", caption={"buex.tasks_scroll_pane_caption"}}
-    tasks_scroll_pane.add{type="flow", name="buex_tasks_flow", direction="horizontal"}
+    tasks_scroll_pane.add{type="flow", name="buex_tasks_flow", direction="vertical"}
 
     --tabs.add_tab(workers_tab, workers_scroll_pane)
     tabs.add_tab(blueprints_tab, blueprints_scroll_pane)
