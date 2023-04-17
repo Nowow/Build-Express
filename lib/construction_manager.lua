@@ -4,6 +4,7 @@ require("lib.blueprints")
 require("lib.events")
 require("lib.gui")
 require("lib.station_manager")
+require("lib.task_queue")
 
 local next = next
 
@@ -13,8 +14,8 @@ function initConstructionTasks()
     end
     for task_state, _ in pairs(TASK_STATES) do
         if global.construction_tasks[task_state] == nil then
-            game.print("CREATING EMPTY TABLE FOR " .. task_state .. " TASK STATE IN global.construction_tasks")
-            global.construction_tasks[task_state] = {}
+            game.print("CREATING EMPTY QUEUE FOR " .. task_state .. " TASK STATE IN global.construction_tasks")
+            global.construction_tasks[task_state] = TaskQueue:create()
         end
     end
 end
@@ -26,7 +27,7 @@ function endTask(task)
     end
     makeTrainGoToDepot(task.worker)
     update_task_frame(task, true)
-    global.construction_tasks[task.state][task.id] = nil
+    global.construction_tasks[task.state]:remove_task(task.id)
 end
 
 -- move create tasks from cached build ghosts 
@@ -46,7 +47,7 @@ script.on_nth_tick(30, function(event)
                     return
                 end
                 local task = createTask(tick, player_index, blueprint_label, cache)
-                global.construction_tasks.TASK_CREATED[task.id] = task
+                global.construction_tasks.TASK_CREATED:push(task)
                 update_task_frame(task)
                 blueprint_entity_cache[player_index][blueprint_label][tick] = nil
             end
@@ -58,33 +59,33 @@ end)
 
 -- formulating construnstruction plan
 script.on_nth_tick(31, function(event)
-    if next(global.construction_tasks.TASK_CREATED) == nil then
+    if next(global.construction_tasks.TASK_CREATED.data) == nil then
         return
     end
 
     log('Reached TASK_CREATED handler')
     
-    local _, task = next(global.construction_tasks.TASK_CREATED)
+    local task = global.construction_tasks.TASK_CREATED:pop()
     task.bounding_box = findBlueprintBoundigBox(task.ghosts)
     task.state = TASK_STATES.UNASSIGNED
-    global.construction_tasks.TASK_CREATED[task.id] = nil
-    global.construction_tasks.UNASSIGNED[task.id] = task
+    global.construction_tasks.UNASSIGNED:push(task)
     update_task_frame(task)
 
 end)
 
 -- assigning train to task
 script.on_nth_tick(32, function(event)
-    if next(global.construction_tasks.UNASSIGNED) == nil then
+    if next(global.construction_tasks.UNASSIGNED.data) == nil then
         return
     end
     
     log('Reached UNASSIGNED handler')
 
-    local _, task = next(global.construction_tasks.UNASSIGNED)
+    local task = global.construction_tasks.UNASSIGNED:pop()
     local worker = getWorker(task.blueprint_label)
     if not worker then
         game.print('No workers available')
+        global.construction_tasks.UNASSIGNED:push(task)
         return
     end
     task.worker = worker
@@ -92,8 +93,7 @@ script.on_nth_tick(32, function(event)
     task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
     task.subtask_count = #task.subtasks
     task.state = TASK_STATES.ASSIGNED
-    global.construction_tasks.UNASSIGNED[task.id] = nil
-    global.construction_tasks.ASSIGNED[task.id] = task
+    global.construction_tasks.ASSIGNED:push(task)
     update_task_frame(task)
 
 end) 
@@ -101,25 +101,25 @@ end)
 ---- building loop ----
 --   pick active subtask and send worker to build
 script.on_nth_tick(33, function(event)
-    if next(global.construction_tasks.ASSIGNED) == nil then
+    if next(global.construction_tasks.ASSIGNED.data) == nil then
         return
     end
 
     log('Reached ASSIGNED handler')
     
-    local _, task = next(global.construction_tasks.ASSIGNED)
+    local task = global.construction_tasks.ASSIGNED:pop()
     local modified_task = findBuildingSpot(task, 1)
     if modified_task ~= nil then task = modified_task
     else
         game.print("found no spot")
+        global.construction_tasks.ASSIGNED:push(task)
         return
     end
     hightlighRail(task.building_spot)
     makeTrainGoToRail(task.building_spot, task.worker)
     task.state = TASK_STATES.BUILDING
     task.timer_tick = game.tick
-    global.construction_tasks.ASSIGNED[task.id] = nil
-    global.construction_tasks.BUILDING[task.id] = task
+    global.construction_tasks.BUILDING:push(task)
     update_task_frame(task)
 
 end)
@@ -127,19 +127,20 @@ end)
 ---- building loop ----
 --   manage completion of an active subtask
 script.on_nth_tick(34, function(event)
-    if next(global.construction_tasks.BUILDING) == nil then
+    if next(global.construction_tasks.BUILDING.data) == nil then
         return
     end
 
     log('Reached BUILDING handler')
-    
 
-    local _, task = next(global.construction_tasks.BUILDING)
+    local task = global.construction_tasks.BUILDING:pop()
 
     -- hard timeout if task cound not be completed
     if task.timer_tick ~= nil then
         if (game.tick - task.timer_tick) > 7200 then
             game.print("TIMEOUT FOR TASK " .. task.id) -- TODO timeout logic
+            endTask(task)
+            return
         end
     end
 
@@ -165,21 +166,20 @@ script.on_nth_tick(34, function(event)
         task.active_subtask_index = nil
         task.building_spot = nil
         task.timer_tick = nil
-        global.construction_tasks.BUILDING[task.id] = nil
-        
 
         if next(task.subtasks) == nil then
             -- task is finished, sending back to depot
-            -- temp func
-            log("Sending worker back to depot")
+            log("Ending task due to completion")
             endTask(task)
         else
             -- rerun loop, complete new subtask
             log("Looping task back to ASSIGNED")
             task.state = TASK_STATES.ASSIGNED
-            global.construction_tasks.ASSIGNED[task.id] = task
+            global.construction_tasks.ASSIGNED:push(task)
             update_task_frame(task)
         end
+    else
+        global.construction_tasks.BUILDING:push(task)
     end
 end)
 
@@ -194,8 +194,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     if element.name == "buex_task_delete_button" then
         local element_tags = element.tags
-        local task = global.construction_tasks[element_tags.task_state][element_tags.task_id]
-        
+        local task = global.construction_tasks[element_tags.task_state]:get_task(element_tags.task_id)
         game.print("END BUTTON CALLED, TAGS ".. task.id .. ', STATE ' .. task.state)
         endTask(task)
         return

@@ -3,11 +3,6 @@ TaskQueue.__index = TaskQueue
 
 script.register_metatable("queue_metatable", TaskQueue)
 
-script.on_load(function()
-	script.register_metatable("queue_metatable", TaskQueue)
-end)
-
-
 function TaskQueue:create()
     local queue = {}
     queue.idx = {first = 1, last = 0}
