@@ -100,17 +100,17 @@ script.on_event(defines.events.on_built_entity, function(event)
     
 end, {{filter = "ghost"}, {filter = 'name', name = 'test-train-stop'}})
 
-script.on_event(defines.events.on_player_setup_blueprint, function(e)
-    game.print("THAT EVENT FIRED")
-end)
-
-
-
 -- user triggered keyboard shortcut
 script.on_event("test-custom-hotkey", function(event)
     if event then
 
         --create_entity_cam(event)
+
+        local gui_main_frame = get_player_screen(event.player_index).buex_main_frame
+
+        if gui_main_frame ~= nil then
+            gui_main_frame.destroy()
+        end
         
         initGlobal()
         
