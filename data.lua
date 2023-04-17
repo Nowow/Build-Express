@@ -1,2 +1,2 @@
-require("prototypes.item")
+require("prototypes.train_stop")
 require("prototypes.buttons")
