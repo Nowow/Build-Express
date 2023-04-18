@@ -5,46 +5,56 @@ script.register_metatable("queue_metatable", TaskQueue)
 
 function TaskQueue:create()
     local queue = {}
-    queue.idx = {first = 1, last = 0}
+    queue.head_tail = {first = 1, last = 0}
     queue.data = {}
+    queue.task_id_index = {}
     setmetatable(queue, TaskQueue)
     return queue
 end
 
-function TaskQueue:push(value)
-    local last = self.idx.last + 1
-    self.idx.last = last
-    self.data[last] = value
+function TaskQueue:push(task)
+    local last = self.head_tail.last + 1
+    self.head_tail.last = last
+    self.data[last] = task
+    self.task_id_index[task.id] = last
 end
 
 function TaskQueue:pop()
-    local first = self.idx.first
-    if first > self.idx.last then error("list is empty") end
-    local value = self.data[first]
-    self.data[first] = nil        -- to allow garbage collection
-    self.idx.first = first + 1
-    return value
+    local first = self.head_tail.first
+    if first > self.head_tail.last then error("list is empty") end
+    local task = self.data[first]
+    self.data[first] = nil
+    self.task_id_index[task.id] = nil
+    self.head_tail.first = first + 1
+    return task
 end
 
-function TaskQueue:remove_task(task_id)
-    for i, task in pairs(self.data) do
-        if task.id == task_id then
-            table.remove(self.data, i)
-            local last = self.idx.last
-            self.idx.last = last - 1
-            return true
+function TaskQueue:remove(task_id)
+
+    -- checking if task in queue
+    local task_queue_index = self.task_id_index[task_id]
+    if task_queue_index == nil then
+        return false
+    end
+    
+    -- removing task from queue and 
+    self.data[task_queue_index] = nil
+    local last = self.head_tail.last
+
+    -- reindexing everything was further from release from queue than provided task
+    -- to remove a gap, task.remove does not work due to data not being a list indexing from 1 to n
+    if task_queue_index < last then
+        for i = task_queue_index + 1, last do
+            self.data[i - 1] = self.data[i]
         end
     end
-    return false
+    self.head_tail.last = last - 1
+    return true
+    
 end
 
-    function TaskQueue:get_task(task_id)
-        for _, task in pairs(self.data) do
-        if task.id == task_id then
-            return task
-        end
-    end
-    return nil
+function TaskQueue:lookup(task_id)
+    return self.data[self.task_id_index[task_id]]
 end
 
 function TaskQueue:cycle()

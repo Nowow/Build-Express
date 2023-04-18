@@ -27,7 +27,7 @@ function endTask(task)
     end
     makeTrainGoToDepot(task.worker)
     update_task_frame(task, true)
-    global.construction_tasks[task.state]:remove_task(task.id)
+    global.construction_tasks[task.state]:remove(task.id)
 end
 
 -- move create tasks from cached build ghosts 
@@ -194,7 +194,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
     if element.name == "buex_task_delete_button" then
         local element_tags = element.tags
-        local task = global.construction_tasks[element_tags.task_state]:get_task(element_tags.task_id)
+        local task = global.construction_tasks[element_tags.task_state]:lookup(element_tags.task_id)
         game.print("END BUTTON CALLED, TAGS ".. task.id .. ', STATE ' .. task.state)
         endTask(task)
         return
