@@ -38,8 +38,8 @@ function TaskQueue:remove_task(task_id)
     return false
 end
 
-function TaskQueue:get_task(task_id)
-    for _, task in pairs(self.data) do
+    function TaskQueue:get_task(task_id)
+        for _, task in pairs(self.data) do
         if task.id == task_id then
             return task
         end
@@ -47,7 +47,7 @@ function TaskQueue:get_task(task_id)
     return nil
 end
 
-function TaskQueue:get_oldest_task()
+function TaskQueue:cycle()
     local task = self:pop()
     self:push(task)
     return task
