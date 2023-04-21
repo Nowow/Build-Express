@@ -15,7 +15,7 @@ end
 function hightlightEntity(entity, radius, color)
 
     
-    --local color = {r = 0, g = 1, b = 0}
+    local color = {r = 0, g = 1, b = 0}
     
     
     rendering.draw_circle({
