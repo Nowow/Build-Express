@@ -50,7 +50,8 @@ function makeTrainGoToRail(rail, train)
                 type='robots_inactive',
                 compare_type='and'
             }
-        }
+        },
+        temporary=true
     }
     local schedule_entry_2 = {
         rail=rail,
@@ -60,12 +61,35 @@ function makeTrainGoToRail(rail, train)
                 ticks=36000,
                 compare_type='and'
             }
-        }
+        },
+        temporary=true
     }
     local new_schedule = train.schedule
     new_schedule.records = {new_schedule.records[1], schedule_entry_1, schedule_entry_2}
     new_schedule.current = 2
 
+    train.schedule = new_schedule
+end
+
+function addStopToSchedule(rail, train)
+    local schedule_entry = {
+        rail=rail,
+        wait_conditions={
+            {
+                type='time',
+                ticks=300,
+                compare_type='and'
+            },
+            {
+                type='robots_inactive',
+                compare_type='and'
+            }
+        },
+        temporary=true
+    }
+    local new_schedule = train.schedule
+    table.insert(new_schedule.records, schedule_entry)
+    game.print("ADDED STOP")
     train.schedule = new_schedule
 end
 
