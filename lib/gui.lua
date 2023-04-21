@@ -159,9 +159,6 @@ function createTaskFrame(task, task_flow)
     
     if task.subtasks ~= nil then
         progress = (1.0 - (table_size(task.subtasks))/task.subtask_count)
-        game.print("PROGRESS IS "..progress)
-        game.print("#subtasks: " .. table_size(task.subtasks))
-        game.print("subtask_count: " .. task.subtask_count)
     else
         progress = 0.0
     end
