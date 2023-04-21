@@ -22,10 +22,15 @@ end
 
 function endTask(task)
     game.print("ENDING TASK " .. task.id .. " IN STATE " .. task.state)
+    local valid_ghosts_counter = 0
     for _, ghost in pairs(task.ghosts) do
-        ghost.destroy()
+        if ghost.valid then
+            ghost.destroy()
+            valid_ghosts_counter = valid_ghosts_counter + 1
+        end
     end
-    makeTrainGoToDepot(task.worker)
+    game.print("VALID GHOSTS LEFT: " .. valid_ghosts_counter)
+    --makeTrainGoToDepot(task.worker)
     update_task_frame(task, true)
     global.construction_tasks[task.state]:remove(task.id)
 end
@@ -108,12 +113,6 @@ script.on_nth_tick(33, function(event)
     log('Reached ASSIGNED handler')
     
     local task = global.construction_tasks.ASSIGNED:pop()
-    -- checking if robots are all back
-    if not checkIfTrainRobotsAreBack(task.worker) then
-        game.print("Robots are not yet back for task " .. task.id)
-        global.construction_tasks.ASSIGNED:push(task)
-        return
-    end
     local modified_task = findBuildingSpot(task, 1)
     if modified_task ~= nil then task = modified_task
     else
@@ -122,7 +121,8 @@ script.on_nth_tick(33, function(event)
         return
     end
     hightlighRail(task.building_spot)
-    makeTrainGoToRail(task.building_spot, task.worker)
+    addStopToSchedule(task.building_spot, task.worker)
+    --makeTrainGoToRail(task.building_spot, task.worker)
     task.state = TASK_STATES.BUILDING
     task.timer_tick = game.tick
     global.construction_tasks.BUILDING:push(task)
@@ -201,7 +201,6 @@ script.on_nth_tick(35, function(event)
     
     local task = global.construction_tasks.TERMINATING:pop()
     endTask(task)
-    update_task_frame(task)
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)
