@@ -108,6 +108,12 @@ script.on_nth_tick(33, function(event)
     log('Reached ASSIGNED handler')
     
     local task = global.construction_tasks.ASSIGNED:pop()
+    -- checking if robots are all back
+    if not checkIfTrainRobotsAreBack(task.worker) then
+        game.print("Robots are not yet back for task " .. task.id)
+        global.construction_tasks.ASSIGNED:push(task)
+        return
+    end
     local modified_task = findBuildingSpot(task, 1)
     if modified_task ~= nil then task = modified_task
     else
@@ -151,6 +157,7 @@ script.on_nth_tick(34, function(event)
     for j, ghost in pairs(subtask.ghosts) do
         if ghost.valid then
             subtask_finished = false
+            hightlightEntity(ghost, 2)
             break
         else
             log('removed invalidated entity')
@@ -169,8 +176,9 @@ script.on_nth_tick(34, function(event)
 
         if next(task.subtasks) == nil then
             -- task is finished, sending back to depot
-            log("Ending task due to completion")
-            endTask(task)
+            log("Puttin task into TERMINATION due to completion")
+            task.state = TASK_STATES.TERMINATING
+            global.construction_tasks.TERMINATING:push(task)
         else
             -- rerun loop, complete new subtask
             log("Looping task back to ASSIGNED")
@@ -181,6 +189,19 @@ script.on_nth_tick(34, function(event)
     else
         global.construction_tasks.BUILDING:push(task)
     end
+end)
+
+-- termination
+script.on_nth_tick(35, function(event)
+    if next(global.construction_tasks.TERMINATING.data) == nil then
+        return
+    end
+
+    log('Reached TERMINATING handler')
+    
+    local task = global.construction_tasks.TERMINATING:pop()
+    endTask(task)
+    update_task_frame(task)
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)

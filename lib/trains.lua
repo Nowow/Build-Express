@@ -38,7 +38,21 @@ end
 
 
 function makeTrainGoToRail(rail, train)
-    schedule_entry = {
+    local schedule_entry_1 = {
+        rail=rail,
+        wait_conditions={
+            {
+                type='time',
+                ticks=300,
+                compare_type='and'
+            },
+            {
+                type='robots_inactive',
+                compare_type='and'
+            }
+        }
+    }
+    local schedule_entry_2 = {
         rail=rail,
         wait_conditions={
             {
@@ -48,16 +62,25 @@ function makeTrainGoToRail(rail, train)
             }
         }
     }
-    new_schedule = train.schedule
-    new_schedule.records = {new_schedule.records[1], schedule_entry}
-    new_schedule.current = 2  -- may be bugs
+    local new_schedule = train.schedule
+    new_schedule.records = {new_schedule.records[1], schedule_entry_1, schedule_entry_2}
+    new_schedule.current = 2
 
     train.schedule = new_schedule
 end
 
+function checkIfTrainRobotsAreBack(train)
+    local schedule = train.schedule
+    if table_size(schedule.records) ~= 3 or schedule.current == 3 then
+        return true
+    else
+        return false
+    end
+end
+
 function makeTrainGoToDepot(train)
     new_schedule = train.schedule
-    table.remove(new_schedule.records, 2)
+    new_schedule.records = {new_schedule.records[1]}
     new_schedule.current = 1
     train.schedule = new_schedule
 end
