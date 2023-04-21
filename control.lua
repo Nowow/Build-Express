@@ -79,7 +79,8 @@ script.on_event(defines.events.on_built_entity, function(event)
 
     end
     
-    if game.players[event.player_index].is_cursor_blueprint() then
+    local player = game.players[event.player_index]
+    if player.is_cursor_blueprint() and not player.cursor_stack_temporary then
         local stack = game.get_player(event.player_index).cursor_stack
         if stack.valid_for_read then
             local blueprint_label = stack.label
