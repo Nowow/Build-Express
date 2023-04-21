@@ -111,6 +111,8 @@ script.on_event("test-custom-hotkey", function(event)
         if gui_main_frame ~= nil then
             gui_main_frame.destroy()
         end
+
+        global.construction_tasks = nil
         
         initGlobal()
         
