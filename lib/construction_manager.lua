@@ -5,6 +5,7 @@ require("lib.events")
 require("lib.gui")
 require("lib.station_manager")
 require("lib.task_queue")
+require("settings")
 
 local next = next
 
@@ -22,6 +23,8 @@ end
 
 function endTask(task)
     log_task(task.id, "ENDING TASK " .. task.id .. " IN STATE " .. task.state)
+
+    -- destroying all ghosts that are left
     local valid_ghosts_counter = 0
     for _, ghost in pairs(task.ghosts) do
         if ghost.valid then
@@ -30,9 +33,16 @@ function endTask(task)
         end
     end
     log_task(task.id, "VALID GHOSTS LEFT: " .. valid_ghosts_counter)
+
+    --destroying flying textx
     for _, render_id in pairs(task.flying_text) do
         rendering.destroy(render_id)
     end
+
+    --removing all temp stops
+    local temps_removed = removeAllTempStops(task.worker)
+    log_task(task.id, "REMOVED " .. temps_removed .. " TEMP STOPS")
+
     --makeTrainGoToDepot(task.worker)
     update_task_frame(task, true)
     global.construction_tasks[task.state]:remove(task.id)
@@ -99,7 +109,7 @@ script.on_nth_tick(32, function(event)
         return
     end
     
-    --log('Reached UNASSIGNED handler')
+    log('Reached UNASSIGNED handler')
 
     local task = global.construction_tasks.UNASSIGNED:pop()
     local worker = getWorker(task.blueprint_label)
@@ -182,7 +192,7 @@ script.on_nth_tick(34, function(event)
 
     -- hard timeout if task cound not be completed
     if task.timer_tick ~= nil then
-        if (game.tick - task.timer_tick) > 7200 then
+        if (game.tick - task.timer_tick) > TASK_TIMEOUT_TICKS then
             game.print("TIMEOUT FOR TASK " .. task.id) -- TODO timeout logic
             log_task(task.id, "TIMEOUT") -- TODO timeout logic
             endTask(task)

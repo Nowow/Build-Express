@@ -1,4 +1,5 @@
 require("lib.utils")
+require("settings")
 
 TRAIN_STATES = {
     'on_the_path',
@@ -42,7 +43,7 @@ function addStopToSchedule(rail, train)
         wait_conditions={
             {
                 type='time',
-                ticks=300,
+                ticks=TASK_TIMEOUT_TICKS,
                 compare_type='and'
             },
             {
@@ -57,6 +58,34 @@ function addStopToSchedule(rail, train)
     game.print("ADDED STOP")
     train.schedule = new_schedule
 end
+
+function removeAllTempStops(train)
+    local old_records = train.schedule.records
+    local new_records = {}
+    local stops_n = #old_records
+    local current_index = new_schedule.current
+    local cntr = 0
+    for i=1,stops_n do
+        local stop = old_records[i]
+        local temp_flag = stop.temporary
+        if temp_flag and current_index > i then
+            current_index = current_index - 1
+            cntr = cntr + 1
+        else
+            table.insert(new_records, stop)
+        end
+    end
+    local new_records_n = #new_records
+    if current_index > new_records_n then
+        current_index = new_records_n
+    end
+    local new_schedule = train.schedule
+    new_schedule.records = new_records
+    new_schedule.current = current_index
+    train.schedule = new_schedule
+    return cntr
+end
+
 
 function checkIfTrainCanGetToRail(train, rail)
     local schedule_entry = {
