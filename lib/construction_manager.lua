@@ -169,9 +169,9 @@ script.on_nth_tick(33, function(event)
             })
         end
     end
-    
-    addStopToSchedule(task.building_spot, task.worker)
-    --makeTrainGoToRail(task.building_spot, task.worker)
+    local worker = task.worker
+    removeTimePassedConditionFromCurrentStop(worker)
+    addStopToSchedule(task.building_spot, worker)
     task.state = TASK_STATES.BUILDING
     task.timer_tick = game.tick
     global.construction_tasks.BUILDING:push(task)

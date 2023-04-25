@@ -59,18 +59,36 @@ function addStopToSchedule(rail, train)
     train.schedule = new_schedule
 end
 
+function removeTimePassedConditionFromCurrentStop(train)
+    local new_schedule = train.schedule
+    local current_stop = new_schedule.records[new_schedule.current]
+    current_stop.wait_conditions = {
+        {
+            type='robots_inactive',
+            compare_type='and'
+        }
+    }
+    new_schedule.records[new_schedule.current] = current_stop
+    train.schedule = new_schedule
+end
+
 function removeAllTempStops(train)
     local old_records = train.schedule.records
     local new_records = {}
-    local stops_n = #old_records
-    local current_index = new_schedule.current
+    
+    local current_index = train.schedule.current
+
+
     local cntr = 0
+    local stops_n = #old_records
     for i=1,stops_n do
         local stop = old_records[i]
         local temp_flag = stop.temporary
-        if temp_flag and current_index > i then
-            current_index = current_index - 1
+        if temp_flag == true then
             cntr = cntr + 1
+            if current_index > i then
+                current_index = current_index - 1
+            end
         else
             table.insert(new_records, stop)
         end
