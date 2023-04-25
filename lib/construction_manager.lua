@@ -39,9 +39,11 @@ function endTask(task)
         rendering.destroy(render_id)
     end
 
-    --removing all temp stops
-    local temps_removed = removeAllTempStops(task.worker)
-    log_task(task.id, "REMOVED " .. temps_removed .. " TEMP STOPS")
+    if task.worker ~= nil then
+        --removing all temp stops
+        local temps_removed = removeAllTempStops(task.worker)
+        log_task(task.id, "REMOVED " .. temps_removed .. " TEMP STOPS")
+    end
 
     --makeTrainGoToDepot(task.worker)
     update_task_frame(task, true)
@@ -172,7 +174,7 @@ script.on_nth_tick(33, function(event)
         end
         return
     end
-    
+
     local color = {r = 1, g = 1, b = 0}
     for _, e in pairs(task.subtasks[task.active_subtask_index].ghosts) do
         if e.valid then
