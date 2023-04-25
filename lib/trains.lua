@@ -58,13 +58,6 @@ function addStopToSchedule(rail, train)
     train.schedule = new_schedule
 end
 
-function makeTrainGoToDepot(train)
-    new_schedule = train.schedule
-    new_schedule.records = {new_schedule.records[1]}
-    new_schedule.current = 1
-    train.schedule = new_schedule
-end
-
 function checkIfTrainCanGetToRail(train, rail)
     local schedule_entry = {
         rail=rail
