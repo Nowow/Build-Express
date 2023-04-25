@@ -132,11 +132,11 @@ function checkIfTrainCanGetToRail(train, rail)
     train.schedule = new_schedule
     train.recalculate_path(true)
     local result = false
-    local gps = " at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
     if train.state == 1 or train.state == 3 then
-        game.print('The rail is not accessible')
+        --hightlighRail(rail)
+        log('The rail is not accessible, state was: ' .. TRAIN_STATES[train.state + 1])
     else
-        game.print('The rail is accessible, state is ' .. TRAIN_STATES[train.state + 1])
+        log('The rail is accessible, state is ' .. TRAIN_STATES[train.state + 1])
         result = true
     end
     train.schedule = old_schedule

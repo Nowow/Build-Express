@@ -3,8 +3,9 @@ TaskQueue.__index = TaskQueue
 
 script.register_metatable("queue_metatable", TaskQueue)
 
-function TaskQueue:create()
+function TaskQueue:create(name)
     local queue = {}
+    queue.name = name
     queue.head_tail = {first = 1, last = 0}
     queue.data = {}
     queue.task_id_index = {}
@@ -13,6 +14,8 @@ function TaskQueue:create()
 end
 
 function TaskQueue:push(task)
+    -- log(string.format("TASK_ID %-12s", task.id .. ':') .. 'task pushed in queue ' .. self.name)
+    -- log(string.format("TASK_ID %-12s", task.id .. ':') .. 'the queue now has ' .. table_size(self.data) .. ' items')
     local last = self.head_tail.last + 1
     self.head_tail.last = last
     self.data[last] = task
@@ -20,12 +23,15 @@ function TaskQueue:push(task)
 end
 
 function TaskQueue:pop()
+    
     local first = self.head_tail.first
     if first > self.head_tail.last then error("list is empty") end
     local task = self.data[first]
     self.data[first] = nil
     self.task_id_index[task.id] = nil
     self.head_tail.first = first + 1
+    -- log(string.format("TASK_ID %-12s", task.id .. ':') .. 'task popped from queue ' .. self.name)
+    -- log(string.format("TASK_ID %-12s", task.id .. ':') .. 'the queue now has ' .. table_size(self.data) .. ' items')
     return task
 end
 
@@ -49,11 +55,14 @@ function TaskQueue:remove(task_id)
         end
     end
     self.head_tail.last = last - 1
+    -- log(string.format("TASK_ID %-12s", task_id .. ':') .. 'task removed from queue ' .. self.name)
+    -- log(string.format("TASK_ID %-12s", task_id .. ':') .. 'the queue now has ' .. table_size(self.data) .. ' items')
     return true
     
 end
 
 function TaskQueue:lookup(task_id)
+    -- log(string.format("TASK_ID %-12s", task_id .. ':') .. 'task looked up in queue ' .. self.name)
     return self.data[self.task_id_index[task_id]]
 end
 

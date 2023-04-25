@@ -11,6 +11,10 @@ TASK_STATES = {
     TERMINATING = 'TERMINATING'
 }
 
+function log_task(task_id, msg)
+    log(string.format("TASK_ID %-12s", task_id .. ':') .. msg)
+end
+
 
 function createTask(tick, player_index, blueprint_label, ghosts)
     return {
@@ -148,12 +152,12 @@ function findBuildingSpot(task, offset)
         if next(subtask.ghosts) ~= nil then
 
             candidates = findNearestRails(task.surface, subtask.bounding_box, offset)
-            game.print("found " .. #candidates .. 'rails for subtask ' .. i )
+            log_task(task.id, "found " .. #candidates .. 'rails for subtask ' .. i )
             if #candidates > 0 then
-                game.print("Testing rails for subtask " .. i)
+                log_task(task.id, "Testing rails for subtask " .. i)
                 for _, rail in pairs(candidates) do
                     if checkIfTrainCanGetToRail(task.worker, rail) then
-                        hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
+                        --hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
                         task.active_subtask_index = i
                         task.building_spot = rail
                         return task

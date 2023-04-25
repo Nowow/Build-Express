@@ -76,4 +76,10 @@ function hightlighRail(rail)
         surface=rail.surface,
         time_to_live=300
     })
+    
+end
+
+
+function formatGpsString(position)
+    return " at [gps=" .. position.x .. "," .. position.y .. ']'
 end
