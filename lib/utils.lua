@@ -61,8 +61,8 @@ function rectangleOverlapsRectangle(bb1, bb2)
 end
 
 
-function hightlighRail(rail)
-    local color = {r = 0, g = 1, b = 0}
+function hightlighRail(rail, color)
+    local color = color or color==nil and {r = 1, g = 1, b = 1}
     local rail_box = {
         {rail.position.x - 1, rail.position.y - 1},
         {rail.position.x + 1, rail.position.y + 1}

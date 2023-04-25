@@ -160,7 +160,10 @@ function findBuildingSpot(task, offset)
                         --hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
                         task.active_subtask_index = i
                         task.building_spot = rail
+                        hightlighRail(rail, {r = 0, g = 1, b = 0})
                         return task
+                    else
+                        hightlighRail(rail, {r = 1, g = 0, b = 0})
                     end
                 end
             end
