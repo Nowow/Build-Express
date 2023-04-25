@@ -149,14 +149,30 @@ script.on_nth_tick(33, function(event)
     --log('Reached ASSIGNED handler')
     
     local task = global.construction_tasks.ASSIGNED:pop()
-    local modified_task = findBuildingSpot(task, 1)
-    if modified_task ~= nil then task = modified_task
-    else
-        log_task(task.id, "found no spot")
-        global.construction_tasks.ASSIGNED:push(task)
+    task = findBuildingSpot(task, 1)
+    
+    
+    if task.building_spot == nil then
+        local subtasks_left = table_size(task.subtasks)
+        if subtasks_left > 0 then
+            local ghosts_left = 0
+            for _, subtask in pairs(task.subtasks) do
+                for __, ghost in subtask.ghosts do
+                    if ghost.valid then
+                        ghosts_left = ghosts_left + 1
+                    end
+                end
+            end
+            log_task(task.id, "found no spot, subtasks left: " .. subtasks_left .. ', ghosts left: ' .. ghosts_left)
+            global.construction_tasks.ASSIGNED:push(task)
+        else
+            log_task(task.id, "ASSIGNED, but no more subtasks left, puttin task into TERMINATION due to completion")
+            task.state = TASK_STATES.TERMINATING
+            global.construction_tasks.TERMINATING:push(task)
+        end
         return
     end
-    hightlighRail(task.building_spot)
+    
     local color = {r = 1, g = 1, b = 0}
     for _, e in pairs(task.subtasks[task.active_subtask_index].ghosts) do
         if e.valid then
@@ -171,7 +187,7 @@ script.on_nth_tick(33, function(event)
     end
     local worker = task.worker
     removeTimePassedConditionFromCurrentStop(worker)
-    addStopToSchedule(task.building_spot, worker)
+    addStopToSchedule(task.building_spot, worker, true)
     task.state = TASK_STATES.BUILDING
     task.timer_tick = game.tick
     global.construction_tasks.BUILDING:push(task)

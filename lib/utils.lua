@@ -61,20 +61,23 @@ function rectangleOverlapsRectangle(bb1, bb2)
 end
 
 
-function hightlighRail(rail, color)
+function hightlighRail(rail, color, ping)
+    local ping = ping or ping == nil and false
     local color = color or color==nil and {r = 1, g = 1, b = 1}
     local rail_box = {
         {rail.position.x - 1, rail.position.y - 1},
         {rail.position.x + 1, rail.position.y + 1}
     }
-    local gps = " at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
-    game.print('Hightlighted rail' .. gps)
+    if ping then
+        local gps = " at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
+        game.print('Hightlighted rail' .. gps)
+    end
     rendering.draw_rectangle({
         left_top=rail_box[1],
         right_bottom=rail_box[2],
         color=color,
         surface=rail.surface,
-        time_to_live=300
+        time_to_live=1500
     })
     
 end

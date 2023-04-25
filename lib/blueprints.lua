@@ -153,9 +153,9 @@ function findBuildingSpot(task, offset)
         if next(subtask.ghosts) ~= nil then
 
             candidates = findNearestRails(task.surface, subtask.bounding_box, offset)
-            log_task(task.id, "found " .. #candidates .. 'rails for subtask ' .. i )
+            log_task(task.id, "Testign rails: found " .. #candidates .. ' rails for subtask ' .. i )
             if #candidates > 0 then
-                log_task(task.id, "Testing rails for subtask " .. i)
+                log_task(task.id, "Testign rails: testing rails for subtask " .. i)
                 for _, rail in pairs(candidates) do
                     if checkIfTrainCanGetToRail(task.worker, rail) then
                         --hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
@@ -173,7 +173,7 @@ function findBuildingSpot(task, offset)
             task.subtasks[i] = nil
         end
     end
-    return nil
+    return task
 end
 
  

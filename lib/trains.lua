@@ -37,7 +37,8 @@ function getWorker(blueprint_name)
     end
 end
 
-function addStopToSchedule(rail, train)
+function addStopToSchedule(rail, train, replace_next_temp)
+    local replace_next_temp = replace_next_temp or replace_next_temp==nil and false
     local schedule_entry = {
         rail=rail,
         wait_conditions={
@@ -54,7 +55,20 @@ function addStopToSchedule(rail, train)
         temporary=true
     }
     local new_schedule = train.schedule
-    table.insert(new_schedule.records, schedule_entry)
+    local new_records = new_schedule.records
+    local current_index = new_schedule.current
+    if not replace_next_temp or current_index == #new_records then
+        table.insert(new_records, schedule_entry)
+    else
+        for i=current_index + 1, #new_records + 1 do
+            local stop = new_records[i]
+            if stop == nil or stop.temporary == true then
+                new_records[i] = schedule_entry
+                break
+            end
+        end
+    end
+    new_schedule.records = new_records
     game.print("ADDED STOP")
     train.schedule = new_schedule
 end
@@ -117,12 +131,12 @@ function checkIfTrainCanGetToRail(train, rail)
     train.schedule = new_schedule
     train.recalculate_path(true)
     local result = false
-    if train.state == 1 or train.state == 3 then
-        --hightlighRail(rail)
-        log('The rail is not accessible, state was: ' .. TRAIN_STATES[train.state + 1])
-    else
-        log('The rail is accessible, state is ' .. TRAIN_STATES[train.state + 1])
+    if not (train.state == 1 or train.state == 3) then
         result = true
+        --hightlighRail(rail)
+        --log('The rail is not accessible, state was: ' .. TRAIN_STATES[train.state + 1])
+
+        --log('The rail is accessible, state is ' .. TRAIN_STATES[train.state + 1])
     end
     train.schedule = old_schedule
     train.recalculate_path(true)
