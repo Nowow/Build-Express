@@ -30,6 +30,7 @@ function createTask(tick, player_index, blueprint_label, ghosts)
         active_subtask=nil,
         building_spot=nil,
         state=TASK_STATES.TASK_CREATED,
+        flying_text={}
     }
 end
 

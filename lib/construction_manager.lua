@@ -30,6 +30,9 @@ function endTask(task)
         end
     end
     log_task(task.id, "VALID GHOSTS LEFT: " .. valid_ghosts_counter)
+    for _, render_id in pairs(task.flying_text) do
+        rendering.destroy(render_id)
+    end
     --makeTrainGoToDepot(task.worker)
     update_task_frame(task, true)
     global.construction_tasks[task.state]:remove(task.id)
@@ -73,6 +76,17 @@ script.on_nth_tick(31, function(event)
     
     local task = global.construction_tasks.TASK_CREATED:pop()
     task.bounding_box = findBlueprintBoundigBox(task.ghosts)
+    local task_id_flying_text = rendering.draw_text({
+        text="TASK " .. task.id,
+        surface = task.surface,
+        target = {
+            x=task.bounding_box.left_top.x + (task.bounding_box.right_bottom.x - task.bounding_box.left_top.x)/2,
+            y=task.bounding_box.left_top.y + (task.bounding_box.right_bottom.y - task.bounding_box.left_top.y)/2,
+        },
+        color={r=0,g=1,b=1},
+        scale=3.0,
+    })
+    table.insert(task.flying_text,task_id_flying_text)
     task.state = TASK_STATES.UNASSIGNED
     global.construction_tasks.UNASSIGNED:push(task)
     update_task_frame(task)
