@@ -34,41 +34,6 @@ function getWorker(blueprint_name)
             return nil
         end
     end
-end 
-
-
-function makeTrainGoToRail(rail, train)
-    local schedule_entry_1 = {
-        rail=rail,
-        wait_conditions={
-            {
-                type='time',
-                ticks=300,
-                compare_type='and'
-            },
-            {
-                type='robots_inactive',
-                compare_type='and'
-            }
-        },
-        temporary=true
-    }
-    local schedule_entry_2 = {
-        rail=rail,
-        wait_conditions={
-            {
-                type='time',
-                ticks=36000,
-                compare_type='and'
-            }
-        },
-        temporary=true
-    }
-    local new_schedule = train.schedule
-    new_schedule.records = {new_schedule.records[1], schedule_entry_1, schedule_entry_2}
-    new_schedule.current = 2
-
-    train.schedule = new_schedule
 end
 
 function addStopToSchedule(rail, train)
@@ -93,31 +58,11 @@ function addStopToSchedule(rail, train)
     train.schedule = new_schedule
 end
 
-function checkIfTrainRobotsAreBack(train)
-    local schedule = train.schedule
-    if table_size(schedule.records) ~= 3 or schedule.current == 3 then
-        return true
-    else
-        return false
-    end
-end
-
 function makeTrainGoToDepot(train)
     new_schedule = train.schedule
     new_schedule.records = {new_schedule.records[1]}
     new_schedule.current = 1
     train.schedule = new_schedule
-end
-
-function makeRegistredTrainsGoToRail(rail)
-    local rail_gps_text = " at [gps=" .. rail.position.x .. "," .. rail.position.y .. ']'
-    for _, train in pairs(global.registred_trains) do
-        
-        local front_loco = train.front_stock
-        local front_loco_gps_text = "at [gps=" .. front_loco.position.x .. "," .. front_loco.position.y .. ']'
-        game.print('Sending ' .. train.id .. front_loco_gps_text .. ' to a rail ' .. rail_gps_text)
-        makeTrainGoToRail(rail, train)
-    end
 end
 
 function checkIfTrainCanGetToRail(train, rail)
