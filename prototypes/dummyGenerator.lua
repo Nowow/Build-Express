@@ -259,7 +259,7 @@ local function createDummyEntity(originalEntity)
 
 
     --generate localisation from the original entity
-    dummyEntity.localised_name = {"", originalEntity.localised_name or {"entity-name." .. originalEntity.name}, " - ", {"dummy_name_suffix"}}
+    dummyEntity.localised_name = {"", originalEntity.localised_name or {"entity-name." .. originalEntity.name}, " - ", {"buex.dummy_name_suffix"}}
 
     --set the subgrouo of the dummy entity to the constants.dummyPrefix
     dummyEntity.subgroup = constants.dummyPrefix
@@ -319,8 +319,7 @@ local function createDummyItem(originalItem)
             table.insert(dummyItem.flags, "hidden")
 
              --generate localisation from the original item
-            dummyItem.localised_name = {"", originalItem.localised_name or {"entity-name." .. originalItem.name}, " - ", {"dummy_name_suffix"}}
-
+            dummyItem.localised_name = {"", originalItem.localised_name or {"entity-name." .. originalItem.name}, " - ", {"buex.dummy_name_suffix"}}
             return dummyItem
 end
 
