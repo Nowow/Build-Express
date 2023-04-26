@@ -6,3 +6,13 @@ getOriginalEntityName = function(dummyEntityName)
     local originalEntityName = string.sub(dummyEntityName, string.len(constants.dummyPrefix) + 1)
     return originalEntityName
 end
+
+
+dummyEntityPrototypeExists = function(entityName)
+    --check if the dummy entity prototype exists
+    -- local dummyEntityPrototype = global.GhostOnWater.WaterGhostNames[constants.dummyPrefix .. entityName]
+    -- return dummyEntityPrototype ~= nil
+
+    local dummyEntityPrototype = game.entity_prototypes[constants.dummyPrefix .. entityName]
+    return dummyEntityPrototype ~= nil
+end
