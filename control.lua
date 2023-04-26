@@ -133,5 +133,8 @@ script.on_event("test-custom-hotkey", function(event)
     end)
 
 script.on_event("buex-build-blueprint", function(event)
-    local stack = game.get_player(event.player_index).cursor_stack
+    --local stack = game.get_player(event.player_index).cursor_stack
+    local player_index = event.player_index
+    convertHeldBlueprintToWaterGhosts(player_index)
+
 end)
