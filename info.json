@@ -7,5 +7,5 @@
   "homepage": "",
   "factorio_version" : "1.1",
   "description": "Allows for a automated train based factory expansion",
-  "dependencies": ["base", "construction-train >= 0.2.0", "flib"]
+  "dependencies": ["base", "construction-train >= 0.2.0", "stdlib >= 1.4.7", "flib"]
 }
