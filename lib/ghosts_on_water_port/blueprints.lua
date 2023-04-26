@@ -17,6 +17,17 @@ blueprints.ReplaceEntityWithDummy = function(entity)
     return entity
 end
 
+blueprints.getDummyEntities = function(blueprint)
+    local blueprintEntities = blueprint.get_blueprint_entities()
+
+    --return if blueprintEntities is empty
+    if not blueprintEntities or # blueprintEntities == 0 then return end
+
+    --replace blueprint entities with dummy entities using table.map
+    local dummyEntities = table.map(blueprintEntities, blueprints.ReplaceEntityWithDummy)
+    return dummyEntities
+end
+
 
 --- Update a single blueprint, applying the replacerFunction to every entity in the blueprint.
 -- @tparam LuaItemStack blueprint
@@ -28,15 +39,7 @@ blueprints.updateSingleBlueprint = function(blueprint)
    if not blueprint.is_blueprint then return end
    if not blueprint.is_blueprint_setup() then return end
 
-   --get blueprint entities
-   local blueprintEntities = blueprint.get_blueprint_entities()
-   --return if blueprintEntities is empty
-   if not blueprintEntities or # blueprintEntities == 0 then return end
-
-   --replace blueprint entities with dummy entities using table.map
-   local dummyEntities = table.map(blueprintEntities, blueprints.ReplaceEntityWithDummy)
-
-   --set the blueprint entities
+   local dummyEntities = blueprints.getDummyEntities(blueprint)
    blueprint.set_blueprint_entities(dummyEntities)
 end
 
