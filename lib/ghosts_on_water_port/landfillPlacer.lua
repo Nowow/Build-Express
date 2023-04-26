@@ -6,7 +6,7 @@ local Geom2D = require('external-lib/Geom2D')
 local table = require('__stdlib__/stdlib/utils/table')
 local Area = require('__stdlib__/stdlib/area/area')
 local Is = require('__stdlib__/stdlib/utils/is')
-require('lib.ghosts_on_water_port.func')
+require('lib.ghosts_on_water_port.common')
 
 local pumpLandfillOnCollisonMask = { "water-tile" }
 --for space exploration compatibility
