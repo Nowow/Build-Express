@@ -131,3 +131,7 @@ script.on_event("test-custom-hotkey", function(event)
         -- FindNearestRails(surface, selected_entity.position, 10)
     end
     end)
+
+script.on_event("buex-build-blueprint", function(event)
+    local stack = game.get_player(event.player_index).cursor_stack
+end)
