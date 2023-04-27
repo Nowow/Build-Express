@@ -64,6 +64,7 @@ script.on_event(defines.events.on_tick, function(event)
                 local blueprint = player.cursor_stack
                 local blueprint_label = blueprint.label or blueprint.label == nil and constants.unlabeled_blueprints_placeholder_label
                 local blueprint_entities = blueprint.get_blueprint_entities()
+                local cost_to_build = blueprint.cost_to_build
                 local build_params = cache.build_params
                 blueprint.set_blueprint_entities(cache.dummy_entities)
                 global.cursor_blueprint_cache[player_index].ready = nil
@@ -77,7 +78,7 @@ script.on_event(defines.events.on_tick, function(event)
                 })
                 blueprint.set_blueprint_entities(blueprint_entities)
                 if next(built_ghost_dummies) ~= nil then
-                    local task = createTask(building_tick, player_index, blueprint_label, built_ghost_dummies)
+                    local task = createTask(building_tick, player_index, blueprint_label, built_ghost_dummies, cost_to_build)
                     game.print("PUSHED TASK IN CREATED")
                     global.construction_tasks.TASK_CREATED:push(task)
                     update_task_frame(task)
@@ -110,7 +111,7 @@ script.on_nth_tick(31, function(event)
             x=task.bounding_box.left_top.x + (task.bounding_box.right_bottom.x - task.bounding_box.left_top.x)/2,
             y=task.bounding_box.left_top.y + (task.bounding_box.right_bottom.y - task.bounding_box.left_top.y)/2,
         },
-        color={r=0,g=1,b=1},
+        color={r=0,g=1,b=0.7},
         scale=3.0,
     })
     table.insert(task.flying_text,task_id_flying_text)

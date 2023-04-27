@@ -15,7 +15,7 @@ function log_task(task_id, msg)
 end
 
 
-function createTask(tick, player_index, blueprint_label, ghosts)
+function createTask(tick, player_index, blueprint_label, ghosts, cost_to_build)
     return {
         id=player_index .. '_' .. tick,
         tick=tick,
@@ -29,7 +29,8 @@ function createTask(tick, player_index, blueprint_label, ghosts)
         active_subtask=nil,
         building_spot=nil,
         state=TASK_STATES.TASK_CREATED,
-        flying_text={}
+        flying_text={},
+        cost_to_build=cost_to_build
     }
 end
 
