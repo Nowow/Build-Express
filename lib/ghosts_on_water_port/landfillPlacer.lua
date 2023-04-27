@@ -8,18 +8,19 @@ local Area = require('__stdlib__/stdlib/area/area')
 local Is = require('__stdlib__/stdlib/utils/is')
 require('lib.ghosts_on_water_port.common')
 
+local constants = require("constants")
+
 local pumpLandfillOnCollisonMask = { "water-tile" }
 --for space exploration compatibility
 
 
 local function getLandfillTypeForCollision()
-    --local emptySpaceTileCollisionLayerPrototype = game.entity_prototypes["collision-mask-empty-space-tile"]
+    
     local landfillTpyeForCollision = {} 
-    landfillTpyeForCollision["water-tile"] = settings.global.WaterGhostUsedLandfillType.value
-    --landfillTpyeForCollision["player-layer"] = settings.global.WaterGhostUsedLandfillType.value
-    --add empty space collison if it exists for space exploration compatibility
+    landfillTpyeForCollision["water-tile"] = constants.vanillaLandfill
+
     if global.GhostOnWater.emptySpaceCollsion then
-        landfillTpyeForCollision["object-layer"] = settings.global.WaterGhostUsedSpaceLandfillType.value
+        landfillTpyeForCollision["object-layer"] = constants.spaceLandfillTypes[1]
     end
 
     return landfillTpyeForCollision
