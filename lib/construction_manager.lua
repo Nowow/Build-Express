@@ -1,7 +1,6 @@
 require("lib.utils")
 require("lib.trains")
 require("lib.blueprints")
-require("lib.events")
 require("lib.gui")
 require("lib.station_manager")
 require("lib.task_queue")

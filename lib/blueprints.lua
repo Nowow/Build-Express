@@ -1,5 +1,4 @@
 require("lib.utils")
-require("lib.events")
 
 blueprint_entity_cache = {}
 

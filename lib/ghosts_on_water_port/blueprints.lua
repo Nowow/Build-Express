@@ -17,14 +17,13 @@ blueprints.ReplaceEntityWithDummy = function(entity)
     return entity
 end
 
-blueprints.getDummyEntities = function(blueprint)
-    local blueprintEntities = blueprint.get_blueprint_entities()
-
+blueprints.bulkConvertEntitiesToDummies = function(blueprint_entities)
+    
     --return if blueprintEntities is empty
-    if not blueprintEntities or # blueprintEntities == 0 then return end
+    if not blueprint_entities or # blueprint_entities == 0 then return end
 
     --replace blueprint entities with dummy entities using table.map
-    local dummyEntities = table.map(blueprintEntities, blueprints.ReplaceEntityWithDummy)
+    local dummyEntities = table.map(blueprint_entities, blueprints.ReplaceEntityWithDummy)
     return dummyEntities
 end
 
@@ -39,7 +38,8 @@ blueprints.updateSingleBlueprint = function(blueprint)
    if not blueprint.is_blueprint then return end
    if not blueprint.is_blueprint_setup() then return end
 
-   local dummyEntities = blueprints.getDummyEntities(blueprint)
+   local blueprintEntities = blueprint.get_blueprint_entities()
+   local dummyEntities = blueprints.bulkConvertEntitiesToDummies(blueprintEntities)
    blueprint.set_blueprint_entities(dummyEntities)
 end
 
