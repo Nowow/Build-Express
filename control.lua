@@ -131,22 +131,10 @@ script.on_event("test-custom-hotkey", function(event)
     end
     end)
 
--- script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
---     local player_index = event.player_index
---     local player = game.players[player_index]
---     local player_inventory = player.get_inventory(defines.inventory.character_main)
---     local item, i = global.blueprint_cache_inventory.find_item_stack('blueprint')
---     if item ~= nil then
---         player_inventory.insert(item)
---     end
-
---     -- if player_index == cached_blueprint_player_index then
---     --     local blueprint = global.cursor_blueprint_cache.blueprint
---     --     game.print("name " .. blueprint.name)
---     --     blueprint.set_blueprint_entities(global.cursor_blueprint_cache.original_entities_cache)
---     --     global.cursor_blueprint_cache = {}
---     -- end
--- end)
+script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
+    local player_index = event.player_index
+    global.cursor_blueprint_cache[player_index] = {}
+end)
 
 script.on_event(defines.events.on_pre_build , function(event)
     local player_index = event.player_index

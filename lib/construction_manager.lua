@@ -83,7 +83,7 @@ script.on_event(defines.events.on_tick, function(event)
                 else
                     game.print("NO DUMMIES GOT BUILT")
                 end
-                global.cursor_blueprint_cache[player_index] = {}
+                
             end
         end
     end
