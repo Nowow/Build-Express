@@ -6,6 +6,7 @@ require("lib.station_manager")
 require("lib.task_queue")
 require("settings")
 
+local constants = require("constants")
 local next = next
 
 function initConstructionTasks()
@@ -49,32 +50,46 @@ function endTask(task)
     global.construction_tasks[task.state]:remove(task.id)
 end
 
--- move create tasks from cached build ghosts 
-script.on_nth_tick(30, function(event)
-    if next(blueprint_entity_cache) == nil then
-        return
-    end
+script.on_event(defines.events.on_tick, function(event)
 
-    log('Reached task assembler')
-    
-    for player_index, blueprint_cache in pairs(blueprint_entity_cache) do
-        
-        for blueprint_label, tick_cache in pairs(blueprint_cache) do
-
-            for tick, cache in pairs(tick_cache) do
-                if tick == event.tick then
-                    return
+    for player_index, cache in pairs(global.cursor_blueprint_cache) do
+        if cache.ready then
+            game.print('Calling build blueprint for player ' .. player_index)
+            local current_tick = event.tick
+            local building_tick = cache.tick
+            if current_tick > building_tick then
+                local player = game.players[player_index]
+                -- little race unsafe, if player manages to lose blueprint from cursor stack in 1 tick
+                -- could be made safe with create_inventory, but probably will bother later
+                local blueprint = player.cursor_stack
+                local blueprint_label = blueprint.label or blueprint.label == nil and constants.unlabeled_blueprints_placeholder_label
+                local blueprint_entities = blueprint.get_blueprint_entities()
+                local build_params = cache.build_params
+                blueprint.set_blueprint_entities(cache.dummy_entities)
+                local built_ghost_dummies = blueprint.build_blueprint({
+                        surface=build_params.surface,
+                        force=build_params.force,
+                        position=build_params.position,
+                        force_build=build_params.force_build,
+                        skip_fog_of_war=build_params.skip_fog_of_war,
+                        direction=build_params.direction
+                })
+                blueprint.set_blueprint_entities(blueprint_entities)
+                if next(built_ghost_dummies) ~= nil then
+                    local task = createTask(building_tick, player_index, blueprint_label, built_ghost_dummies)
+                    game.print("PUSHED TASK IN CREATED")
+                    global.construction_tasks.TASK_CREATED:push(task)
+                    update_task_frame(task)
+                else
+                    game.print("NO DUMMIES GOT BUILT")
                 end
-                local task = createTask(tick, player_index, blueprint_label, cache)
-                global.construction_tasks.TASK_CREATED:push(task)
-                update_task_frame(task)
-                blueprint_entity_cache[player_index][blueprint_label][tick] = nil
+                global.cursor_blueprint_cache[player_index] = {}
             end
-            blueprint_entity_cache[player_index][blueprint_label] = nil
         end
-    blueprint_entity_cache[player_index] = nil
     end
+    
 end)
+
 
 -- formulating construnstruction plan
 script.on_nth_tick(31, function(event)
