@@ -89,7 +89,7 @@ script.on_event(defines.events.on_built_entity, function(event)
     end
     
     local player_index = event.player_index
-    local destroy_ghost = global.cursor_blueprint_cache[player_index].destroy_ghost_at_build_event
+    local destroy_ghost = global.cursor_blueprint_cache[player_index].ready
 
     if destroy_ghost then event.created_entity.destroy() return end
 
@@ -138,9 +138,7 @@ end)
 
 script.on_event(defines.events.on_pre_build , function(event)
     local player_index = event.player_index
-    log("ON PREBUILD CALLED")
     if global.cursor_blueprint_cache[player_index].dummy_entities ~= nil then
-        log("")
         global.cursor_blueprint_cache[player_index].build_params.direction = event.direction
         global.cursor_blueprint_cache[player_index].tick = event.tick
         global.cursor_blueprint_cache[player_index].ready = true
@@ -163,7 +161,6 @@ script.on_event("buex-build-blueprint", function(event)
     local blueprint_entities = held_blueprint.get_blueprint_entities()
     local dummy_entities = bl.bulkConvertEntitiesToDummies(blueprint_entities)
 
-    global.cursor_blueprint_cache[player_index].destroy_ghost_at_build_event = true
     global.cursor_blueprint_cache[player_index].dummy_entities = dummy_entities
     global.cursor_blueprint_cache[player_index].build_params = {
         surface=player.surface,

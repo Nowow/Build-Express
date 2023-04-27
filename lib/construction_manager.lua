@@ -66,6 +66,7 @@ script.on_event(defines.events.on_tick, function(event)
                 local blueprint_entities = blueprint.get_blueprint_entities()
                 local build_params = cache.build_params
                 blueprint.set_blueprint_entities(cache.dummy_entities)
+                global.cursor_blueprint_cache[player_index].ready = nil
                 local built_ghost_dummies = blueprint.build_blueprint({
                         surface=build_params.surface,
                         force=build_params.force,
