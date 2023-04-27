@@ -15,13 +15,15 @@ function log_task(task_id, msg)
 end
 
 
-function createTask(tick, player_index, blueprint_label, ghosts, cost_to_build)
+function createTask(tick, player_index, blueprint_label, ghosts, cost_to_build, tiles)
+    local tiles = tiles or tiles == nil and {}
     return {
         id=player_index .. '_' .. tick,
         tick=tick,
         player_index=player_index,
         blueprint_label=blueprint_label,
         ghosts=ghosts,
+        tile_ghosts=tiles,
         surface=game.players[player_index].surface,
         bounding_box=nil,
         subtasks=nil,
@@ -37,7 +39,8 @@ end
 function createSubtask(bounding_box)
     return {
         bounding_box=bounding_box,
-        ghosts={}
+        ghosts={},
+        tile_ghosts={}
     }
 end
 
