@@ -7,6 +7,7 @@ require("lib.task_queue")
 require("settings")
 
 local constants = require("constants")
+local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 local next = next
 
 function initConstructionTasks()
@@ -151,15 +152,52 @@ script.on_nth_tick(32, function(event)
         log_task(task.id, "subtask id: " .. i .. ", ghosts count: " .. ghost_count)
     end
     log_task(task.id, "Total ghosts in task: " .. table_size(task.ghosts) .. ', checksum: ' .. checksum)
-    task.state = TASK_STATES.ASSIGNED
-    global.construction_tasks.ASSIGNED:push(task)
+    task.state = TASK_STATES.PREPARING
+    global.construction_tasks.PREPARING:push(task)
     update_task_frame(task)
 
-end) 
+end)
+
+-- modifying changes before dispatching
+-- place tile ghosts under water hovering entity ghosts
+script.on_nth_tick(33, function(event)
+    if next(global.construction_tasks.PREPARING.data) == nil then
+        return
+    end
+
+    log('Reached PREPARING handler')
+
+    local task = global.construction_tasks.PREPARING:pop()
+
+    for i, subtask in pairs(task.subtasks) do
+        for _, ghost in pairs(subtask.ghosts) do
+            if ghost.valid then
+                local position = ghost.position
+                local surface = ghost.surface
+                local dummy_replaced = replaceDummyEntityGhost(ghost)
+
+                -- if ghost still valid then replacement didnt take place
+                if not dummy_replaced then
+                    local landfill_ghosts = landfill.placeGhostLandfill(ghost)
+                    log_task(task.id, "placed " .. #landfill_ghosts .. " landfill")
+                    hightlightEntity(ghost, 3, {r=1,g=1,b=0})
+                    for _, t in pairs(landfill_ghosts) do
+                        table.insert(subtask.tile_ghosts, t)
+                    end
+                end
+            end
+            
+        end
+    end
+    task.state = TASK_STATES.ASSIGNED
+    global.construction_tasks.ASSIGNED:push(task)
+    update_task_frame(task) 
+
+end)
 
 ---- building loop ----
 --   pick active subtask and send worker to build
-script.on_nth_tick(33, function(event)
+script.on_nth_tick(34, function(event)
     if next(global.construction_tasks.ASSIGNED.data) == nil then
         return
     end
@@ -175,7 +213,7 @@ script.on_nth_tick(33, function(event)
         if subtasks_left > 0 then
             local ghosts_left = 0
             for _, subtask in pairs(task.subtasks) do
-                for __, ghost in subtask.ghosts do
+                for __, ghost in pairs(subtask.ghosts) do
                     if ghost.valid then
                         ghosts_left = ghosts_left + 1
                     end
@@ -215,7 +253,7 @@ end)
 
 ---- building loop ----
 --   manage completion of an active subtask
-script.on_nth_tick(34, function(event)
+script.on_nth_tick(35, function(event)
     if next(global.construction_tasks.BUILDING.data) == nil then
         return
     end
@@ -298,7 +336,7 @@ script.on_nth_tick(34, function(event)
 end)
 
 -- termination
-script.on_nth_tick(35, function(event)
+script.on_nth_tick(36, function(event)
     if next(global.construction_tasks.TERMINATING.data) == nil then
         return
     end
