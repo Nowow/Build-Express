@@ -172,8 +172,6 @@ script.on_nth_tick(33, function(event)
     for i, subtask in pairs(task.subtasks) do
         for _, ghost in pairs(subtask.ghosts) do
             if ghost.valid then
-                local position = ghost.position
-                local surface = ghost.surface
                 local dummy_replaced = replaceDummyEntityGhost(ghost)
 
                 -- if ghost still valid then replacement didnt take place
