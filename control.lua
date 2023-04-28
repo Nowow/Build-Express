@@ -8,6 +8,7 @@ require("lib.station_manager")
 
 local bl = require("lib.ghosts_on_water_port.blueprints")
 local constants = require("constants")
+local table_lib = require('__stdlib__/stdlib/utils/table')
 
 local next = next
 
@@ -22,11 +23,15 @@ function initGlobal()
     if global.cursor_blueprint_cache == nil then
         global.cursor_blueprint_cache = {}
     end
-
     for i, p in pairs(game.players) do
         if not global.cursor_blueprint_cache[i] then
             global.cursor_blueprint_cache[i] = {}
         end
+    end
+
+    local emptySpaceTileCollisionLayerPrototype = game.entity_prototypes["collision-mask-empty-space-tile"]
+    if emptySpaceTileCollisionLayerPrototype then
+        global.emptySpaceCollsion = table_lib.first(table_lib.keys(emptySpaceTileCollisionLayerPrototype.collision_mask))
     end
 
 end 
@@ -127,6 +132,8 @@ script.on_event("test-custom-hotkey", function(event)
         global.construction_tasks = nil
         
         initGlobal()
+
+        --replaceEntityWithSchmentity(event)
         
     end
     end)
@@ -140,6 +147,7 @@ script.on_event(defines.events.on_pre_build , function(event)
     local player_index = event.player_index
     if global.cursor_blueprint_cache[player_index].dummy_entities ~= nil then
         global.cursor_blueprint_cache[player_index].build_params.direction = event.direction
+        global.cursor_blueprint_cache[player_index].build_params.position=event.position
         global.cursor_blueprint_cache[player_index].tick = event.tick
         global.cursor_blueprint_cache[player_index].ready = true
     end
@@ -165,7 +173,6 @@ script.on_event("buex-build-blueprint", function(event)
     global.cursor_blueprint_cache[player_index].build_params = {
         surface=player.surface,
         force=player.force,
-        position=event.cursor_position,
         force_build=true,
         skip_fog_of_war=true,
     }

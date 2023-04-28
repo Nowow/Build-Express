@@ -40,3 +40,15 @@ function convertHeldBlueprintToWaterGhosts(player_index)
     end
     --otherwise, do nothing
 end
+
+
+function replaceEntityWithSchmentity(e)
+    local entity = game.get_player(e.player_index).selected
+    local prototype_name = 'substation'
+    
+    local position = entity.position
+    local force = entity.force
+
+    entity.order_upgrade({force = force, target = prototype_name})
+    
+end
