@@ -19,7 +19,7 @@ local function getLandfillTypeForCollision()
     local landfillTpyeForCollision = {} 
     landfillTpyeForCollision["water-tile"] = constants.vanillaLandfill
 
-    if global.GhostOnWater.emptySpaceCollsion then
+    if global.emptySpaceCollsion then
         landfillTpyeForCollision["object-layer"] = constants.spaceLandfillTypes[1]
     end
 
