@@ -16,6 +16,7 @@ function hightlightEntity(entity, radius, color)
 
     
     local color = {r = 0, g = 1, b = 0}
+    local color = color or color==nil and {r = 1, g = 1, b = 1}
     
     
     rendering.draw_circle({
@@ -23,7 +24,7 @@ function hightlightEntity(entity, radius, color)
         target=entity,
         color=color,
         surface=entity.surface,
-        time_to_live=300
+        time_to_live=1000
     })   
 end
 
