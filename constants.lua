@@ -11,5 +11,10 @@ constants.spaceLandfillTypes = { "se-space-platform-scaffold", "se-space-platfor
 
 constants.unlabeled_blueprints_placeholder_label = "unlabeled blueprint"
 constants.construction_wagon_prototype_name = 'ct-construction-wagon'
+constants.deconstruction_blueprint_label_placeholder = "DECONSTRUCTION"
+constants.task_flying_text_colors_by_task_type = {
+    BUILD = {r=0,g=1,b=0.7},
+    DECONSTRUCT = {r=1,g=0,b=1}
+}
 
 return constants
