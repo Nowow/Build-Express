@@ -10,5 +10,6 @@ constants.paintingWithLandfillLandfillTypes = { "dry-dirt", "dirt-4", "grass-1",
 constants.spaceLandfillTypes = { "se-space-platform-scaffold", "se-space-platform-plating", "se-spaceship-floor" }
 
 constants.unlabeled_blueprints_placeholder_label = "unlabeled blueprint"
+constants.construction_wagon_prototype_name = 'ct-construction-wagon'
 
 return constants
