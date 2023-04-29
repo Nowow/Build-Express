@@ -134,7 +134,7 @@ script.on_event("test-custom-hotkey", function(event)
         initGlobal()
 
         --replaceEntityWithSchmentity(event)
-        
+        getLogisticCell(event)
     end
     end)
 
@@ -176,35 +176,5 @@ script.on_event("buex-build-blueprint", function(event)
         force_build=true,
         skip_fog_of_war=true,
     }
-    
-    
-    -- placing a copy of blueprint in players inventory
-    --global.blueprint_cache_inventory.insert(held_blueprint)
-  
-    --held_blueprint.set_blueprint_entities(dummy_entities)
-
-    -- player.cursor_stack.set_stack(og_blueprint.name)
-    -- player.cursor_stack.set_blueprint_entities(dummy_entities)
-
-    -- local new_bp = player.cursor_stack
-    -- local built_ghost_dummies = og_blueprint.build_blueprint({
-    --     surface=player.surface,
-    --     force=player.force,
-    --     position=cursor_position,
-    --     force_build=true,
-    --     skip_fog_of_war=true,
-    --     --direction=defines.direction.southeast
-    -- })
-    -- -- placing og blueprint back into cursor
-    -- player.cursor_stack.set_stack(og_blueprint)
-
-    -- --placing entities in cache 
-    -- if not blueprint_entity_cache[player_index] then
-    --     blueprint_entity_cache[player_index] = {}
-    -- end
-    -- if not blueprint_entity_cache[player_index][blueprint_label] then
-    --     blueprint_entity_cache[player_index][blueprint_label] = {}
-    -- end
-    --     blueprint_entity_cache[player_index][blueprint_label][event_tick] = built_ghost_dummies
 
 end)

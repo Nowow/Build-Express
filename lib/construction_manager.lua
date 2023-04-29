@@ -8,6 +8,7 @@ require("settings")
 
 local constants = require("constants")
 local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
+local util = require('util')
 local next = next
 
 function initConstructionTasks()
@@ -40,9 +41,11 @@ function endTask(task)
         rendering.destroy(render_id)
     end
 
-    if task.worker ~= nil then
-        --removing all temp stops
-        local temps_removed = removeAllTempStops(task.worker)
+    local worker = task.worker
+    if worker ~= nil then
+        --removing all temp stops except current, so worker waits for robots to come back
+        removeTimePassedConditionFromCurrentStop(worker)
+        local temps_removed = removeAllTempStops(worker, true)
         log_task(task.id, "REMOVED " .. temps_removed .. " TEMP STOPS")
     end
 
@@ -84,7 +87,7 @@ script.on_event(defines.events.on_tick, function(event)
                     global.construction_tasks.TASK_CREATED:push(task)
                     update_task_frame(task)
                 else
-                    game.print("NO DUMMIES GOT BUILT")
+                    game.print("NO DUMMIES GOT BUILT")  
                 end
                 
             end
@@ -140,7 +143,9 @@ script.on_nth_tick(32, function(event)
     end
     log_task(task.id, "Worker found!")
     task.worker = worker
-    task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, 50)
+    -- calculating construction are reach , but accounting for the fact that locomotive is first and 2 more for good measure
+    task.worker_construction_radius = getRoboportRange(worker) - 10
+    task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, task.worker_construction_radius)
     task.subtask_count = #task.subtasks
     log_task(task.id, "Subdivision finished, total subtasks: " .. task.subtask_count)
     task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
@@ -172,12 +177,12 @@ script.on_nth_tick(33, function(event)
     for i, subtask in pairs(task.subtasks) do
         for _, ghost in pairs(subtask.ghosts) do
             if ghost.valid then
+                
                 local dummy_replaced = replaceDummyEntityGhost(ghost)
-
                 -- if ghost still valid then replacement didnt take place
-                if not dummy_replaced then
+                if not dummy_replaced then  
                     local landfill_ghosts = landfill.placeGhostLandfill(ghost)
-                    log_task(task.id, "placed " .. #landfill_ghosts .. " landfill")
+                    --log_task(task.id, "placed " .. #landfill_ghosts .. " landfill")
                     hightlightEntity(ghost, 3, {r=1,g=1,b=0})
                     for _, t in pairs(landfill_ghosts) do
                         table.insert(subtask.tile_ghosts, t)
@@ -189,9 +194,9 @@ script.on_nth_tick(33, function(event)
     end
     task.state = TASK_STATES.ASSIGNED
     global.construction_tasks.ASSIGNED:push(task)
-    update_task_frame(task) 
-
+    update_task_frame(task)
 end)
+
 
 ---- building loop ----
 --   pick active subtask and send worker to build
@@ -204,8 +209,6 @@ script.on_nth_tick(34, function(event)
     
     local task = global.construction_tasks.ASSIGNED:pop()
     task = findBuildingSpot(task, 1)
-    
-    
     if task.building_spot == nil then
         local subtasks_left = table_size(task.subtasks)
         if subtasks_left > 0 then
@@ -261,14 +264,14 @@ script.on_nth_tick(35, function(event)
     local task = global.construction_tasks.BUILDING:pop()
 
     -- hard timeout if task cound not be completed
-    if task.timer_tick ~= nil then
-        if (game.tick - task.timer_tick) > TASK_TIMEOUT_TICKS then
-            game.print("TIMEOUT FOR TASK " .. task.id) -- TODO timeout logic
-            log_task(task.id, "TIMEOUT") -- TODO timeout logic
-            endTask(task)
-            return
-        end
-    end
+    -- if task.timer_tick ~= nil then
+    --     if (game.tick - task.timer_tick) > TASK_TIMEOUT_TICKS then
+    --         game.print("TIMEOUT FOR TASK " .. task.id) -- TODO timeout logic
+    --         log_task(task.id, "TIMEOUT") -- TODO timeout logic
+    --         endTask(task)
+    --         return
+    --     end
+    -- end
 
     -- checking if active subtask has valid ghosts
     local subtask = task.subtasks[task.active_subtask_index]
@@ -278,9 +281,12 @@ script.on_nth_tick(35, function(event)
     local start_subbtask_ghosts = table_size(subtask.ghosts)
     for j, ghost in pairs(subtask.ghosts) do
         if ghost.valid then
+            hightlightEntity(ghost, 2)
             subtask_finished = false
-            --hightlightEntity(ghost, 2)
-            break
+            local is_water_ghost = util.string_starts_with(ghost.ghost_name, constants.dummyPrefix)
+            if is_water_ghost then
+                replaceDummyEntityGhost(ghost)
+            end
         else
             --log('removed invalidated entity')
             subtask.ghosts[j] = nil
