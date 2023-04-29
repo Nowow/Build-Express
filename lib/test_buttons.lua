@@ -52,3 +52,9 @@ function replaceEntityWithSchmentity(e)
     entity.order_upgrade({force = force, target = prototype_name})
     
 end
+
+function getLogisticCell(e)
+    local entity = game.get_player(e.player_index).selected
+    local cell = entity.logistic_cell
+    game.print(cell.construction_radius)
+end
