@@ -29,6 +29,10 @@ function initGlobal()
         end
     end
 
+    if global.catch_deconstruction_order == nil then
+        global.catch_deconstruction_order = {}
+    end
+
     local emptySpaceTileCollisionLayerPrototype = game.entity_prototypes["collision-mask-empty-space-tile"]
     if emptySpaceTileCollisionLayerPrototype then
         global.emptySpaceCollsion = table_lib.first(table_lib.keys(emptySpaceTileCollisionLayerPrototype.collision_mask))
@@ -141,6 +145,7 @@ script.on_event("test-custom-hotkey", function(event)
 script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
     local player_index = event.player_index
     global.cursor_blueprint_cache[player_index] = {}
+    global.catch_deconstruction_order[player_index] = nil
 end)
 
 script.on_event(defines.events.on_pre_build , function(event)
@@ -158,23 +163,31 @@ script.on_event("buex-build-blueprint", function(event)
     local player_index = event.player_index
     local player = game.players[player_index]
     local held_blueprint = player.cursor_stack
+    local blueprint_type = held_blueprint.type
 
-    --safety check: check if cursor stack is valid
-    if not held_blueprint then return end
-    if not held_blueprint.valid_for_read then return end
-    if not held_blueprint.is_blueprint then return end
-    if not held_blueprint.is_blueprint_setup() then return end
+    if not blueprint_type then return end
+    if blueprint_type == 'blueprint' then
+    
+
+        --safety check: check if cursor stack is valid
+        if not held_blueprint then return end
+        if not held_blueprint.valid_for_read then return end
+        if not held_blueprint.is_blueprint then return end
+        if not held_blueprint.is_blueprint_setup() then return end
 
 
-    local blueprint_entities = held_blueprint.get_blueprint_entities()
-    local dummy_entities = bl.bulkConvertEntitiesToDummies(blueprint_entities)
+        local blueprint_entities = held_blueprint.get_blueprint_entities()
+        local dummy_entities = bl.bulkConvertEntitiesToDummies(blueprint_entities)
 
-    global.cursor_blueprint_cache[player_index].dummy_entities = dummy_entities
-    global.cursor_blueprint_cache[player_index].build_params = {
-        surface=player.surface,
-        force=player.force,
-        force_build=true,
-        skip_fog_of_war=true,
-    }
+        global.cursor_blueprint_cache[player_index].dummy_entities = dummy_entities
+        global.cursor_blueprint_cache[player_index].build_params = {
+            surface=player.surface,
+            force=player.force,
+            force_build=true,
+            skip_fog_of_war=true,
+        }
 
+    elseif blueprint_type == 'deconstruction-item' then
+        global.catch_deconstruction_order[player_index] = true
+    end
 end)
