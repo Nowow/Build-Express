@@ -158,20 +158,37 @@ script.on_event(defines.events.on_pre_build , function(event)
     end
 end)
 
+script.on_event(defines.events.on_marked_for_deconstruction, function(event)
+    local player_index = event.player_index
+    local tick = event.tick
+    local entity = event.entity
+    if not entity.valid then return end
+    if global.catch_deconstruction_order[player_index] then
+        if deconstruct_entity_cache[player_index] == nil then
+            deconstruct_entity_cache[player_index] = {}
+        end
+        if deconstruct_entity_cache[player_index][tick] == nil then
+            deconstruct_entity_cache[player_index][tick] = {}
+        end 
+        table.insert(deconstruct_entity_cache[player_index][tick], entity)
+    end
+end)
+
 script.on_event("buex-build-blueprint", function(event)
     --local stack = game.get_player(event.player_index).cursor_stack
     local player_index = event.player_index
     local player = game.players[player_index]
     local held_blueprint = player.cursor_stack
+
+    --safety check: check if cursor stack is valid
+    if not held_blueprint then return end
+    if not held_blueprint.valid_for_read then return end
+
     local blueprint_type = held_blueprint.type
 
     if not blueprint_type then return end
     if blueprint_type == 'blueprint' then
-    
-
-        --safety check: check if cursor stack is valid
-        if not held_blueprint then return end
-        if not held_blueprint.valid_for_read then return end
+        
         if not held_blueprint.is_blueprint then return end
         if not held_blueprint.is_blueprint_setup() then return end
 

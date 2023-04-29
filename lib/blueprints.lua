@@ -1,7 +1,5 @@
 require("lib.utils")
 
-blueprint_entity_cache = {}
-
 TASK_STATES = {
     TASK_CREATED = 'TASK_CREATED',
     UNASSIGNED = 'UNASSIGNED',
@@ -21,8 +19,9 @@ function log_task(task_id, msg)
 end
 
 
-function createTask(task_type, tick, player_index, blueprint_label, ghosts, cost_to_build, tiles, worker_construction_radius)
+function createTask(task_type, tick, player_index, blueprint_label, ghosts, cost_to_build, tiles)
     local tiles = tiles or tiles == nil and {}
+    local cost_to_build = cost_to_build or cost_to_build == nil and {}
     return {
         id=player_index .. '_' .. tick,
         tick=tick,
@@ -35,7 +34,7 @@ function createTask(task_type, tick, player_index, blueprint_label, ghosts, cost
         bounding_box=nil,
         subtasks=nil,
         worker=nil,
-        worker_construction_radius=worker_construction_radius,
+        worker_construction_radius=nil,
         active_subtask=nil,
         building_spot=nil,
         state=TASK_STATES.TASK_CREATED,
@@ -68,8 +67,13 @@ function findBlueprintBoundigBox(entities, hightlight)
     local right_bottom_x = -1*math.huge
     local right_bottom_y = -1*math.huge
     for _, e in pairs(entities) do
-
-        local bb = e.ghost_prototype.selection_box
+        local entity_type = e.type
+        local bb
+        if entity_type == 'entity-ghost' then
+            bb = e.ghost_prototype.selection_box
+        else
+            bb = e.prototype.selection_box
+        end
         if bb ~= nil then
             if left_top_x > bb.left_top.x + e.position.x then
                 left_top_x = bb.left_top.x + e.position.x
@@ -142,7 +146,13 @@ function attributeGhostsToSubtask(ghosts, subtasks)
         if not ghost.valid then
             ghosts[ghost_i] = nil
         else
-            local ghost_bb = ghost.ghost_prototype.selection_box
+            local entity_type = ghost.type
+            local ghost_bb
+            if entity_type == 'entity-ghost' then
+                ghost_bb = ghost.ghost_prototype.selection_box
+            else
+                ghost_bb = ghost.prototype.selection_box
+            end
             ghost_bb.left_top.x = ghost_bb.left_top.x + ghost.position.x
             ghost_bb.left_top.y = ghost_bb.left_top.y + ghost.position.y
             ghost_bb.right_bottom.x = ghost_bb.right_bottom.x + ghost.position.x
@@ -168,7 +178,7 @@ function findBuildingSpot(task, offset)
             if #candidates > 0 then
                 log_task(task.id, "Testing rails: testing rails for subtask " .. i)
                 for _, rail in pairs(candidates) do
-                    if checkIfTrainCanGetToRail(task.worker, rail) then
+                    if rail.valid and not rail.to_be_deconstructed() and checkIfTrainCanGetToRail(task.worker, rail) then
                         --hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
                         task.active_subtask_index = i
                         task.building_spot = rail

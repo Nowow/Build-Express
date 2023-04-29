@@ -88,8 +88,13 @@ function addStopToSchedule(rail, train, replace_next_temp)
 end
 
 function removeTimePassedConditionFromCurrentStop(train)
+    
+
     local new_schedule = train.schedule
     local current_stop = new_schedule.records[new_schedule.current]
+    local temp_flag = current_stop.temporary
+    if not temp_flag then return end
+    
     current_stop.wait_conditions = {
         {
             type='robots_inactive',

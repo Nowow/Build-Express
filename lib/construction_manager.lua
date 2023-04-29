@@ -11,6 +11,8 @@ local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 local util = require('util')
 local next = next
 
+deconstruct_entity_cache = {}
+
 function initConstructionTasks()
     if not global.construction_tasks then
         global.construction_tasks = {}
@@ -96,6 +98,29 @@ script.on_event(defines.events.on_tick, function(event)
     
 end)
 
+-- move create tasks from cached build ghosts 
+script.on_nth_tick(30, function(event)
+    if next(deconstruct_entity_cache) == nil then
+        return
+    end
+    log('Reached deconstruction task assembler')
+    
+    for player_index, tick_cache in pairs(deconstruct_entity_cache) do
+        for tick, cache in pairs(tick_cache) do
+            if tick == event.tick then
+                return
+            end
+            local task = createTask(
+                TASK_TYPES.DECONSTRUCT, tick, player_index, constants.deconstruction_blueprint_label_placeholder,
+                cache
+            )
+            global.construction_tasks.TASK_CREATED:push(task)
+            update_task_frame(task)
+            deconstruct_entity_cache[player_index][tick] = nil
+        end
+        deconstruct_entity_cache[player_index] = nil
+    end
+end)
 
 -- formulating construnstruction plan
 script.on_nth_tick(31, function(event)
@@ -108,6 +133,7 @@ script.on_nth_tick(31, function(event)
     
     local task = global.construction_tasks.TASK_CREATED:pop()
     task.bounding_box = findBlueprintBoundigBox(task.ghosts)
+    local color = constants.task_flying_text_colors_by_task_type[task.type] or {r=1,g=1,b=1}
     local task_id_flying_text = rendering.draw_text({
         text="TASK " .. task.id,
         surface = task.surface,
@@ -115,7 +141,7 @@ script.on_nth_tick(31, function(event)
             x=task.bounding_box.left_top.x + (task.bounding_box.right_bottom.x - task.bounding_box.left_top.x)/2,
             y=task.bounding_box.left_top.y + (task.bounding_box.right_bottom.y - task.bounding_box.left_top.y)/2,
         },
-        color={r=0,g=1,b=0.7},
+        color=color,
         scale=3.0,
     })
     table.insert(task.flying_text,task_id_flying_text)
@@ -143,7 +169,7 @@ script.on_nth_tick(32, function(event)
     end
     log_task(task.id, "Worker found!")
     task.worker = worker
-    -- calculating construction are reach , but accounting for the fact that locomotive is first and 2 more for good measure
+    -- calculating construction area reach , but accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
     task.worker_construction_radius = getRoboportRange(worker) - 10
     task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, task.worker_construction_radius)
     task.subtask_count = #task.subtasks
@@ -173,6 +199,13 @@ script.on_nth_tick(33, function(event)
     log('Reached PREPARING handler')
 
     local task = global.construction_tasks.PREPARING:pop()
+
+    -- skipping tileing if deconstruct
+    if task.task_type == TASK_TYPES.DECONSTRUCT then
+        task.state = TASK_STATES.ASSIGNED
+        global.construction_tasks.ASSIGNED:push(task)
+        return
+    end
 
     for i, subtask in pairs(task.subtasks) do
         for _, ghost in pairs(subtask.ghosts) do
@@ -221,6 +254,7 @@ script.on_nth_tick(34, function(event)
                 end
             end
             log_task(task.id, "found no spot, subtasks left: " .. subtasks_left .. ', ghosts left: ' .. ghosts_left)
+            -- TODO: BLOCKED STATE
             global.construction_tasks.ASSIGNED:push(task)
         else
             log_task(task.id, "ASSIGNED, but no more subtasks left, puttin task into TERMINATION due to completion")
@@ -277,41 +311,48 @@ script.on_nth_tick(35, function(event)
     local subtask = task.subtasks[task.active_subtask_index]
     hightligtBoundingBox(subtask.bounding_box, {r = 0, g = 0, b = 1})
     local subtask_finished = true
+    local task_type = task.task_type
 
-    local start_subbtask_ghosts = table_size(subtask.ghosts)
-    for j, ghost in pairs(subtask.ghosts) do
-        if ghost.valid then
-            hightlightEntity(ghost, 2)
-            subtask_finished = false
-            local is_water_ghost = util.string_starts_with(ghost.ghost_name, constants.dummyPrefix)
-            if is_water_ghost then
-                replaceDummyEntityGhost(ghost)
+    if task_type == TASK_TYPES.BUILD then
+
+        local start_subbtask_ghosts = table_size(subtask.ghosts)
+        for j, ghost in pairs(subtask.ghosts) do
+            if ghost.valid then
+                hightlightEntity(ghost, 2)
+                subtask_finished = false
+                local is_water_ghost = util.string_starts_with(ghost.ghost_name, constants.dummyPrefix)
+                if is_water_ghost then
+                    replaceDummyEntityGhost(ghost)
+                end
+            else
+                --log('removed invalidated entity')
+                subtask.ghosts[j] = nil
             end
-        else
-            --log('removed invalidated entity')
-            subtask.ghosts[j] = nil
         end
-    end
-    local end_subtask_ghosts = table_size(subtask.ghosts)
-    if start_subbtask_ghosts ~= end_subtask_ghosts then
-        log_task(task.id, "Some ghosts got invalidated for subtask " .. task.active_subtask_index)
-        log_task(task.id, "Was ghosts: " .. start_subbtask_ghosts .. " | Left ghosts " .. end_subtask_ghosts)
+        local end_subtask_ghosts = table_size(subtask.ghosts)
+        if start_subbtask_ghosts ~= end_subtask_ghosts then
+            log_task(task.id, "Some ghosts got invalidated for subtask " .. task.active_subtask_index)
+            log_task(task.id, "Was ghosts: " .. start_subbtask_ghosts .. " | Left ghosts " .. end_subtask_ghosts)
+        end
+    elseif task_type == TASK_TYPES.DECONSTRUCT then
+        local start_subbtask_entities = table_size(subtask.ghosts)
+        for j, entity in pairs(subtask.ghosts) do
+            if entity.valid then
+                hightlightEntity(entity, 2)
+                subtask_finished = false
+            else
+                subtask.ghosts[j] = nil
+            end
+        end
+        local end_subtask_entities = table_size(subtask.ghosts)
+        if start_subbtask_entities ~= end_subtask_entities then
+            log_task(task.id, "Some entities got invalidated for subtask " .. task.active_subtask_index)
+            log_task(task.id, "Was entities: " .. start_subbtask_entities .. " | Left entities " .. end_subtask_entities)
+        end
     end
 
     if subtask_finished then
         log_task(task.id, "Subtask " .. task.active_subtask_index .. " is finished")
-        if end_subtask_ghosts > 0 then
-            for i, e in pairs(subtask.ghosts) do
-                if e.valid then
-                    hightlightEntity(e, 2)
-                    log_task(task.id, "VALID")
-                    local gps = " at [gps=" .. e.position.x .. "," .. e.position.y .. ']'
-                    game.print("VALID "..gps)
-                else
-                    log_task(task.id, "INVALID")
-                end 
-            end
-        end
     end
 
     -- removing subtask and either restarting loop or task is finished
