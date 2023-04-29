@@ -11,16 +11,22 @@ TASK_STATES = {
     TERMINATING = 'TERMINATING'
 }
 
+TASK_TYPES = {
+    BUILD = "BUILD",
+    DECONSTRUCT = "DECONSTRUCT"
+}
+
 function log_task(task_id, msg)
     log(string.format("TASK_ID %-12s", task_id .. ':') .. msg)
 end
 
 
-function createTask(tick, player_index, blueprint_label, ghosts, cost_to_build, tiles, worker_construction_radius)
+function createTask(task_type, tick, player_index, blueprint_label, ghosts, cost_to_build, tiles, worker_construction_radius)
     local tiles = tiles or tiles == nil and {}
     return {
         id=player_index .. '_' .. tick,
         tick=tick,
+        task_type=task_type,
         player_index=player_index,
         blueprint_label=blueprint_label,
         ghosts=ghosts,

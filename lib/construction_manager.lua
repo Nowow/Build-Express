@@ -82,7 +82,7 @@ script.on_event(defines.events.on_tick, function(event)
                 })
                 blueprint.set_blueprint_entities(blueprint_entities)
                 if next(built_ghost_dummies) ~= nil then
-                    local task = createTask(building_tick, player_index, blueprint_label, built_ghost_dummies, cost_to_build)
+                    local task = createTask(TASK_TYPES.BUILD, building_tick, player_index, blueprint_label, built_ghost_dummies, cost_to_build)
                     game.print("PUSHED TASK IN CREATED")
                     global.construction_tasks.TASK_CREATED:push(task)
                     update_task_frame(task)
