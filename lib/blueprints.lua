@@ -16,7 +16,7 @@ function log_task(task_id, msg)
 end
 
 
-function createTask(tick, player_index, blueprint_label, ghosts, cost_to_build, tiles)
+function createTask(tick, player_index, blueprint_label, ghosts, cost_to_build, tiles, worker_construction_radius)
     local tiles = tiles or tiles == nil and {}
     return {
         id=player_index .. '_' .. tick,
@@ -29,6 +29,7 @@ function createTask(tick, player_index, blueprint_label, ghosts, cost_to_build, 
         bounding_box=nil,
         subtasks=nil,
         worker=nil,
+        worker_construction_radius=worker_construction_radius,
         active_subtask=nil,
         building_spot=nil,
         state=TASK_STATES.TASK_CREATED,
@@ -157,22 +158,23 @@ function findBuildingSpot(task, offset)
         if next(subtask.ghosts) ~= nil then
 
             candidates = findNearestRails(task.surface, subtask.bounding_box, offset)
-            log_task(task.id, "Testign rails: found " .. #candidates .. ' rails for subtask ' .. i )
+            log_task(task.id, "Testing rails: found " .. #candidates .. ' rails for subtask ' .. i )
             if #candidates > 0 then
-                log_task(task.id, "Testign rails: testing rails for subtask " .. i)
+                log_task(task.id, "Testing rails: testing rails for subtask " .. i)
                 for _, rail in pairs(candidates) do
                     if checkIfTrainCanGetToRail(task.worker, rail) then
                         --hightligtBoundingBox(subtask.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
                         task.active_subtask_index = i
                         task.building_spot = rail
                         hightlighRail(rail, {r = 0, g = 1, b = 0})
+                        log_task(task.id, "Found rail for subtask " .. i)
                         return task
                     else
                         hightlighRail(rail, {r = 1, g = 0, b = 0})
                     end
                 end
             end
-
+            log_task(task.id, "Found no suitable rail for subtask " .. i)
         else
             task.subtasks[i] = nil
         end

@@ -1,5 +1,6 @@
 require("lib.utils")
 require("settings")
+local constants = require("constants")
 
 TRAIN_STATES = {
     'on_the_path',
@@ -14,6 +15,19 @@ TRAIN_STATES = {
     'manual_control',
     'destination_full'
 }
+
+function getRoboportRange(train)
+    local roboport_wagon = train.carriages[2]
+    if not roboport_wagon then
+        log("Worker has less than 2 pieces wut")
+        return
+    end
+    local logistic_cell = roboport_wagon.logistic_cell
+    if not logistic_cell then
+        log("No logistic cell")
+    end
+    return logistic_cell.construction_radius
+end
 
 
 function getWorker(blueprint_name)
@@ -86,7 +100,8 @@ function removeTimePassedConditionFromCurrentStop(train)
     train.schedule = new_schedule
 end
 
-function removeAllTempStops(train)
+function removeAllTempStops(train, leave_current)
+    local leave_current = leave_current or leave_current==nil and false
     local old_records = train.schedule.records
     local new_records = {}
     
@@ -98,7 +113,7 @@ function removeAllTempStops(train)
     for i=1,stops_n do
         local stop = old_records[i]
         local temp_flag = stop.temporary
-        if temp_flag == true then
+        if temp_flag == true and not (leave_current and i == train.schedule.current) then
             cntr = cntr + 1
             if current_index > i then
                 current_index = current_index - 1
