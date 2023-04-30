@@ -17,4 +17,19 @@ constants.task_flying_text_colors_by_task_type = {
     DECONSTRUCT = {r=1,g=0,b=1}
 }
 
+constants.TASK_STATES = {
+    TASK_CREATED = 'TASK_CREATED',
+    UNASSIGNED = 'UNASSIGNED',
+    PREPARING = 'PREPARING',
+    ASSIGNED = 'ASSIGNED',
+    BUILDING = 'BUILDING',
+    TERMINATING = 'TERMINATING'
+}
+constants.TASK_TYPES = {
+    BUILD = "BUILD",
+    DECONSTRUCT = "DECONSTRUCT"
+}
+
+-- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
+constants.subtask_coverage_by_construction_area_offset = 10
 return constants
