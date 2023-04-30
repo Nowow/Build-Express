@@ -3,7 +3,7 @@ require("lib.trains")
 require("lib.blueprints")
 require("lib.gui")
 require("lib.station_manager")
-require("lib.task_queue")
+require("lib.concepts.task_queue")
 require("settings")
 
 local constants = require("constants")
