@@ -120,13 +120,13 @@ function Task:assignWorker()
     self:log("Looking for workers")
     if not worker then
         self:log('No workers available')
-        self:changeState(constants.TASK_STATES.UNASSIGNED)
-        return
+        return false
     end
     self:log("Worker found!")
     self.worker = worker
     -- calculating construction area reach , but accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
     self.worker_construction_radius = getRoboportRange(worker) - 10
+    return true
 end
 
 function Task:tileWaterGhosts()
@@ -196,8 +196,21 @@ function Task:findBuildingSpot()
             self:log("ASSIGNED, but no more subtasks left, puttin task into TERMINATION due to completion")
             self:changeState(constants.TASK_STATES.TERMINATING)
         end
-        return
+        return false
     end
+    local color = {r = 1, g = 1, b = 0}
+    for _, e in pairs(subtasks[self.active_subtask_index].entities) do
+        if e.valid then
+            rendering.draw_circle({
+                radius=2,
+                target=e,
+                color=color,
+                surface=e.surface,
+                time_to_live=1500
+            })
+        end
+    end
+    return true
 end
 
 function Task:dispatchWorkerToNextStop()
@@ -206,7 +219,6 @@ function Task:dispatchWorkerToNextStop()
     addStopToSchedule(self.building_spot, worker, true)
 
     self.timer_tick = game.tick
-    self:changeState(constants.TASK_STATES.BUILDING)
 end
 
 function Task:invalidateTaskEntities()

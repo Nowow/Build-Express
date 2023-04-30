@@ -4,6 +4,7 @@ require("lib.blueprints")
 require("lib.gui")
 require("lib.station_manager")
 require("lib.concepts.task_queue")
+require("lib.concepts.task")
 require("settings")
 
 local constants = require("constants")
@@ -23,37 +24,6 @@ function initConstructionTasks()
             global.construction_tasks[task_state] = TaskQueue:create(task_state)
         end
     end
-end
-
-function endTask(task)
-    log_task(task.id, "ENDING TASK " .. task.id .. " IN STATE " .. task.state)
-
-    -- destroying all ghosts that are left
-    local valid_ghosts_counter = 0
-    for _, ghost in pairs(task.ghosts) do
-        if ghost.valid then
-            ghost.destroy()
-            valid_ghosts_counter = valid_ghosts_counter + 1
-        end
-    end
-    log_task(task.id, "VALID GHOSTS LEFT: " .. valid_ghosts_counter)
-
-    --destroying flying textx
-    for _, render_id in pairs(task.flying_text) do
-        rendering.destroy(render_id)
-    end
-
-    local worker = task.worker
-    if worker ~= nil then
-        --removing all temp stops except current, so worker waits for robots to come back
-        removeTimePassedConditionFromCurrentStop(worker)
-        local temps_removed = removeAllTempStops(worker, true)
-        log_task(task.id, "REMOVED " .. temps_removed .. " TEMP STOPS")
-    end
-
-    --makeTrainGoToDepot(task.worker)
-    update_task_frame(task, true)
-    global.construction_tasks[task.state]:remove(task.id)
 end
 
 script.on_event(defines.events.on_tick, function(event)
@@ -84,14 +54,18 @@ script.on_event(defines.events.on_tick, function(event)
                 })
                 blueprint.set_blueprint_entities(blueprint_entities)
                 if next(built_ghost_dummies) ~= nil then
-                    local task = createTask(TASK_TYPES.BUILD, building_tick, player_index, blueprint_label, built_ghost_dummies, cost_to_build)
-                    game.print("PUSHED TASK IN CREATED")
-                    global.construction_tasks.TASK_CREATED:push(task)
-                    update_task_frame(task)
+                    local task = Task:create({
+                        player_index=player_index,
+                        task_type=constants.TASK_TYPES.BUILD,
+                        tick=building_tick,
+                        blueprint_label=blueprint_label,
+                        entities=built_ghost_dummies,
+                        cost_to_build=cost_to_build
+                    })
+                    task:changeState(constants.TASK_STATES.TASK_CREATED)
                 else
-                    game.print("NO DUMMIES GOT BUILT")  
+                    log("NO DUMMIES GOT BUILT")
                 end
-                
             end
         end
     end
@@ -110,12 +84,14 @@ script.on_nth_tick(30, function(event)
             if tick == event.tick then
                 return
             end
-            local task = createTask(
-                TASK_TYPES.DECONSTRUCT, tick, player_index, constants.deconstruction_blueprint_label_placeholder,
-                cache
-            )
-            global.construction_tasks.TASK_CREATED:push(task)
-            update_task_frame(task)
+            local task = Task:create({
+                player_index=player_index,
+                task_type=constants.TASK_TYPES.DECONSTRUCT,
+                tick=tick,
+                blueprint_label=constants.deconstruction_blueprint_label_placeholder,
+                entities=cache
+            })
+            task:changeState(constants.TASK_STATES.TASK_CREATED)
             deconstruct_entity_cache[player_index][tick] = nil
         end
         deconstruct_entity_cache[player_index] = nil
@@ -132,22 +108,9 @@ script.on_nth_tick(31, function(event)
     
     
     local task = global.construction_tasks.TASK_CREATED:pop()
-    task.bounding_box = findBlueprintBoundigBox(task.ghosts)
-    local color = constants.task_flying_text_colors_by_task_type[task.type] or {r=1,g=1,b=1}
-    local task_id_flying_text = rendering.draw_text({
-        text="TASK " .. task.id,
-        surface = task.surface,
-        target = {
-            x=task.bounding_box.left_top.x + (task.bounding_box.right_bottom.x - task.bounding_box.left_top.x)/2,
-            y=task.bounding_box.left_top.y + (task.bounding_box.right_bottom.y - task.bounding_box.left_top.y)/2,
-        },
-        color=color,
-        scale=3.0,
-    })
-    table.insert(task.flying_text,task_id_flying_text)
-    task.state = TASK_STATES.UNASSIGNED
-    global.construction_tasks.UNASSIGNED:push(task)
-    update_task_frame(task)
+
+    task:findBoundingBox()
+    task:changeState(constants.TASK_STATES.UNASSIGNED)
 
 end)
 
@@ -160,32 +123,18 @@ script.on_nth_tick(32, function(event)
     log('Reached UNASSIGNED handler')
 
     local task = global.construction_tasks.UNASSIGNED:pop()
-    local worker = getWorker(task.blueprint_label)
-    log_task(task.id, "Looking for workers")
-    if not worker then
-        log_task(task.id, 'No workers available')
-        global.construction_tasks.UNASSIGNED:push(task)
+
+    local worker_found = task:assignWorker()
+
+    if not worker_found then
+        task:changeState(constants.TASK_STATES.UNASSIGNED)
         return
     end
-    log_task(task.id, "Worker found!")
-    task.worker = worker
-    -- calculating construction area reach , but accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
-    task.worker_construction_radius = getRoboportRange(worker) - 10
-    task.subtasks = solveBoundingBoxSubdivision(task.bounding_box, task.worker_construction_radius)
-    task.subtask_count = #task.subtasks
-    log_task(task.id, "Subdivision finished, total subtasks: " .. task.subtask_count)
-    task.subtasks = attributeGhostsToSubtask(task.ghosts, task.subtasks)
-    log_task(task.id, "Ghost attribution finished, subtask statistics:")
-    local checksum = 0
-    for i, subtask in pairs(task.subtasks) do
-        local ghost_count = table_size(subtask.ghosts)
-        checksum = checksum + ghost_count
-        log_task(task.id, "subtask id: " .. i .. ", ghosts count: " .. ghost_count)
-    end
-    log_task(task.id, "Total ghosts in task: " .. table_size(task.ghosts) .. ', checksum: ' .. checksum)
-    task.state = TASK_STATES.PREPARING
-    global.construction_tasks.PREPARING:push(task)
-    update_task_frame(task)
+
+    task:generateSubtasks()
+    task:populateSubtasks()
+
+    task:changeState(constants.TASK_STATES.PREPARING)
 
 end)
 
@@ -199,35 +148,13 @@ script.on_nth_tick(33, function(event)
     log('Reached PREPARING handler')
 
     local task = global.construction_tasks.PREPARING:pop()
-
     -- skipping tileing if deconstruct
-    if task.task_type == TASK_TYPES.DECONSTRUCT then
-        task.state = TASK_STATES.ASSIGNED
-        global.construction_tasks.ASSIGNED:push(task)
+    if task.task_type == constants.TASK_TYPES.DECONSTRUCT then
+        task:changeState(constants.TASK_STATES.ASSIGNED)
         return
     end
-
-    for i, subtask in pairs(task.subtasks) do
-        for _, ghost in pairs(subtask.ghosts) do
-            if ghost.valid then
-                
-                local dummy_replaced = replaceDummyEntityGhost(ghost)
-                -- if ghost still valid then replacement didnt take place
-                if not dummy_replaced then  
-                    local landfill_ghosts = landfill.placeGhostLandfill(ghost)
-                    --log_task(task.id, "placed " .. #landfill_ghosts .. " landfill")
-                    hightlightEntity(ghost, 3, {r=1,g=1,b=0})
-                    for _, t in pairs(landfill_ghosts) do
-                        table.insert(subtask.tile_ghosts, t)
-                    end
-                end
-            end
-            
-        end
-    end
-    task.state = TASK_STATES.ASSIGNED
-    global.construction_tasks.ASSIGNED:push(task)
-    update_task_frame(task)
+    task:tileWaterGhosts()
+    task:changeState(constants.TASK_STATES.ASSIGNED)
 end)
 
 
@@ -241,49 +168,11 @@ script.on_nth_tick(34, function(event)
     --log('Reached ASSIGNED handler')
     
     local task = global.construction_tasks.ASSIGNED:pop()
-    task = findBuildingSpot(task, 1)
-    if task.building_spot == nil then
-        local subtasks_left = table_size(task.subtasks)
-        if subtasks_left > 0 then
-            local ghosts_left = 0
-            for _, subtask in pairs(task.subtasks) do
-                for __, ghost in pairs(subtask.ghosts) do
-                    if ghost.valid then
-                        ghosts_left = ghosts_left + 1
-                    end
-                end
-            end
-            log_task(task.id, "found no spot, subtasks left: " .. subtasks_left .. ', ghosts left: ' .. ghosts_left)
-            -- TODO: BLOCKED STATE
-            global.construction_tasks.ASSIGNED:push(task)
-        else
-            log_task(task.id, "ASSIGNED, but no more subtasks left, puttin task into TERMINATION due to completion")
-            task.state = TASK_STATES.TERMINATING
-            global.construction_tasks.TERMINATING:push(task)
-        end
-        return
+    local building_spot_found = task:findBuildingSpot()
+    if building_spot_found then
+        task:dispatchWorkerToNextStop()
+        task:changeState(constants.TASK_STATES.BUILDING)
     end
-
-    local color = {r = 1, g = 1, b = 0}
-    for _, e in pairs(task.subtasks[task.active_subtask_index].ghosts) do
-        if e.valid then
-            rendering.draw_circle({
-                radius=2,
-                target=e,
-                color=color,
-                surface=e.surface,
-                time_to_live=1500
-            })
-        end
-    end
-    local worker = task.worker
-    removeTimePassedConditionFromCurrentStop(worker)
-    addStopToSchedule(task.building_spot, worker, true)
-    task.state = TASK_STATES.BUILDING
-    task.timer_tick = game.tick
-    global.construction_tasks.BUILDING:push(task)
-    update_task_frame(task)
-
 end)
 
 ---- building loop ----
@@ -307,76 +196,24 @@ script.on_nth_tick(35, function(event)
     --     end
     -- end
 
-    -- checking if active subtask has valid ghosts
-    local subtask = task.subtasks[task.active_subtask_index]
-    hightligtBoundingBox(subtask.bounding_box, {r = 0, g = 0, b = 1})
-    local subtask_finished = true
-    local task_type = task.task_type
-
-    if task_type == TASK_TYPES.BUILD then
-
-        local start_subbtask_ghosts = table_size(subtask.ghosts)
-        for j, ghost in pairs(subtask.ghosts) do
-            if ghost.valid then
-                hightlightEntity(ghost, 2)
-                subtask_finished = false
-                local is_water_ghost = util.string_starts_with(ghost.ghost_name, constants.dummyPrefix)
-                if is_water_ghost then
-                    replaceDummyEntityGhost(ghost)
-                end
-            else
-                --log('removed invalidated entity')
-                subtask.ghosts[j] = nil
-            end
-        end
-        local end_subtask_ghosts = table_size(subtask.ghosts)
-        if start_subbtask_ghosts ~= end_subtask_ghosts then
-            log_task(task.id, "Some ghosts got invalidated for subtask " .. task.active_subtask_index)
-            log_task(task.id, "Was ghosts: " .. start_subbtask_ghosts .. " | Left ghosts " .. end_subtask_ghosts)
-        end
-    elseif task_type == TASK_TYPES.DECONSTRUCT then
-        local start_subbtask_entities = table_size(subtask.ghosts)
-        for j, entity in pairs(subtask.ghosts) do
-            if entity.valid then
-                hightlightEntity(entity, 2)
-                subtask_finished = false
-            else
-                subtask.ghosts[j] = nil
-            end
-        end
-        local end_subtask_entities = table_size(subtask.ghosts)
-        if start_subbtask_entities ~= end_subtask_entities then
-            log_task(task.id, "Some entities got invalidated for subtask " .. task.active_subtask_index)
-            log_task(task.id, "Was entities: " .. start_subbtask_entities .. " | Left entities " .. end_subtask_entities)
-        end
-    end
-
-    if subtask_finished then
-        log_task(task.id, "Subtask " .. task.active_subtask_index .. " is finished")
-    end
+    
+    local subtask_finished = task:invalidateTaskEntities()
 
     -- removing subtask and either restarting loop or task is finished
     if subtask_finished then
-        table.remove(task.subtasks, task.active_subtask_index)
-        task.active_subtask_index = nil
-        task.building_spot = nil
-        task.timer_tick = nil
 
         if next(task.subtasks) == nil then
             -- task is finished, sending back to depot
-            log_task(task.id, "Puttin task into TERMINATION due to completion")
-            task.state = TASK_STATES.TERMINATING
-            global.construction_tasks.TERMINATING:push(task)
+            task:log("Puttin task into TERMINATION due to completion")
+            task:changeState(constants.TASK_STATES.TERMINATING)
         else
-            log_task(task.id, "Subtasks left: " .. table_size(task.subtasks))
             -- rerun loop, complete new subtask
-            log_task(task.id, "Looping task back to ASSIGNED")
-            task.state = TASK_STATES.ASSIGNED
-            global.construction_tasks.ASSIGNED:push(task)
-            update_task_frame(task)
+            task:log("Subtasks left: " .. table_size(task.subtasks))
+            task:log("Looping task back to ASSIGNED")
+            task:changeState(constants.TASK_STATES.ASSIGNED)
         end
     else
-        global.construction_tasks.BUILDING:push(task)
+        task:changeState(constants.TASK_STATES.BUILDING)
     end
 end)
 
@@ -389,7 +226,7 @@ script.on_nth_tick(36, function(event)
     log('Reached TERMINATING handler')
     
     local task = global.construction_tasks.TERMINATING:pop()
-    endTask(task)
+    task:endTask()
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)
@@ -405,7 +242,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         local element_tags = element.tags
         local task = global.construction_tasks[element_tags.task_state]:lookup(element_tags.task_id)
         game.print("END BUTTON CALLED, TAGS ".. task.id .. ', STATE ' .. task.state)
-        endTask(task)
+        task:endTask()
         return
     end
 end)
