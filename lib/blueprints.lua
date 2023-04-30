@@ -47,7 +47,7 @@ function createSubtask(bounding_box)
     return {
         bounding_box=bounding_box,
         ghosts={},
-        tile_ghosts={}
+        tiles={}
     }
 end
 
@@ -59,9 +59,7 @@ function HightlightCachedEntities(entities)
 end
 
 
-function findBlueprintBoundigBox(entities, hightlight)
-    local hightlight = hightlight or hightlight==nil and false
-    local color = {r = 1, g = 0, b = 1}
+function findBlueprintBoundigBox(entities)
     local left_top_x = math.huge
     local left_top_y = math.huge
     local right_bottom_x = -1*math.huge
@@ -88,15 +86,6 @@ function findBlueprintBoundigBox(entities, hightlight)
                 right_bottom_y = bb.right_bottom.y + e.position.y
             end
         end
-    end
-    if hightlight then
-        rendering.draw_rectangle({
-            left_top={left_top_x, left_top_y},
-            right_bottom={right_bottom_x, right_bottom_y},
-            color=color,
-            surface=game.players[1].surface,
-            time_to_live=300
-        })
     end
     return {
         left_top={x=left_top_x,y=left_top_y},
