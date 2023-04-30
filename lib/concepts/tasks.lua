@@ -261,7 +261,7 @@ function Task:invalidateTaskEntities()
         self.active_subtask_index = nil
         self.building_spot = nil
         self.timer_tick = nil
-
+    end
     return subtask_finished
 end
 
