@@ -55,7 +55,8 @@ script.on_event(defines.events.on_tick, function(event)
                 })
                 blueprint.set_blueprint_entities(blueprint_entities)
                 if next(built_ghost_dummies) ~= nil then
-                    local task = Task:create({
+                    local task = Task:new()
+                    task:initialize({
                         player_index=player_index,
                         type=constants.TASK_TYPES.BUILD,
                         tick=building_tick,
@@ -85,7 +86,8 @@ script.on_nth_tick(30, function(event)
             if tick == event.tick then
                 return
             end
-            local task = Task:create({
+            local task = Task:new()
+            task:initialize({
                 player_index=player_index,
                 type=constants.TASK_TYPES.DECONSTRUCT,
                 tick=tick,

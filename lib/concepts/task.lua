@@ -31,10 +31,15 @@ script.register_metatable("task_metatable", Task)
 
 -- task_type, tick, player_index, blueprint_label, ghosts, cost_to_build, tiles
 
----@return Task
-function Task:create(params)
-    ---@type Task
+
+function Task:new()
     local task = {}
+    setmetatable(task, Task)
+    return task
+end
+
+function Task:initialize(params)
+    local task = self
     task.id=params.player_index .. '_' .. params.tick
     task.type = params.type
     task.tick = params.tick
@@ -57,8 +62,6 @@ function Task:create(params)
     task.state=constants.TASK_STATES.TASK_CREATED
     task.flying_text=params.flying_text or {}
 
-    setmetatable(task, Task)
-    return task
 end
 
 function Task:log(message)
