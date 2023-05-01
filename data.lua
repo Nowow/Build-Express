@@ -1,5 +1,6 @@
 require("prototypes.train_stop")
 require("prototypes.buttons")
+require("prototypes.spider_carrier")
 
 --buex-ghost-on-water
 --load groups

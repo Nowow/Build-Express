@@ -1,22 +1,21 @@
 local constants = {}
 
-constants.defaultUpdateDelay = 42
+-- water ghost stuff
 constants.dummyPrefix = "buex-waterGhost-"
-constants.defaultMaxWaterGhostUpdatesPerUpdate = 300
-constants.settingsUpdateDelay = 60
 constants.vanillaLandfill = "landfill"
 constants.paintingWithLandfillLandfillTypes = { "dry-dirt", "dirt-4", "grass-1", "red-desert-1", "sand-3" }
-
 constants.spaceLandfillTypes = { "se-space-platform-scaffold", "se-space-platform-plating", "se-spaceship-floor" }
 
+-- tasks and blueprints
 constants.unlabeled_blueprints_placeholder_label = "unlabeled blueprint"
 constants.construction_wagon_prototype_name = 'ct-construction-wagon'
 constants.deconstruction_blueprint_label_placeholder = "DECONSTRUCTION"
+-- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
+constants.subtask_coverage_by_construction_area_offset = 10
 constants.task_flying_text_colors_by_task_type = {
     BUILD = {r=0,g=1,b=0.7},
     DECONSTRUCT = {r=1,g=0,b=1}
 }
-
 constants.TASK_STATES = {
     TASK_CREATED = 'TASK_CREATED',
     UNASSIGNED = 'UNASSIGNED',
@@ -30,6 +29,10 @@ constants.TASK_TYPES = {
     DECONSTRUCT = "DECONSTRUCT"
 }
 
--- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
-constants.subtask_coverage_by_construction_area_offset = 10
+-- spiders
+constants.spider_carrier_prototype_name = 'buex-spider-carrier-wagon'
+constants.spider_carrier_equipment_category_prototype_name = 'buex-spider-carrier-wagon-equipment'
+constants.spider_carrier_grid_prototype_name = 'buex-spider-carrier-wagon-grid'
+constants.buex_technology = 'buex-technology'
+
 return constants
