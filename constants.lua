@@ -34,5 +34,6 @@ constants.spider_carrier_prototype_name = 'buex-spider-carrier-wagon'
 constants.spider_carrier_equipment_category_prototype_name = 'buex-spider-carrier-wagon-equipment'
 constants.spider_carrier_grid_prototype_name = 'buex-spider-carrier-wagon-grid'
 constants.buex_technology = 'buex-technology'
+constants.spider_carrier_proxy_prototype_name = 'buex-spider-carrier-prototype'
 
 return constants
