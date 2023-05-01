@@ -55,7 +55,7 @@ function Task:create(params)
     task.worker_construction_radius=params.worker_construction_radius
 
     task.state=constants.TASK_STATES.TASK_CREATED
-    task.flying_text=params.flying_text or params.flying_text == nil and {}
+    task.flying_text=params.flying_text or {}
 
     setmetatable(task, Task)
     return task
