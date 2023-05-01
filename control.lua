@@ -37,7 +37,6 @@ function initGlobal()
     if emptySpaceTileCollisionLayerPrototype then
         global.emptySpaceCollsion = table_lib.first(table_lib.keys(emptySpaceTileCollisionLayerPrototype.collision_mask))
     end
-
 end 
 
 script.on_configuration_changed(function(data)
@@ -122,25 +121,6 @@ script.on_event(defines.events.on_built_entity, function(event)
     -- end
     
 end, {{filter = "ghost"}, {filter = 'name', name = 'test-train-stop'}})
-
--- user triggered keyboard shortcut
-script.on_event("test-custom-hotkey", function(event)
-    if event then
-
-        local gui_main_frame = get_player_screen(event.player_index).buex_main_frame
-
-        if gui_main_frame ~= nil then
-            gui_main_frame.destroy()
-        end
-
-        global.construction_tasks = nil
-        
-        initGlobal()
-
-        --replaceEntityWithSchmentity(event)
-        getLogisticCell(event)
-    end
-    end)
 
 script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
     local player_index = event.player_index

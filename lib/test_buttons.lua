@@ -58,3 +58,28 @@ function getLogisticCell(e)
     local cell = entity.logistic_cell
     game.print(cell.construction_radius)
 end
+
+
+-- user triggered keyboard shortcut
+script.on_event("test-custom-hotkey", function(event)
+    if event then
+
+        local gui_main_frame = get_player_screen(event.player_index).buex_main_frame
+
+        if gui_main_frame ~= nil then
+            gui_main_frame.destroy()
+        end
+
+        global.construction_tasks = nil
+        
+        initGlobal()
+
+    end
+end)
+
+    -- user triggered keyboard shortcut
+script.on_event("test-custom-hotkey-a", function(event)
+    game.print("CUSTOM HOTKEY A TRIGGERED")
+    local player_index = event.player_index
+    global.entity_selected = game.get_player(player_index).selected
+end)
