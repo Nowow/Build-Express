@@ -145,7 +145,9 @@ function Task:assignWorker()
     self:log("Worker found!")
     self.worker = worker
     -- calculating construction area reach , but accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
-    self.worker_construction_radius = getRoboportRange(worker) - 10
+    local worker_construction_radius = getRoboportRange(worker) - 10
+    self:log("worker_construction_radius: " .. worker_construction_radius)
+    self.worker_construction_radius = worker_construction_radius
     return true
 end
 
