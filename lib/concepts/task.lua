@@ -4,8 +4,26 @@ require("lib.blueprints")
 require("lib.gui")
 
 local constants = require("constants")
+local util = require('util')
 local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 
+---@class Task
+---@field id string
+---@field type string
+---@field tick integer
+---@field player_index integer
+---@field surface unknown
+---@field blueprint_label string
+---@field entities table
+---@field tiles table
+---@field cost_to_build table
+---@field bounding_box table
+---@field subtasks table
+---@field active_subtask integer
+---@field building_spot unknown
+---@field worker unknown
+---@field worker_construction_radius integer
+---@field flying_text table
 Task = {}
 Task.__index = Task
 
@@ -13,17 +31,19 @@ script.register_metatable("task_metatable", Task)
 
 -- task_type, tick, player_index, blueprint_label, ghosts, cost_to_build, tiles
 
+---@return Task
 function Task:create(params)
+    ---@type Task
     local task = {}
     task.id=params.player_index .. '_' .. params.tick
-    task.type = params.task_type
+    task.type = params.type
     task.tick = params.tick
     task.player_index = params.player_index
     task.surface=game.players[params.player_index].surface
     task.blueprint_label = params.blueprint_label
     task.entities = params.entities
-    task.cost_to_build = params.cost_to_build or params.cost_to_build and {}
-    task.tiles = params.tiles or params.tiles == nil and {}
+    task.cost_to_build = params.cost_to_build or {}
+    task.tiles = params.tiles or {}
 
     -- supposed to be empty
     task.bounding_box=params.bounding_box
@@ -46,13 +66,13 @@ function Task:log(message)
 end
 
 function Task:changeState(new_state)
-    self.state = constants.TASK_STATES[new_state]
+    local current_state = self.state
+    if current_state ~= new_state then
+        self.state = constants.TASK_STATES[new_state]
+        self:log("Moved to state " .. new_state)
+    end
     global.construction_tasks[new_state]:push(self)
     update_task_frame(self)
-end
-
-function Task:set_max_side_length(max_side_length)
-    self.max_side_length=max_side_length
 end
 
 function Task:findBoundingBox()
@@ -73,7 +93,7 @@ function Task:findBoundingBox()
 end
 
 function Task:generateSubtasks()
-    local subtasks = solveBoundingBoxSubdivision(self.bounding_box, self.max_side_length)
+    local subtasks = solveBoundingBoxSubdivision(self.bounding_box, self.worker_construction_radius)
     self.subtasks = subtasks
     self.subtask_count = #subtasks
     self:log("Subdivision finished, total subtasks: " .. self.subtask_count)
@@ -166,7 +186,7 @@ function Task:findBuildingSpot()
                         self.building_spot = rail
                         hightlighRail(rail, {r = 0, g = 1, b = 0})
                         self:log("Found rail for subtask " .. i)
-                        return
+                        return true
                     else
                         hightlighRail(rail, {r = 1, g = 0, b = 0})
                     end
@@ -228,10 +248,10 @@ function Task:invalidateTaskEntities()
     local subtask_entities = subtask.entities
     hightligtBoundingBox(subtask.bounding_box, {r = 0, g = 0, b = 1})
     local subtask_finished = true
-    local task_type = self.task_type
+    local task_type = self.type
 
     if task_type == constants.TASK_TYPES.BUILD then
-
+        
         local start_subbtask_ghosts = table_size(subtask_entities)
         for j, ghost in pairs(subtask_entities) do
             if ghost.valid then

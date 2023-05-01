@@ -1,9 +1,15 @@
+---@class TaskQueue
+---@field head_tail table
+---@field data table
+---@field task_id_index table
 TaskQueue = {}
 TaskQueue.__index = TaskQueue
 
 script.register_metatable("queue_metatable", TaskQueue)
 
+---@return TaskQueue
 function TaskQueue:create(name)
+    
     local queue = {}
     queue.name = name
     queue.head_tail = {first = 1, last = 0}
@@ -22,6 +28,8 @@ function TaskQueue:push(task)
     self.task_id_index[task.id] = last
 end
 
+---comment
+---@return Task
 function TaskQueue:pop()
     
     local first = self.head_tail.first

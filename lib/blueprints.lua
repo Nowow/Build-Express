@@ -46,7 +46,7 @@ end
 function createSubtask(bounding_box)
     return {
         bounding_box=bounding_box,
-        ghosts={},
+        entities={},
         tiles={}
     }
 end
