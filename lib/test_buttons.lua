@@ -1,5 +1,7 @@
 require("lib.utils")
 require("lib.blueprints")
+local pathfinder = require("lib.pathfinder")
+
 local bl = require("lib.ghosts_on_water_port.blueprints")
 
 function CheckIfRailsIsAccessible(selected_entity)
@@ -74,12 +76,32 @@ script.on_event("test-custom-hotkey", function(event)
         
         initGlobal()
 
+        local player_index = event.player_index
+        global.entity_selected = game.get_player(player_index).selected
+        
+
     end
 end)
 
     -- user triggered keyboard shortcut
 script.on_event("test-custom-hotkey-a", function(event)
     game.print("CUSTOM HOTKEY A TRIGGERED")
-    local player_index = event.player_index
-    global.entity_selected = game.get_player(player_index).selected
-end)
+    local goal = event.cursor_position
+
+    pathfinder.request_path(global.entity_selected, goal)
+    rendering.draw_rectangle({
+        left_top={goal.x-20, goal.y-20},
+        right_bottom={goal.x+20, goal.y+20},
+        color={r=0,g=1,b=0},
+        surface=game.players[1].surface,
+        time_to_live=1000
+    })
+    rendering.draw_circle({
+        radius=20,
+        target=goal,
+        color={r=0,g=1,b=1},
+        surface=global.entity_selected.surface,
+        time_to_live=1000
+    })   
+end
+)
