@@ -16,6 +16,7 @@ deconstruct_entity_cache = {}
 
 function initConstructionTasks()
     if not global.construction_tasks then
+        ---@type { [string]: TaskQueue }
         global.construction_tasks = {}
     end
     for task_state, _ in pairs(TASK_STATES) do
@@ -56,7 +57,7 @@ script.on_event(defines.events.on_tick, function(event)
                 if next(built_ghost_dummies) ~= nil then
                     local task = Task:create({
                         player_index=player_index,
-                        task_type=constants.TASK_TYPES.BUILD,
+                        type=constants.TASK_TYPES.BUILD,
                         tick=building_tick,
                         blueprint_label=blueprint_label,
                         entities=built_ghost_dummies,
@@ -86,7 +87,7 @@ script.on_nth_tick(30, function(event)
             end
             local task = Task:create({
                 player_index=player_index,
-                task_type=constants.TASK_TYPES.DECONSTRUCT,
+                type=constants.TASK_TYPES.DECONSTRUCT,
                 tick=tick,
                 blueprint_label=constants.deconstruction_blueprint_label_placeholder,
                 entities=cache
