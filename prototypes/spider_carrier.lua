@@ -5,7 +5,7 @@ local e
 local tint = {0.5, 0.0, 0.5}
 
 e = table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
-e.name = constants.construction_wagon_prototype_name
+e.name = constants.spider_carrier_prototype_name
 e.icons = {{icon=e.icon, tint=tint}}
 e.minable.result = e.name
 e.weight = 4000

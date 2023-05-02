@@ -7,12 +7,25 @@ function pathfinder.init()
     end
 end
 
-function pathfinder.request_path(unit, goal, attempt)
-    local attempt = attempt or 0
-    local unit_position = unit.position
+function pathfinder.find_route_point_candidates(surface, bounding_box)
+
+
+     local tiles = surface.find_tiles_filtered{
+        area = bounding_box,
+        collision_mask="water-tile",
+        invert=true
+    }
+    return tiles
+end
+
+function pathfinder.request_path(params)
+    local unit = params.unit
+    local start = params.start or unit.position
+    local goal = params.goal
+    
     local surface = unit.surface
-    local pathing_collision_mask = {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only", "not-colliding-with-itself"}
-    local bounding_box = {{-5, -5}, {5, 5}}
+    local pathing_collision_mask = params.pathing_collision_mask or {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only", "not-colliding-with-itself"}
+    local bounding_box = params.bounding_box or {{0.0, 0.0}, {0.0, 0.0}}
     -- if landfill_job then
     --     bounding_box = {{-0.015, -0.015}, {0.015, 0.015}}
     --     path_resolution_modifier = 0
@@ -22,17 +35,18 @@ function pathfinder.request_path(unit, goal, attempt)
         bounding_box=bounding_box,
         collision_mask=pathing_collision_mask,
         force=unit.force,
-        start=unit_position,
+        start=start,
         goal=goal,
         pathfinder_flags={no_break=true},
         path_resolution_modifier=path_resolution_modifier,
     })
-    global.pathfinding_requests[id] = {unit=unit, goal=goal, attempt=attempt}
+    global.pathfinding_requests[id] = params
     game.print("GENERATED PATHING REQUEST " .. id)
 end
 
 function pathfinder.set_autopilot(unit, path) -- set path
     if unit and unit.valid then
+        unit.autopilot_destination = nil
         for i, waypoint in ipairs(path) do
             unit.add_autopilot_destination(waypoint.position)
         end
@@ -44,28 +58,48 @@ function pathfinder.handle_finished_pathing_request(event)
     game.print("FINISHED PATHING REQUEST " .. id)
     local request_info = global.pathfinding_requests[id]
     local unit = request_info.unit
-    local attempt = request_info.attempt + 1
+    local next_attempt = request_info.attempt + 1
     local goal = request_info.goal
+    local callback = request_info.callback_source
+    local autoretry = request_info  .autoretry
 
     if event.try_again_later then
         game.print("Pathfinder was too busy!")
-        if not attempt > constants.max_pathfinding_attempts then
-            game.print("Trying one more time, attempt " .. attempt)
-            pathfinder.request_path(unit, goal, attempt)
+        if autoretry then
+            if not next_attempt > constants.max_pathfinding_attempts then
+                game.print("Trying one more time, attempt " .. next_attempt)
+                request_info.attempt = next_attempt
+                pathfinder.request_path(request_info)
+            else
+                game.print("Giving up trying")
+                callback:navigateSpiderToSubtaskCallback(nil, request_info)
+            end
             return
         else
-            game.print("Giving up trying!")
+            game.print("No autoretry")
+            if callback then
+                callback:navigateSpiderToSubtaskCallback(nil, request_info)
+            end
             return
         end
     end
+
+    local path = event.path
     if not event.path then
         game.print("NO PATH WAS FOUND")
+        if callback then callback:navigateSpiderToSubtaskCallback(nil, request_info) end
         return
     end
-    unit.autopilot_destination = nil
-    pathfinder.set_autopilot(unit, event.path)
+
+    if callback then
+        callback:navigateSpiderToSubtaskCallback(path, request_info)
+    else
+        pathfinder.set_autopilot(unit, path)
+    end
+    
 
 end
+
 
 --on_script_path_request_finished 
 

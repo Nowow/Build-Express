@@ -12,6 +12,14 @@ function PrintTrainWhereabouts(train)
     game.print('Train ' .. train_id .. ' at a position ' .. gps .. ' is now in a state: ' .. TRAIN_STATES[train_state + 1])
 end
 
+function getTileBoundingBox(position)
+    local bb = {
+        left_top={position.x, position.y},
+        right_bottom={position.x+1, position.y+1},
+    }
+    return bb
+end
+
 function hightlightEntity(entity, radius, color)
 
     
@@ -27,16 +35,17 @@ function hightlightEntity(entity, radius, color)
     })   
 end
 
-function hightligtBoundingBox(bounding_box, color)
+function hightligtBoundingBox(bounding_box, color, ttl)
 
-    --local color = {r = math.random(), g = math.random(), b = math.random()}
+    local color = color or {r = math.random(), g = math.random(), b = math.random()}
+    local ttl = ttl or 300
 
     rendering.draw_rectangle({
         left_top=bounding_box.left_top,
         right_bottom=bounding_box.right_bottom,
         color=color,
         surface=game.players[1].surface,
-        time_to_live=300
+        time_to_live=ttl
     })
 end
 

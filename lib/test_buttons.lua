@@ -1,6 +1,8 @@
 require("lib.utils")
 require("lib.blueprints")
+require("lib.concepts.spider_carrier")
 local pathfinder = require("lib.pathfinder")
+
 
 local bl = require("lib.ghosts_on_water_port.blueprints")
 
@@ -62,6 +64,25 @@ function getLogisticCell(e)
 end
 
 
+function testSpiderCarrier(selected_entity, cursor_position)
+    if selected_entity then
+        global.test_spider_carrier = SpiderCarrier:create(selected_entity)
+        game.print("CREATED SPIDER CARRIER")
+        return
+    end
+    if cursor_position then
+        game.print("NAVIGATING SPIDER")
+        local bb = {
+            left_top={cursor_position.x-20, cursor_position.y-20},
+            right_bottom={cursor_position.x+20, cursor_position.y+20},
+        }
+        local carrier = global.test_spider_carrier
+        carrier:releaseSpider()
+        carrier:navigateSpiderToSubtask({bounding_box=bb})
+    end
+
+end
+
 -- user triggered keyboard shortcut
 script.on_event("test-custom-hotkey", function(event)
     if event then
@@ -86,22 +107,32 @@ end)
     -- user triggered keyboard shortcut
 script.on_event("test-custom-hotkey-a", function(event)
     game.print("CUSTOM HOTKEY A TRIGGERED")
-    local goal = event.cursor_position
+    -- local goal = event.cursor_position
+    -- pathfinder.request_path(global.entity_selected, goal)
 
-    pathfinder.request_path(global.entity_selected, goal)
-    rendering.draw_rectangle({
-        left_top={goal.x-20, goal.y-20},
-        right_bottom={goal.x+20, goal.y+20},
-        color={r=0,g=1,b=0},
-        surface=game.players[1].surface,
-        time_to_live=1000
-    })
-    rendering.draw_circle({
-        radius=20,
-        target=goal,
-        color={r=0,g=1,b=1},
-        surface=global.entity_selected.surface,
-        time_to_live=1000
-    })   
+    local player = game.get_player(event.player_index)
+    local cursor_position = event.cursor_position
+    local surface = player.surface
+    local bb = {
+        left_top={cursor_position.x-20, cursor_position.y-20},
+        right_bottom={cursor_position.x+20, cursor_position.y+20},
+    }
+
+    testSpiderCarrier(player.selected, cursor_position)
+
+    -- local tiles = player.surface.find_tiles_filtered{
+    --     area = bb,
+    --     collision_mask="water-tile",
+    --     invert=true
+    -- } 
+    -- for _, tile in pairs(tiles) do
+    --     rendering.draw_rectangle({
+    --         left_top={tile.position.x-0.5, tile.position.y-0.5},
+    --         right_bottom={tile.position.x+0.5, tile.position.y+0.5},
+    --         color={r=0,g=1,b=1},
+    --         surface=surface,
+    --         time_to_live=700
+    --     })
+    -- end
 end
 )
