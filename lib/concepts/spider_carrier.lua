@@ -159,12 +159,19 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
         log("No goal candidates found")
         return
     end
+
     for i=1,#self.goal_candidates do
         self.goal_candidates[i] = nil
     end
     local goal_candidates = self.goal_candidates
     local pathing_request_info
-    for i, spot in pairs(possible_building_spots) do
+    local middle_index = math.ceil(spots_n/2)
+    log('middle_index ' .. middle_index)
+    for i=1, spots_n do
+        local increment = math.ceil(i/2) - 1
+        local sign = (-1)^(i-1)
+        local spot_index = middle_index + increment*sign
+        local spot = possible_building_spots[spot_index]
         pathing_request_info = {
             unit=spider,
             start={start.position.x + 0.5, start.position.y + 0.5}, -- because tile position is its left_top corner
