@@ -29,8 +29,6 @@ Task.__index = Task
 
 script.register_metatable("task_metatable", Task)
 
--- task_type, tick, player_index, blueprint_label, ghosts, cost_to_build, tiles
-
 
 function Task:new()
     local task = {}
@@ -333,3 +331,67 @@ function Task:endTask()
     global.construction_tasks[self.state]:remove(self.id)
 end
 
+
+
+------------------------------------------------------------------
+-----TASK FLOW
+------------------------------------------------------------------
+
+function Task:TASK_CREATED()
+    self:findBoundingBox()
+    self:changeState(constants.TASK_STATES.UNASSIGNED)
+end
+
+function Task:UNASSIGNED()
+    local worker_found = self:assignWorker()
+
+    if not worker_found then
+        self:changeState(constants.TASK_STATES.UNASSIGNED)
+        return
+    end
+
+    self:generateSubtasks()
+    self:populateSubtasks()
+
+    self:changeState(constants.TASK_STATES.PREPARING)
+end
+
+function Task:PREPARING()
+    -- skipping tileing if deconstruct
+    if self.type == constants.TASK_TYPES.DECONSTRUCT then
+        self:changeState(constants.TASK_STATES.ASSIGNED)
+        return
+    end
+    self:tileWaterGhosts()
+    self:changeState(constants.TASK_STATES.ASSIGNED)
+end
+
+function Task:ASSIGNED()
+    local building_spot_found = self:findBuildingSpot()
+    if building_spot_found then
+        self:dispatchWorkerToNextStop()
+        self:changeState(constants.TASK_STATES.BUILDING)
+    end
+end
+
+function Task:BUILDING()
+    
+    local subtask_finished = self:invalidateTaskEntities()
+
+    -- removing subtask and either restarting loop or task is finished
+    if subtask_finished then
+
+        if next(self.subtasks) == nil then
+            -- task is finished, sending back to depot
+            self:log("Puttin task into TERMINATION due to completion")
+            self:changeState(constants.TASK_STATES.TERMINATING)
+        else
+            -- rerun loop, complete new subtask
+            self:log("Subtasks left: " .. table_size(self.subtasks))
+            self:log("Looping task back to ASSIGNED")
+            self:changeState(constants.TASK_STATES.ASSIGNED)
+        end
+    else
+        self:changeState(constants.TASK_STATES.BUILDING)
+    end
+end

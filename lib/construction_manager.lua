@@ -112,8 +112,7 @@ script.on_nth_tick(31, function(event)
     
     local task = global.construction_tasks.TASK_CREATED:pop()
 
-    task:findBoundingBox()
-    task:changeState(constants.TASK_STATES.UNASSIGNED)
+    task:TASK_CREATED()
 
 end)
 
@@ -127,17 +126,7 @@ script.on_nth_tick(32, function(event)
 
     local task = global.construction_tasks.UNASSIGNED:pop()
 
-    local worker_found = task:assignWorker()
-
-    if not worker_found then
-        task:changeState(constants.TASK_STATES.UNASSIGNED)
-        return
-    end
-
-    task:generateSubtasks()
-    task:populateSubtasks()
-
-    task:changeState(constants.TASK_STATES.PREPARING)
+    task:UNASSIGNED()
 
 end)
 
@@ -151,13 +140,7 @@ script.on_nth_tick(33, function(event)
     log('Reached PREPARING handler')
 
     local task = global.construction_tasks.PREPARING:pop()
-    -- skipping tileing if deconstruct
-    if task.task_type == constants.TASK_TYPES.DECONSTRUCT then
-        task:changeState(constants.TASK_STATES.ASSIGNED)
-        return
-    end
-    task:tileWaterGhosts()
-    task:changeState(constants.TASK_STATES.ASSIGNED)
+    task:PREPARING()
 end)
 
 
@@ -171,11 +154,7 @@ script.on_nth_tick(34, function(event)
     --log('Reached ASSIGNED handler')
     
     local task = global.construction_tasks.ASSIGNED:pop()
-    local building_spot_found = task:findBuildingSpot()
-    if building_spot_found then
-        task:dispatchWorkerToNextStop()
-        task:changeState(constants.TASK_STATES.BUILDING)
-    end
+    task:ASSIGNED()
 end)
 
 ---- building loop ----
@@ -189,35 +168,7 @@ script.on_nth_tick(35, function(event)
 
     local task = global.construction_tasks.BUILDING:pop()
 
-    -- hard timeout if task cound not be completed
-    -- if task.timer_tick ~= nil then
-    --     if (game.tick - task.timer_tick) > TASK_TIMEOUT_TICKS then
-    --         game.print("TIMEOUT FOR TASK " .. task.id) -- TODO timeout logic
-    --         log_task(task.id, "TIMEOUT") -- TODO timeout logic
-    --         endTask(task)
-    --         return
-    --     end
-    -- end
-
-    
-    local subtask_finished = task:invalidateTaskEntities()
-
-    -- removing subtask and either restarting loop or task is finished
-    if subtask_finished then
-
-        if next(task.subtasks) == nil then
-            -- task is finished, sending back to depot
-            task:log("Puttin task into TERMINATION due to completion")
-            task:changeState(constants.TASK_STATES.TERMINATING)
-        else
-            -- rerun loop, complete new subtask
-            task:log("Subtasks left: " .. table_size(task.subtasks))
-            task:log("Looping task back to ASSIGNED")
-            task:changeState(constants.TASK_STATES.ASSIGNED)
-        end
-    else
-        task:changeState(constants.TASK_STATES.BUILDING)
-    end
+    task:BUILDING()
 end)
 
 -- termination
