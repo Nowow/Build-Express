@@ -100,40 +100,8 @@ function SpiderCarrier:storeSpidertron(spider)
     return true
 end
 
-function SpiderCarrier:navigateSpiderToSubtaskCallback(path, pathing_request_info)
-    if path then
-        local ticks_took = game.tick - self.navigation_start_tick
-
-        log("Path found! Pathing took " .. ticks_took .. " ticks, or " .. ticks_took/60 .. 'seconds' )
-        local goal = pathing_request_info.goal
-        local bb = getTileBoundingBox(goal)
-        hightligtBoundingBox(bb, {r=0, g=1, b=0})
-        for i=1,#self.goal_candidates do
-            self.goal_candidates[i] = nil
-        end
-        pathfinder.set_autopilot(self.spider, path)
-    else
-        log(#self.goal_candidates)
-        local candidate_index = pathing_request_info.candidate_index
-        log("Path not found for path n0 " .. candidate_index)
-        local next_candidate = self.goal_candidates[candidate_index + 1]
-        if next_candidate then
-            log("Trying next candidate")
-            local goal = next_candidate.goal
-            local bb = getTileBoundingBox(goal)
-            hightligtBoundingBox(bb, {r=0, g=1, b=0}, 3)
-            pathfinder.request_path(next_candidate)
-        else
-            log("All canidates tried, no path found!")
-        end
-    end
-end
-
-function SpiderCarrier:navigateSpiderToSubtask(subtask)
-
-    self.navigation_start_tick = game.tick
+function SpiderCarrier:getSpiderPathStartPosition()
     local spider = self.spider
-    local surface = spider.surface
     local start_area = {
         left_top={
             x=spider.position.x-3,
@@ -144,7 +112,57 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
             y=spider.position.y+3
         }
     }
-    local start = pathfinder.find_route_point_candidates(surface, start_area)[1]
+    return pathfinder.find_non_colliding_spot(spider.surface, start_area)
+end
+
+function SpiderCarrier:callback(path, pathing_request_info)
+    if pathing_request_info.action == constants.spider_carrier_navigate_subtask then
+        if path then
+            local ticks_took = game.tick - self.navigation_start_tick
+
+            log("Path found! Pathing took " .. ticks_took .. " ticks, or " .. ticks_took/60 .. 'seconds' )
+            local goal = pathing_request_info.goal
+            local bb = getTileBoundingBox(goal)
+            hightligtBoundingBox(bb, {r=0, g=1, b=0})
+            for i=1,#self.goal_candidates do
+                self.goal_candidates[i] = nil
+            end
+            pathfinder.set_autopilot(self.spider, path)
+        else
+            log(#self.goal_candidates)
+            local candidate_index = pathing_request_info.candidate_index
+            log("Path not found for path n0 " .. candidate_index)
+            local next_candidate = self.goal_candidates[candidate_index + 1]
+            if next_candidate then
+                log("Trying next candidate")
+                local goal = next_candidate.goal
+                local bb = getTileBoundingBox(goal)
+                hightligtBoundingBox(bb, {r=0, g=1, b=0}, 3)
+                pathfinder.request_path(next_candidate)
+            else
+                log("All canidates tried, no path found!")
+            end
+        end
+        return
+    end
+    if pathing_request_info.action == constants.spider_carrier_collect_spider then
+        if path then
+            local spider = self.spider
+            log("PATH BACK TO TRAIN FOUND")
+            pathfinder.set_autopilot(spider, path)
+        else
+            log("Path back to train was not found :(")
+        end
+            return
+    end
+end
+
+function SpiderCarrier:navigateSpiderToSubtask(subtask)
+
+    self.navigation_start_tick = game.tick
+    local spider = self.spider
+    local surface = spider.surface
+    local start = self:getSpiderPathStartPosition()
     if not start then
         log('Start was not found')
         return
@@ -173,9 +191,10 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
         local spot_index = middle_index + increment*sign
         local spot = possible_building_spots[spot_index]
         pathing_request_info = {
+            action=constants.spider_carrier_navigate_subtask,
             unit=spider,
-            start={start.position.x + 0.5, start.position.y + 0.5}, -- because tile position is its left_top corner
-            target=spot,
+            --start={start.position.x + 0.5, start.position.y + 0.5}, -- because tile position is its left_top corner
+            start=start,
             goal=spot.position,
             attempt=1,
             candidate_index = i,
@@ -187,4 +206,28 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
 
     --start pathing feedback loop
     pathfinder.request_path(goal_candidates[1])
+end
+
+function SpiderCarrier:startCollectSpidertron()
+    log("Trying to collect spider")
+    local spider = self.spider
+    local wagon = self.wagon
+    if not spider.valid then
+        log("Spider is not valid!")
+    end
+    if not wagon.valid then
+        log("Wagon is not valid!")
+    end
+    local start = self:getSpiderPathStartPosition()
+    local goal = wagon.position
+
+    local pathing_request_info = {
+        unit=spider,
+        start=start,
+        goal=goal,
+        attempt=1,
+        callback_source=self,
+        auto_retry=true,
+    }
+    pathfinder.request_path(pathing_request_info)
 end
