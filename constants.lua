@@ -35,5 +35,8 @@ constants.spider_carrier_equipment_category_prototype_name = 'buex-spider-carrie
 constants.spider_carrier_grid_prototype_name = 'buex-spider-carrier-wagon-grid'
 constants.buex_technology = 'buex-technology'
 constants.spider_carrier_proxy_prototype_name = 'buex-spider-carrier-prototype'
+-- pathfinding
+constants.max_pathfinding_attempts = 5
+constants.pathfinding_proxy_name = 'buex-pathfinding-proxy'
 
 return constants
