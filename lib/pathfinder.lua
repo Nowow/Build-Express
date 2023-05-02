@@ -8,14 +8,17 @@ function pathfinder.init()
 end
 
 function pathfinder.find_route_point_candidates(surface, bounding_box)
-
-
      local tiles = surface.find_tiles_filtered{
         area = bounding_box,
         collision_mask="water-tile",
         invert=true
     }
     return tiles
+end
+
+function pathfinder.find_non_colliding_spot(surface, area)
+    return surface.find_non_colliding_position_in_box(constants.pathfinding_proxy_name, area, 1)
+    
 end
 
 function pathfinder.request_path(params)
@@ -96,8 +99,6 @@ function pathfinder.handle_finished_pathing_request(event)
     else
         pathfinder.set_autopilot(unit, path)
     end
-    
-
 end
 
 
