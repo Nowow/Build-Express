@@ -6,9 +6,11 @@ require("lib.construction_manager")
 require("lib.gui")
 require("lib.station_manager")
 
+
 local bl = require("lib.ghosts_on_water_port.blueprints")
 local constants = require("constants")
 local table_lib = require('__stdlib__/stdlib/utils/table')
+local pathfinder = require("lib.pathfinder")
 
 local next = next
 
@@ -19,6 +21,8 @@ function initGlobal()
     initConstructionTasks()
 
     initPlayersGui()
+    
+    pathfinder.init()
 
     if global.cursor_blueprint_cache == nil then
         global.cursor_blueprint_cache = {}

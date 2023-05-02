@@ -1,11 +1,17 @@
 local pathfinder = {}
+local constants = require("constants")
 
-function pathfinder.request_path(unit, goal)
+function pathfinder.init()
+    if global.pathfinding_requests == nil then
+        global.pathfinding_requests = {}
+    end
+end
+
+function pathfinder.request_path(unit, goal, attempt)
+    local attempt = attempt or 0
     local unit_position = unit.position
     local surface = unit.surface
     local pathing_collision_mask = {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only", "not-colliding-with-itself"}
-
-    unit.autopilot_destination = nil
     local bounding_box = {{-5, -5}, {5, 5}}
     -- if landfill_job then
     --     bounding_box = {{-0.015, -0.015}, {0.015, 0.015}}
@@ -21,6 +27,7 @@ function pathfinder.request_path(unit, goal)
         pathfinder_flags={no_break=true},
         path_resolution_modifier=path_resolution_modifier,
     })
+    global.pathfinding_requests[id] = {unit=unit, goal=goal, attempt=attempt}
     game.print("GENERATED PATHING REQUEST " .. id)
 end
 
@@ -33,17 +40,30 @@ function pathfinder.set_autopilot(unit, path) -- set path
 end
 
 function pathfinder.handle_finished_pathing_request(event)
-    game.print("FINISHED PATHING REQUEST " .. event.id)
+    local id = event.id
+    game.print("FINISHED PATHING REQUEST " .. id)
+    local request_info = global.pathfinding_requests[id]
+    local unit = request_info.unit
+    local attempt = request_info.attempt + 1
+    local goal = request_info.goal
+
     if event.try_again_later then
-        game.print("PATHFINDER SAID IM TOO BUSY")
-        return
+        game.print("Pathfinder was too busy!")
+        if not attempt > constants.max_pathfinding_attempts then
+            game.print("Trying one more time, attempt " .. attempt)
+            pathfinder.request_path(unit, goal, attempt)
+            return
+        else
+            game.print("Giving up trying!")
+            return
+        end
     end
     if not event.path then
         game.print("NO PATH WAS FOUND")
         return
     end
-    pathfinder.set_autopilot(global.entity_selected, event.path)
-
+    unit.autopilot_destination = nil
+    pathfinder.set_autopilot(unit, event.path)
 
 end
 
