@@ -122,3 +122,28 @@ function ExpressConstructionUnit:subtaskProcessingCallback(result)
     self.subtask_processing_result = result
 end
 
+function ExpressConstructionUnit:orderRetractSpider()
+    local active_carrier = self.active_carrier
+    self.wrapping_up = true
+    active_carrier:startCollectSpider()
+end
+
+function ExpressConstructionUnit:pollRetractSpider()
+    local active_carrier = self.active_carrier
+    local spider = active_carrier.spider
+    local spider_inside = active_carrier:checkIfSpiderStored() and not (spider and spider.valid)
+    if spider_inside then
+        log("Spider is back stored in wagon")
+        return true
+    elseif spider and spider.valid then
+        log("Spider Carrier is empty, but still present, trying to store it")
+        return active_carrier:storeSpider()
+    else
+        log("Unhandled behavior while calling pollRetractSpider")
+        return
+    end
+
+end
+
+
+
