@@ -198,9 +198,20 @@ function EcuTask:ASSIGNED()
 end
 
 
+function EcuTask:TERMINATING()
+    local ECU = self.worker
+    if not ECU.wrapping_up then
+        self:startEndTask()
+        self:changeState(constants.TASK_STATES.TERMINATING)
         return
     else
-        
-
+        local spider_is_back = ECU:pollRetractSpider()
+        if spider_is_back then
+            ECU:goHome()
+            global.construction_tasks[self.state]:remove(self.id)
+            self:log("Task wrapped up!")
+        else
+            self:changeState(constants.TASK_STATES.TERMINATING)
+        end
     end
 end
