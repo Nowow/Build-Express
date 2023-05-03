@@ -3,8 +3,8 @@ local constants = require("constants")
 
 ---@class ExpressConstructionUnit
 ---@field train unknown
----@field spider_carriers table
----@field active_carrier unknown
+---@field spider_carriers SpiderCarrier[]
+---@field active_carrier SpiderCarrier
 ---@field parked boolean
 ---@field subtask_processing_result boolean
 ExpressConstructionUnit = {}
