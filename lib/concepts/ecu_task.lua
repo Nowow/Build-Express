@@ -105,11 +105,13 @@ end
 
 function EcuTask:PREPARING()
     local ECU = self.worker
-    local worker_construction_radius = ECU:getWorkerConstructionRadius()
+    -- minus 5 to allow for spidertron unpredictable wiggling around destination
+    local worker_construction_radius = ECU:getWorkerConstructionRadius() - constants.subtask_construction_area_coverage_offset
     if not worker_construction_radius then
         self:log("Couldnt get construction radius, looping back to PREPARED")
         self:changeState(constants.TASK_STATES.PREPARING)
     end
+    self.worker_construction_radius = worker_construction_radius
     self:generateSubtasks()
     self:populateSubtasks()
     -- skipping tileing if deconstruct

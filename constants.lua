@@ -43,4 +43,6 @@ constants.spider_carrier_navigate_subtask = 'spider_carrier_navigate_subtask'
 constants.spider_carrier_collect_spider = 'spider_carrier_collect_spider'
 constants.parking_wait_time = 60*60*10  -- 10 mins
 
+constants.subtask_construction_area_coverage_offset = 5
+
 return constants
