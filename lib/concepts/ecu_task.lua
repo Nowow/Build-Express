@@ -34,9 +34,12 @@ function EcuTask:assignWorker()
                     ECU:setTrain(train)
                     local has_spider_carriages = ECU:aquireSpiderCarriers()
                     if has_spider_carriages then
-                        self:log("Express Construction Unit found!")
-                        self.worker = ECU
-                        return true
+                        local has_enough_resources = ECU:checkIfHasResources(self.cost_to_build)
+                        if has_enough_resources then
+                            self:log("Express Construction Unit found!")
+                            self.worker = ECU
+                            return true
+                        end
                     end
                 end
             end
@@ -76,6 +79,12 @@ end
 -----TASK FLOW
 ------------------------------------------------------------------
 
+function Task:TASK_CREATED()
+    self:findBoundingBox()
+    self:tileWaterGhosts()
+    self:changeState(constants.TASK_STATES.UNASSIGNED)
+end
+
 function EcuTask:UNASSIGNED()
     local worker_found = self:assignWorker()
 
@@ -84,7 +93,6 @@ function EcuTask:UNASSIGNED()
         self:changeState(constants.TASK_STATES.UNASSIGNED)
         return
     end
-
     self:changeState(constants.TASK_STATES.PARKING)
 end
 
@@ -150,7 +158,6 @@ function EcuTask:PREPARING()
         self:changeState(constants.TASK_STATES.ASSIGNED)
         return
     end
-    self:tileWaterGhosts()
     self:changeState(constants.TASK_STATES.ASSIGNED)
 end
 
