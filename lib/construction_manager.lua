@@ -131,9 +131,24 @@ script.on_nth_tick(32, function(event)
 
 end)
 
+-- assigning train to task
+script.on_nth_tick(33, function(event)
+    if next(global.construction_tasks.PARKING.data) == nil then
+        return
+    end
+    
+    log('Reached PARKING handler')
+
+    local task = global.construction_tasks.PARKING:pop()
+
+    task:PARKING()
+
+end)
+
+
 -- modifying changes before dispatching
 -- place tile ghosts under water hovering entity ghosts
-script.on_nth_tick(33, function(event)
+script.on_nth_tick(34, function(event)
     if next(global.construction_tasks.PREPARING.data) == nil then
         return
     end
@@ -147,12 +162,10 @@ end)
 
 ---- building loop ----
 --   pick active subtask and send worker to build
-script.on_nth_tick(34, function(event)
+script.on_nth_tick(35, function(event)
     if next(global.construction_tasks.ASSIGNED.data) == nil then
         return
     end
-
-    --log('Reached ASSIGNED handler')
     
     local task = global.construction_tasks.ASSIGNED:pop()
     task:ASSIGNED()
@@ -160,20 +173,17 @@ end)
 
 ---- building loop ----
 --   manage completion of an active subtask
-script.on_nth_tick(35, function(event)
+script.on_nth_tick(36, function(event)
     if next(global.construction_tasks.BUILDING.data) == nil then
         return
     end
 
-    --log('Reached BUILDING handler')
-
     local task = global.construction_tasks.BUILDING:pop()
-
     task:BUILDING()
 end)
 
 -- termination
-script.on_nth_tick(36, function(event)
+script.on_nth_tick(37, function(event)
     if next(global.construction_tasks.TERMINATING.data) == nil then
         return
     end
