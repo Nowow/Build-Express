@@ -35,7 +35,7 @@ function ExpressConstructionUnit:aquireSpiderCarriers()
 
     for _, carriage in pairs(carriages) do
         if carriage.name == constants.spider_carrier_prototype_name then
-            local spider_carrier = SpiderCarrier:create(carriage)
+            local spider_carrier = SpiderCarrier:create(carriage, self)
             table.insert(spider_carriers, spider_carrier)
         end
     end
