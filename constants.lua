@@ -19,6 +19,7 @@ constants.task_flying_text_colors_by_task_type = {
 constants.TASK_STATES = {
     TASK_CREATED = 'TASK_CREATED',
     UNASSIGNED = 'UNASSIGNED',
+    PARKING = 'PARKING',
     PREPARING = 'PREPARING',
     ASSIGNED = 'ASSIGNED',
     BUILDING = 'BUILDING',
@@ -40,5 +41,6 @@ constants.max_pathfinding_attempts = 5
 constants.pathfinding_proxy_name = 'buex-pathfinding-proxy'
 constants.spider_carrier_navigate_subtask = 'spider_carrier_navigate_subtask'
 constants.spider_carrier_collect_spider = 'spider_carrier_collect_spider'
+constants.parking_wait_time = 60*60*10  -- 10 mins
 
 return constants
