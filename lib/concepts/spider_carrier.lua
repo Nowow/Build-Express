@@ -165,7 +165,7 @@ function SpiderCarrier:callback(path, pathing_request_info)
                 pathfinder.request_path(next_candidate)
             else
                 log("All canidates tried, no path found!")
-                self.ECU:subtaskProcessingCallback(true)
+                self.ECU:subtaskProcessingCallback(false)
             end
         end
         return
