@@ -75,13 +75,13 @@ function pathfinder.handle_finished_pathing_request(event)
                 pathfinder.request_path(request_info)
             else
                 game.print("Giving up trying")
-                callback:navigateSpiderToSubtaskCallback(nil, request_info)
+                callback:callback(nil, request_info)
             end
             return
         else
             game.print("No autoretry")
             if callback then
-                callback:navigateSpiderToSubtaskCallback(nil, request_info)
+                callback:callback(nil, request_info)
             end
             return
         end
@@ -90,12 +90,12 @@ function pathfinder.handle_finished_pathing_request(event)
     local path = event.path
     if not event.path then
         game.print("NO PATH WAS FOUND")
-        if callback then callback:navigateSpiderToSubtaskCallback(nil, request_info) end
+        if callback then callback:callback(nil, request_info) end
         return
     end
 
     if callback then
-        callback:navigateSpiderToSubtaskCallback(path, request_info)
+        callback:callback(path, request_info)
     else
         pathfinder.set_autopilot(unit, path)
     end
