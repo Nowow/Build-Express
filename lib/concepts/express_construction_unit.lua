@@ -95,6 +95,7 @@ function ExpressConstructionUnit:gotoRail(rail)
     }
     table.insert(schedule.records, schedule_entry)
     schedule.current = #schedule.records
+    train.schedule = schedule
 end
 
 function ExpressConstructionUnit:deploy()
