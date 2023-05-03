@@ -96,7 +96,7 @@ function EcuTask:PARKING()
     if not parking_spot then
         self:log("Going to find a parking spot")
         -- find and send to parking_spot
-        local candidates = findNearestRails(self.bounding_box, 10)
+        local candidates = findNearestRails(self.surface, self.bounding_box, 10)
         if #candidates > 0 then
             self:log("Parking spot candidates found: " .. #candidates )
             for _, rail in pairs(candidates) do
