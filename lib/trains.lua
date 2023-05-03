@@ -83,7 +83,6 @@ function addStopToSchedule(rail, train, replace_next_temp)
         end
     end
     new_schedule.records = new_records
-    game.print("ADDED STOP")
     train.schedule = new_schedule
 end
 
