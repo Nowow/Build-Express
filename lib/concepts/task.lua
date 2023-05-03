@@ -290,13 +290,6 @@ function Task:invalidateTaskEntities()
             self:log("Was entities: " .. start_subbtask_entities .. " | Left entities " .. end_subtask_entities)
         end
     end
-
-    if subtask_finished then
-        self.subtasks[active_subtask_index] = nil
-        self.active_subtask_index = nil
-        self.building_spot = nil
-        self.timer_tick = nil
-    end
     return subtask_finished
 end
 
@@ -372,6 +365,7 @@ function Task:ASSIGNED()
     if building_spot_found then
         self:dispatchWorkerToNextStop()
         self:changeState(constants.TASK_STATES.BUILDING)
+        self.timer_tick = game.tick
     end
 end
 
@@ -381,7 +375,10 @@ function Task:BUILDING()
 
     -- removing subtask and either restarting loop or task is finished
     if subtask_finished then
-
+        self.subtasks[self.active_subtask_index] = nil
+        self.active_subtask_index = nil
+        self.building_spot = nil --for regular tasks only, may be outdated
+        self.timer_tick = nil
         if next(self.subtasks) == nil then
             -- task is finished, sending back to depot
             self:log("Puttin task into TERMINATION due to completion")
