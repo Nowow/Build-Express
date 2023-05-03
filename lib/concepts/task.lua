@@ -137,13 +137,39 @@ function Task:populateSubtasks()
 end
 
 function Task:assignWorker()
-    local worker = getWorker(self.blueprint_label)
-    self:log("Looking for workers")
+
+    local worker
+    for _, station in pairs(global.worker_station_register[self.blueprint_label]) do
+        if station and station.valid then
+            self:log("Station ok!")
+            local control = station.get_control_behavior()
+            if not control or (control and control.valid and not control.disabled) then
+                local train = station.get_stopped_train()
+                if train ~= nil then
+                    self:log("Train found!")
+                    local train_contents = train.get_contents()
+                    local enough_resources = true
+                    for item, cost in pairs(train_contents) do
+                        if train_contents[item] < cost then
+                            enough_resources = false
+                            break
+                        end
+                    end
+                    if enough_resources then
+                        self:log("Worker found!")
+                        worker = train
+                        break
+                    end
+                end
+            end
+        end    
+    end
+
     if not worker then
         self:log('No workers available')
         return false
     end
-    self:log("Worker found!")
+
     self.worker = worker
     -- calculating construction area reach , but accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
     local worker_construction_radius = getRoboportRange(worker) - 10
@@ -153,6 +179,7 @@ function Task:assignWorker()
 end
 
 function Task:tileWaterGhosts()
+    local tile_cost = {}
     for _, subtask in pairs(self.subtasks) do
         for __, ghost in pairs(subtask.entities) do
             if ghost.valid then
@@ -163,12 +190,28 @@ function Task:tileWaterGhosts()
                     local landfill_ghosts = landfill.placeGhostLandfill(ghost)
                     hightlightEntity(ghost, 3, {r=1,g=1,b=0})
                     for _, t in pairs(landfill_ghosts) do
+                        local tile_name = t.ghost_name
+                        if tile_cost[tile_name] == nil then
+                            tile_cost[tile_name] = 1
+                        else
+                            tile_cost[tile_name] = tile_cost[tile_name] + 1
+                        end
                         table.insert(subtask.tiles, t)
                     end
                 end
             end
         end
     end
+    self:log("New tiles placed: " .. serpent.block(tile_cost))
+    local cost_to_build = self.cost_to_build
+    for tile_name, cost in pairs(tile_cost) do
+        if cost_to_build[tile_name] == nil then
+            cost_to_build[tile_name] = cost
+        else
+            cost_to_build[tile_name] = cost_to_build[tile_name] + cost
+        end
+    end
+
 end
 
 function Task:findBuildingSpot()
