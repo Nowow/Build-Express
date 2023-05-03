@@ -7,6 +7,7 @@ local constants = require("constants")
 ---@field active_carrier SpiderCarrier
 ---@field parked boolean
 ---@field subtask_processing_result boolean
+---@field wrapping_up boolean
 ExpressConstructionUnit = {}
 ExpressConstructionUnit.__index = ExpressConstructionUnit
 
@@ -109,6 +110,7 @@ end
 function ExpressConstructionUnit:deploy()
     local active_carrier = self.active_carrier
     active_carrier:releaseSpider()
+    -- add resource transfer
 end
 
 function ExpressConstructionUnit:startProcessingSubtask(subtask)
