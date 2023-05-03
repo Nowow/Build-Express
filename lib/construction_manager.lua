@@ -181,7 +181,7 @@ script.on_nth_tick(36, function(event)
     log('Reached TERMINATING handler')
     
     local task = global.construction_tasks.TERMINATING:pop()
-    task:endTask()
+    task:TERMINATING()
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)

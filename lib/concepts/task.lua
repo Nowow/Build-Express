@@ -393,3 +393,7 @@ function Task:BUILDING()
         self:changeState(constants.TASK_STATES.BUILDING)
     end
 end
+
+function Task:TERMINATING()
+    self:endTask()
+end
