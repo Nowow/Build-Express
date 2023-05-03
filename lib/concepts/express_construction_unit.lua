@@ -98,6 +98,14 @@ function ExpressConstructionUnit:gotoRail(rail)
     train.schedule = schedule
 end
 
+function ExpressConstructionUnit:goHome(rail)
+    log("ECU going back home")
+    local train = self.train
+    local removed_temps = removeAllTempStops(train)
+    log("Temp station removed: " .. removed_temps)
+end
+
+
 function ExpressConstructionUnit:deploy()
     local active_carrier = self.active_carrier
     active_carrier:releaseSpider()
