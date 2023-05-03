@@ -112,7 +112,9 @@ function ExpressConstructionUnit:deploy()
 end
 
 function ExpressConstructionUnit:startProcessingSubtask(subtask)
+    log("Starting processing subtask in ECU")
     local active_carrier = self.active_carrier
+    self.subtask_processing_result = nil
     active_carrier:navigateSpiderToSubtask(subtask)
 end
 
