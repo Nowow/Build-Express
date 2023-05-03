@@ -45,6 +45,31 @@ function EcuTask:assignWorker()
     return false
 end
 
+function EcuTask:startEndTask()
+    self:log("ENDING TASK IN STATE " .. self.state)
+
+    -- destroying all entities that are left
+    local valid_entities_counter = 0
+    for _, entity in pairs(self.entities) do
+        if entity.valid then
+            entity.destroy()
+            valid_entities_counter = valid_entities_counter + 1
+        end
+    end
+    self:log("VALID GHOSTS LEFT: " .. valid_entities_counter)
+
+    --destroying flying textx
+    for _, render_id in pairs(self.flying_text) do
+        rendering.destroy(render_id)
+    end
+
+    local ECU = self.worker
+    if ECU ~= nil then
+        ECU:orderRetractSpider()
+    end
+    update_task_frame(self)
+end
+
 function EcuTask:UNASSIGNED()
     local worker_found = self:assignWorker()
 
