@@ -4,6 +4,9 @@ local constants = require("constants")
 ---@class ExpressConstructionUnit
 ---@field train unknown
 ---@field spider_carriers table
+---@field active_carrier unknown
+---@field parked boolean
+---@field subtask_processing_result boolean
 ExpressConstructionUnit = {}
 ExpressConstructionUnit.__index = ExpressConstructionUnit
 
@@ -14,6 +17,7 @@ function ExpressConstructionUnit:create()
     
     local ecu = {}
     ecu.spider_carriers = {}
+    ecu.parked = false
 
     setmetatable(ecu, ExpressConstructionUnit)
     return ecu
@@ -23,22 +27,87 @@ function ExpressConstructionUnit:setTrain(train)
     self.train = train
 end
 
-function ExpressConstructionUnit:aquireSpiderCarrier(wagon)
-    log("Trying to create Spider Carrier")
-    if not wagon.valid then return end
-    local train = self.train
-    if not train or not train.valid then 
-        log("No train set yet")
-        return 
+function ExpressConstructionUnit:aquireSpiderCarriers()
+    log("Looking for Spider Carriers")
+    local carriages = self.train.carriages
+    log("Found " .. #carriages .. "carriages")
+    local spider_carriers = self.spider_carriers
+
+    for _, carriage in pairs(carriages) do
+        if carriage.name == constants.spider_carrier_prototype_name then
+            local spider_carrier = SpiderCarrier:create(carriage)
+            table.insert(spider_carriers, spider_carrier)
+        end
     end
-    local id = wagon.unit_number
-    if self.spider_carriers[id] ~= nil then
-        log("Express Construction Unit already has this wagon as Spider Carrier")
+    if #spider_carriers == 0 then
+        log("No spider carriages!")
+        return false
     end
-    if wagon.name == constants.spider_carrier_prototype_name then
-        self.spider_carriers[id] = SpiderCarrier:create(wagon)
-        log("Created Spider Carrier")
-    end
+
+    --planning to make more than one spider carrier usable, now only one
+    self.active_carrier = self.spider_carriers[1]
+    return true
 end
 
+function ExpressConstructionUnit:getWorkerConstructionRadius()
+    -- currently cant get value because should wait for logistic_cell to set up after spawning
+    -- return 15 --lowest possible
+
+
+    local active_carrier = self.active_carrier
+    if not active_carrier.wagon.valid then
+        log("Cant get worker_construction_radius from ECU because active carrier wagon is not valid!")
+        return
+    end
+    local spider = active_carrier.spider
+    if not spider then
+        log("No spider released yet, trying to release now...")
+        spider = active_carrier:releaseSpider()
+        if not spider then
+            log("Cant get worker_construction_radius from ECU because active carrier wagon cant spawn spider")
+            return
+        end
+    end
+    local logistic_cell = spider.logistic_cell
+    if not logistic_cell then
+        -- can happen if spider just spawned (like by code above) and it does not yet have a logistic_cell
+        log("Cant get worker_construction_radius from ECU because active carrier wagon has no logistic cell, will circle back bcs how game works, see comments in code!")
+        return
+    else
+        return logistic_cell.construction_radius
+    end
+    
+end
+
+function ExpressConstructionUnit:gotoRail(rail)
+    local train = self.train
+    local schedule = train.schedule
+    local schedule_entry = {
+        rail=rail,
+        wait_conditions={
+            {
+                type='time',
+                ticks=constants.parking_wait_time,
+                compare_type='and'
+            }
+        },
+        temporary=true
+    }
+    table.insert(schedule.records, schedule_entry)
+    schedule.current = #schedule.records
+end
+
+function ExpressConstructionUnit:deploy()
+    local active_carrier = self.active_carrier
+    active_carrier:releaseSpider()
+end
+
+function ExpressConstructionUnit:startProcessingSubtask(subtask)
+    local active_carrier = self.active_carrier
+    active_carrier:navigateSpiderToSubtask(subtask)
+end
+
+function ExpressConstructionUnit:subtaskProcessingCallback(result)
+    self.subtask_processing_result = result
+end
 

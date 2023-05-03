@@ -5,6 +5,7 @@ require("lib.gui")
 require("lib.station_manager")
 require("lib.concepts.task_queue")
 require("lib.concepts.task")
+require("lib.concepts.ecu_task")
 require("settings")
 
 local constants = require("constants")
@@ -55,7 +56,7 @@ script.on_event(defines.events.on_tick, function(event)
                 })
                 blueprint.set_blueprint_entities(blueprint_entities)
                 if next(built_ghost_dummies) ~= nil then
-                    local task = Task:new()
+                    local task = EcuTask:new()
                     task:initialize({
                         player_index=player_index,
                         type=constants.TASK_TYPES.BUILD,
@@ -86,7 +87,7 @@ script.on_nth_tick(30, function(event)
             if tick == event.tick then
                 return
             end
-            local task = Task:new()
+            local task = EcuTask:new()
             task:initialize({
                 player_index=player_index,
                 type=constants.TASK_TYPES.DECONSTRUCT,

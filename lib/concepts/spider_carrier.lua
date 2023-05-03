@@ -5,6 +5,7 @@ local pathfinder = require("lib.pathfinder")
 ---@class SpiderCarrier
 ---@field wagon unknown
 ---@field id integer
+---@field ECU ExpressConstructionUnit
 ---@field spider unknown
 ---@field goal_candidates table
 ---@field navigation_start_tick integer
@@ -14,11 +15,12 @@ SpiderCarrier.__index = SpiderCarrier
 script.register_metatable("spider_carrier_metatable", SpiderCarrier)
 
 ---@return SpiderCarrier
-function SpiderCarrier:create(wagon)
+function SpiderCarrier:create(wagon, ECU)
     
     local carrier = {}
     carrier.wagon = wagon
     carrier.id = wagon.unit_number
+    carrier.ECU = ECU
     carrier.goal_candidates = {}
 
     setmetatable(carrier, SpiderCarrier)
@@ -55,8 +57,9 @@ function SpiderCarrier:releaseSpider()
         return
     end
     local spider_stack, _ = wagon_inv.find_item_stack(spider_name)
-    if spider_stack.prototype.place_result.type ~= 'spider-vehicle' then
+    if not spider_stack.prototype.place_result.type == 'spider-vehicle' then
         log("Cant release spider because item inside is not spider!!!")
+        return
     end
     
     local spider = self:spawnSpidertron(spider_stack)
@@ -75,12 +78,13 @@ function SpiderCarrier:storeSpidertron(spider)
 
     local spider_name = spider.name
     local wagon = self.wagon
+    local proxy = self:spawnProxy()
 
-    if not wagon.can_reach_entity(spider) then
+    if not proxy.can_reach_entity(spider) then
         log("Spider is out of reach")
         return false
     end
-    local proxy = self:spawnProxy()
+    
     local spider_mined = proxy.mine_entity(spider)
     if not spider_mined then
         log("Spider was not mined :(")
@@ -127,6 +131,7 @@ function SpiderCarrier:callback(path, pathing_request_info)
             for i=1,#self.goal_candidates do
                 self.goal_candidates[i] = nil
             end
+            self.ECU:subtaskProcessingCallback(true)
             pathfinder.set_autopilot(self.spider, path)
         else
             log(#self.goal_candidates)
@@ -141,6 +146,7 @@ function SpiderCarrier:callback(path, pathing_request_info)
                 pathfinder.request_path(next_candidate)
             else
                 log("All canidates tried, no path found!")
+                self.ECU:subtaskProcessingCallback(true)
             end
         end
         return
@@ -153,7 +159,7 @@ function SpiderCarrier:callback(path, pathing_request_info)
         else
             log("Path back to train was not found :(")
         end
-            return
+        return
     end
 end
 
