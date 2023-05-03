@@ -35,10 +35,6 @@ function EcuTask:assignWorker()
                     if has_spider_carriages then
                         self:log("Express Construction Unit found!")
                         self.worker = ECU
-                        --half because want to be able to construct from spot on the subtask minus 5 to account for spidetron wiggle
-                        local worker_construction_radius = ECU:getWorkerConstructionRadius()- 5
-                        self:log("worker_construction_radius: " .. worker_construction_radius)
-                        self.worker_construction_radius = worker_construction_radius
                         return true
                     end
                 end
