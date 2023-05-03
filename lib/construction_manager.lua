@@ -20,7 +20,7 @@ function initConstructionTasks()
         ---@type { [string]: TaskQueue }
         global.construction_tasks = {}
     end
-    for task_state, _ in pairs(TASK_STATES) do
+    for task_state, _ in pairs(constants.TASK_STATES) do
         if global.construction_tasks[task_state] == nil then
             game.print("CREATING EMPTY QUEUE FOR " .. task_state .. " TASK STATE IN global.construction_tasks")
             global.construction_tasks[task_state] = TaskQueue:create(task_state)
