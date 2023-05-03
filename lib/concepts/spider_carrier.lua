@@ -81,7 +81,7 @@ function SpiderCarrier:releaseSpider()
 end
 end
 
-function SpiderCarrier:storeSpidertron(spider)
+function SpiderCarrier:storeSpider(spider)
     log("Trying to store spider")
     if not spider.valid then
         log("Spider is not valid!!!")
@@ -94,12 +94,14 @@ function SpiderCarrier:storeSpidertron(spider)
 
     if not proxy.can_reach_entity(spider) then
         log("Spider is out of reach")
+        proxy.destroy()
         return false
     end
     
     local spider_mined = proxy.mine_entity(spider)
     if not spider_mined then
         log("Spider was not mined :(")
+        proxy.destroy()
         return false
     end
     
@@ -109,6 +111,7 @@ function SpiderCarrier:storeSpidertron(spider)
     if not wagon.can_insert(spider_stack) then
         log("Cant insert spider from proxy!!!!")
         self:spawnSpidertron(spider_stack)
+        proxy.destroy()
         return false
     end
     wagon_inventory.insert(spider_stack)
