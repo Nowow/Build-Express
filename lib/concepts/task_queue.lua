@@ -29,7 +29,7 @@ function TaskQueue:push(task)
 end
 
 ---comment
----@return Task
+
 function TaskQueue:pop()
     
     local first = self.head_tail.first
