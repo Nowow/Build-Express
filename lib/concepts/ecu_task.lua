@@ -74,7 +74,7 @@ function EcuTask:PARKING()
                     self:log("Found parking spot")
                     parking_spot = rail
                     self.parking_spot = parking_spot
-                    ECU.gotoRail(parking_spot)
+                    ECU:gotoRail(parking_spot)
                     break
                 else
                     hightlighRail(rail, {r = 1, g = 0, b = 0})
