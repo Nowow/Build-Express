@@ -1,6 +1,7 @@
 require("lib.concepts.task")
 require("lib.concepts.express_construction_unit")
 require("lib.trains")
+local constants = require("constants")
 
 ---@class EcuTask: Task
 ---@field parking_spot unknown
