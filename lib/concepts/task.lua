@@ -394,12 +394,7 @@ function Task:UNASSIGNED()
 end
 
 function Task:PREPARING()
-    -- skipping tileing if deconstruct
-    if self.type == constants.TASK_TYPES.DECONSTRUCT then
-        self:changeState(constants.TASK_STATES.ASSIGNED)
-        return
-    end
-    self:tileWaterGhosts()
+    -- currently nothing to do here
     self:changeState(constants.TASK_STATES.ASSIGNED)
 end
 
