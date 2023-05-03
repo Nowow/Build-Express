@@ -70,6 +70,11 @@ function EcuTask:startEndTask()
     update_task_frame(self)
 end
 
+
+------------------------------------------------------------------
+-----TASK FLOW
+------------------------------------------------------------------
+
 function EcuTask:UNASSIGNED()
     local worker_found = self:assignWorker()
 
