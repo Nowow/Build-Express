@@ -29,7 +29,7 @@ function TaskQueue:push(task)
 end
 
 ---comment
-
+---@return Task | EcuTask
 function TaskQueue:pop()
     
     local first = self.head_tail.first
