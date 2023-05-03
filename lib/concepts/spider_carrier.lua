@@ -47,26 +47,38 @@ function SpiderCarrier:spawnSpidertron(spider_stack)
       })
 end
 
-function SpiderCarrier:releaseSpider()
-
+function SpiderCarrier:getSpiderStack()
     local wagon = self.wagon
     local wagon_inv = wagon.get_inventory(defines.inventory.cargo_wagon)
     local spider_name, _ = next(wagon_inv.get_contents())
     if spider_name == nil then
-        log("Cant release spider bcs no contents in this wagon")
+        log("Cant give spider stack because no contents in this wagon")
         return
     end
     local spider_stack, _ = wagon_inv.find_item_stack(spider_name)
     if not spider_stack.prototype.place_result.type == 'spider-vehicle' then
+        log("Cant give spider stack because item inside is not spider!!!")
+        return
+    end
+    return spider_stack
+end
+
+function SpiderCarrier:releaseSpider()
+
+    local wagon = self.wagon
+    local wagon_inv = wagon.get_inventory(defines.inventory.cargo_wagon)
+
+    local spider_stack = self:getSpiderStack()
+    if not spider_stack then
         log("Cant release spider because item inside is not spider!!!")
         return
     end
-    
+
     local spider = self:spawnSpidertron(spider_stack)
     wagon_inv.clear()
     self.spider = spider
     return spider
-    
+end
 end
 
 function SpiderCarrier:storeSpidertron(spider)
