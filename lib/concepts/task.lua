@@ -29,7 +29,7 @@ Task.__index = Task
 
 script.register_metatable("task_metatable", Task)
 
-
+---@return Task
 function Task:new()
     local task = {}
     setmetatable(task, Task)
@@ -159,7 +159,7 @@ function Task:tileWaterGhosts()
                 
                 local dummy_replaced = replaceDummyEntityGhost(ghost)
                 -- if ghost still valid then replacement didnt take place
-                if not dummy_replaced then  
+                if not dummy_replaced then
                     local landfill_ghosts = landfill.placeGhostLandfill(ghost)
                     hightlightEntity(ghost, 3, {r=1,g=1,b=0})
                     for _, t in pairs(landfill_ghosts) do
@@ -346,6 +346,7 @@ function Task:UNASSIGNED()
     local worker_found = self:assignWorker()
 
     if not worker_found then
+        --loop back
         self:changeState(constants.TASK_STATES.UNASSIGNED)
         return
     end
