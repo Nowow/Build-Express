@@ -119,6 +119,10 @@ function SpiderCarrier:storeSpider(spider)
     return true
 end
 
+function SpiderCarrier:checkIfSpiderStored()
+    return self:getSpiderStack() and true or false
+end
+
 function SpiderCarrier:getSpiderPathStartPosition()
     local spider = self.spider
     local start_area = {
