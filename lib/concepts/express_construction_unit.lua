@@ -147,5 +147,13 @@ function ExpressConstructionUnit:pollRetractSpider()
 
 end
 
-
+function ExpressConstructionUnit:checkIfHasResources(resource_cost)
+    local train_contents = self.train.get_contents()
+    for item, cost in pairs(resource_cost) do
+        if train_contents[item] < cost then
+            return false
+        end
+    end
+    return true
+end
 
