@@ -94,6 +94,7 @@ function SpiderCarrier:startCollectSpider()
     local goal = wagon.position
 
     local pathing_request_info = {
+        action=constants.spider_carrier_collect_spider_action,
         unit=spider,
         start=start,
         goal=goal,
@@ -104,8 +105,9 @@ function SpiderCarrier:startCollectSpider()
     pathfinder.request_path(pathing_request_info)
 end
 
-function SpiderCarrier:storeSpider(spider)
+function SpiderCarrier:storeSpider()
     log("Trying to store spider")
+    local spider = self.spider
     if not spider.valid then
         log("Spider is not valid!!!")
         return false
@@ -162,7 +164,7 @@ function SpiderCarrier:getSpiderPathStartPosition()
 end
 
 function SpiderCarrier:callback(path, pathing_request_info)
-    if pathing_request_info.action == constants.spider_carrier_navigate_subtask then
+    if pathing_request_info.action == constants.spider_carrier_navigate_subtask_action then
         if path then
             local ticks_took = game.tick - self.navigation_start_tick
 
@@ -193,7 +195,7 @@ function SpiderCarrier:callback(path, pathing_request_info)
         end
         return
     end
-    if pathing_request_info.action == constants.spider_carrier_collect_spider then
+    if pathing_request_info.action == constants.spider_carrier_collect_spider_action then
         if path then
             local spider = self.spider
             log("PATH BACK TO TRAIN FOUND")
@@ -239,7 +241,7 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
         local spot_index = middle_index + increment*sign
         local spot = possible_building_spots[spot_index]
         pathing_request_info = {
-            action=constants.spider_carrier_navigate_subtask,
+            action=constants.spider_carrier_navigate_subtask_action,
             unit=spider,
             --start={start.position.x + 0.5, start.position.y + 0.5}, -- because tile position is its left_top corner
             start=start,

@@ -39,8 +39,8 @@ constants.spider_carrier_proxy_prototype_name = 'buex-spider-carrier-prototype'
 -- pathfinding
 constants.max_pathfinding_attempts = 5
 constants.pathfinding_proxy_name = 'buex-pathfinding-proxy'
-constants.spider_carrier_navigate_subtask = 'spider_carrier_navigate_subtask'
-constants.spider_carrier_collect_spider = 'spider_carrier_collect_spider'
+constants.spider_carrier_navigate_subtask_action = 'spider_carrier_navigate_subtask'
+constants.spider_carrier_collect_spider_action = 'spider_carrier_collect_spider'
 constants.parking_wait_time = 60*60*10  -- 10 mins
 
 constants.subtask_construction_area_coverage_offset = 5
