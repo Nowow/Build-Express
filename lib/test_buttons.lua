@@ -64,7 +64,7 @@ function getLogisticCell(e)
 end
 
 
-function testSpiderCarrier(selected_entity, cursor_position)
+function navigateSpiderCarrier(selected_entity, cursor_position)
     if selected_entity then
         global.test_spider_carrier = SpiderCarrier:create(selected_entity)
         game.print("CREATED SPIDER CARRIER")
@@ -82,6 +82,24 @@ function testSpiderCarrier(selected_entity, cursor_position)
     end
 
 end
+
+function printSpiderLogisticCell(selected_entity, cursor_position)
+    if selected_entity then
+        global.test_spider_carrier = SpiderCarrier:create(selected_entity)
+        game.print("CREATED SPIDER CARRIER")
+        return
+    end
+    if cursor_position then
+        game.print("NAVIGATING SPIDER")
+        local carrier = global.test_spider_carrier
+        carrier:releaseSpider()
+        game.print(carrier.spider.logistic_cell())
+        
+    end
+
+end
+
+
 
 -- user triggered keyboard shortcut
 script.on_event("test-custom-hotkey", function(event)
@@ -118,7 +136,7 @@ script.on_event("test-custom-hotkey-a", function(event)
         right_bottom={cursor_position.x+20, cursor_position.y+20},
     }
 
-    testSpiderCarrier(player.selected, cursor_position)
+    printSpiderLogisticCell(player.selected, cursor_position)
 
     -- local tiles = player.surface.find_tiles_filtered{
     --     area = bb,
