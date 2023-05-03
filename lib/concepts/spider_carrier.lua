@@ -79,6 +79,29 @@ function SpiderCarrier:releaseSpider()
     self.spider = spider
     return spider
 end
+
+function SpiderCarrier:startCollectSpider()
+    log("Trying to collect spider")
+    local spider = self.spider
+    local wagon = self.wagon
+    if not spider.valid then
+        log("Spider is not valid!")
+    end
+    if not wagon.valid then
+        log("Wagon is not valid!")
+    end
+    local start = self:getSpiderPathStartPosition()
+    local goal = wagon.position
+
+    local pathing_request_info = {
+        unit=spider,
+        start=start,
+        goal=goal,
+        attempt=1,
+        callback_source=self,
+        auto_retry=true,
+    }
+    pathfinder.request_path(pathing_request_info)
 end
 
 function SpiderCarrier:storeSpider(spider)
@@ -231,28 +254,4 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
 
     --start pathing feedback loop
     pathfinder.request_path(goal_candidates[1])
-end
-
-function SpiderCarrier:startCollectSpidertron()
-    log("Trying to collect spider")
-    local spider = self.spider
-    local wagon = self.wagon
-    if not spider.valid then
-        log("Spider is not valid!")
-    end
-    if not wagon.valid then
-        log("Wagon is not valid!")
-    end
-    local start = self:getSpiderPathStartPosition()
-    local goal = wagon.position
-
-    local pathing_request_info = {
-        unit=spider,
-        start=start,
-        goal=goal,
-        attempt=1,
-        callback_source=self,
-        auto_retry=true,
-    }
-    pathfinder.request_path(pathing_request_info)
 end
