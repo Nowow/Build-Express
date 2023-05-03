@@ -121,6 +121,12 @@ function Task:populateSubtasks()
             for _, subtask in pairs(subtasks) do
                 if rectangleOverlapsRectangle(entity_bb, subtask.bounding_box) then
                     table.insert(subtask.entities, entity)
+                    local placed_landfill_ghosts = self.tiles[entity.unit_number]
+                    if placed_landfill_ghosts and #placed_landfill_ghosts > 0 then
+                        for j=1, #placed_landfill_ghosts do
+                            table.insert(subtask.entities, placed_landfill_ghosts[j])
+                        end
+                    end
                     break
                 end
             end
@@ -180,23 +186,22 @@ end
 
 function Task:tileWaterGhosts()
     local tile_cost = {}
-    for _, subtask in pairs(self.subtasks) do
-        for __, ghost in pairs(subtask.entities) do
-            if ghost.valid then
-                
-                local dummy_replaced = replaceDummyEntityGhost(ghost)
-                -- if ghost still valid then replacement didnt take place
-                if not dummy_replaced then
-                    local landfill_ghosts = landfill.placeGhostLandfill(ghost)
-                    hightlightEntity(ghost, 3, {r=1,g=1,b=0})
-                    for _, t in pairs(landfill_ghosts) do
-                        local tile_name = t.ghost_name
-                        if tile_cost[tile_name] == nil then
-                            tile_cost[tile_name] = 1
-                        else
-                            tile_cost[tile_name] = tile_cost[tile_name] + 1
-                        end
-                        table.insert(subtask.tiles, t)
+    local tile_cache = self.tiles
+
+    for __, ghost in pairs(self.entities) do
+        if ghost.valid then
+            local dummy_replaced = replaceDummyEntityGhost(ghost)
+            -- if ghost still valid then replacement didnt take place
+            if not dummy_replaced then
+                local landfill_ghosts = landfill.placeGhostLandfill(ghost)
+                tile_cache[ghost.unit_number] = landfill_ghosts
+                hightlightEntity(ghost, 3, {r=1,g=1,b=0})
+                for _, t in pairs(landfill_ghosts) do
+                    local tile_name = t.ghost_name
+                    if tile_cost[tile_name] == nil then
+                        tile_cost[tile_name] = 1
+                    else
+                        tile_cost[tile_name] = tile_cost[tile_name] + 1
                     end
                 end
             end
@@ -375,6 +380,7 @@ end
 
 function Task:TASK_CREATED()
     self:findBoundingBox()
+    self:tileWaterGhosts()
     self:changeState(constants.TASK_STATES.UNASSIGNED)
 end
 
