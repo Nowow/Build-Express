@@ -129,27 +129,50 @@ function EcuTask:ASSIGNED()
     local subtasks = self.subtasks
     local subtask_processing_index = self.subtask_processing_index
     local subtasks_left = table_size(self.subtasks)
+    local next_subtask_processing_index, subtask_to_process
 
     if subtasks_left == 0 then
         self:log("ASSIGNED, but no more subtasks left, puttin task into TERMINATION due to completion")
         self:changeState(constants.TASK_STATES.TERMINATING)
     end
-    if subtask_processing_index then
+
+    if not subtask_processing_index then --assign a new subtasks to be processed
+        next_subtask_processing_index, subtask_to_process = next(subtasks)
+        self.subtask_processing_index = next_subtask_processing_index
+        self:log("Starting task processing, next subtask is " .. next_subtask_processing_index)
+        ECU:startProcessingSubtask(subtask_to_process)
+        self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
+        return
+    else -- subtask processing loop
         self:log("Currently processing subtask is " .. subtask_processing_index)
         local processing_result = ECU.subtask_processing_result
-        if not processing_result then
+        ECU.subtask_processing_result = nil --invalidate result after reading
+        if processing_result == nil then
+            self:log("Processing result for subtask " .. subtask_processing_index .. "is yet to be determined")
+            self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
+        elseif processing_result == false then
             self:log("Processing result for subtask " .. subtask_processing_index .. "is false")
-            local subtask, next_subtask_processing_index
-            next_subtask_processing_index, subtask = next(subtasks)
+            subtasks[subtask_processing_index] = nil
+            self:log("Deleted subtask " .. subtask_processing_index)
             
-
+            next_subtask_processing_index, subtask_to_process = next(subtasks)
+            ECU:startProcessingSubtask(subtask_to_process)
+            self.subtask_processing_index = next_subtask_processing_index
+            self:log("Now processing subtaks " .. next_subtask_processing_index)
+            self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
+            return
+        else
+            self:log("Processing result for subtask " .. subtask_processing_index .. "is true, moving to building phase")
+            self.active_subtask_index = subtask_processing_index
+            self.subtask_processing_index = nil
+            self.timer_tick = game.tick
+            self:changeState(constants.TASK_STATES.BUILDING)
+            return
         end
     end
-    if not subtask_processed_index then    
-        subtask_processed_index = 1
-        ECU:processSubtask(self.subtasks[subtask_processed_index])
-        -- looping back
-        self:changeState(constants.TASK_STATES.ASSIGNED)
+end
+
+
         return
     else
         
