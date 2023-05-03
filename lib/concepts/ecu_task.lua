@@ -90,11 +90,17 @@ function EcuTask:PARKING()
     end
     local current_rail = train.front_rail
     local path_end_rail = train.path_end_rail
+    if parking_spot and path_end_rail and not current_rail == parking_spot or path_end_rail then
+        self:log("CHUGA CHUGA,")
+        self:changeState(constants.TASK_STATES.PARKING)
+    end
     if parking_spot and current_rail == parking_spot and not path_end_rail then
+        self:log("CHOOOO CHOOOOOOO!")
         self:log("Arrived at parking_spot!")
         ECU:deploy()
         self:changeState(constants.TASK_STATES.PREPARING)
     end
+
 end
 
 function EcuTask:PREPARING()
