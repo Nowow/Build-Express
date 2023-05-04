@@ -211,3 +211,40 @@ script.on_event(defines.events.on_gui_click, function(event)
         return
     end
 end)
+
+script.on_event("buex-build-blueprint_left", function(event)
+    --local stack = game.get_player(event.player_index).cursor_stack
+    
+    local player_index = event.player_index
+    displayCatchBlueprintOrderMessage(player_index, constants.order_type_blueprint, 'Express Construction Unit')
+    local player = game.players[player_index]
+    local held_blueprint = player.cursor_stack
+
+    --safety check: check if cursor stack is valid
+    if not held_blueprint then return end
+    if not held_blueprint.valid_for_read then return end
+
+    local blueprint_type = held_blueprint.type
+
+    if not blueprint_type then return end
+    if blueprint_type == 'blueprint' then
+        
+        if not held_blueprint.is_blueprint then return end
+        if not held_blueprint.is_blueprint_setup() then return end
+
+
+        local blueprint_entities = held_blueprint.get_blueprint_entities()
+        local dummy_entities = bl.bulkConvertEntitiesToDummies(blueprint_entities)
+
+        global.cursor_blueprint_cache[player_index].dummy_entities = dummy_entities
+        global.cursor_blueprint_cache[player_index].build_params = {
+            surface=player.surface,
+            force=player.force,
+            force_build=true,
+            skip_fog_of_war=true,
+        }
+
+    elseif blueprint_type == 'deconstruction-item' then
+        global.catch_deconstruction_order[player_index] = true
+    end
+end)
