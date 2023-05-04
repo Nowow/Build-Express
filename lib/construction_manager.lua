@@ -11,6 +11,7 @@ require("settings")
 local constants = require("constants")
 local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 local util = require('util')
+local bl = require("lib.ghosts_on_water_port.blueprints")
 local next = next
 
 deconstruct_entity_cache = {}
@@ -212,11 +213,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     end
 end)
 
-script.on_event("buex-build-blueprint-left", function(event)
-    --local stack = game.get_player(event.player_index).cursor_stack
-    
+function handleConstructionOrder(event, worker_type)
     local player_index = event.player_index
-    displayCatchBlueprintOrderMessage(player_index, constants.order_type_blueprint, 'Express Construction Unit')
     local player = game.players[player_index]
     local held_blueprint = player.cursor_stack
 
@@ -236,6 +234,8 @@ script.on_event("buex-build-blueprint-left", function(event)
         local blueprint_entities = held_blueprint.get_blueprint_entities()
         local dummy_entities = bl.bulkConvertEntitiesToDummies(blueprint_entities)
 
+        global.cursor_blueprint_cache[player_index] = {}
+        global.cursor_blueprint_cache[player_index].worker_type = worker_type
         global.cursor_blueprint_cache[player_index].dummy_entities = dummy_entities
         global.cursor_blueprint_cache[player_index].build_params = {
             surface=player.surface,
@@ -243,8 +243,36 @@ script.on_event("buex-build-blueprint-left", function(event)
             force_build=true,
             skip_fog_of_war=true,
         }
+        displayCatchBlueprintOrderMessage(player_index, constants.order_type_blueprint, worker_type)
 
     elseif blueprint_type == 'deconstruction-item' then
         global.catch_deconstruction_order[player_index] = true
+        displayCatchBlueprintOrderMessage(player_index, constants.order_type_deconstruction, worker_type)
+    end
+end
+
+script.on_event("buex-build-blueprint-left", function(event)
+    handleConstructionOrder(event, constants.order_worker_type_express_construction_unit)
+end)
+
+script.on_event("buex-build-blueprint-right", function(event)
+    handleConstructionOrder(event, constants.order_worker_type_construcion_train)
+end)
+
+script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
+    local player_index = event.player_index
+    destroyCatchBlueprintOrderMessage(player_index)
+    global.cursor_blueprint_cache[player_index] = {}
+    global.catch_deconstruction_order[player_index] = nil
+end)
+
+script.on_event(defines.events.on_pre_build , function(event)
+    
+    local player_index = event.player_index
+    if global.cursor_blueprint_cache[player_index].dummy_entities ~= nil then
+        global.cursor_blueprint_cache[player_index].build_params.direction = event.direction
+        global.cursor_blueprint_cache[player_index].build_params.position=event.position
+        global.cursor_blueprint_cache[player_index].tick = event.tick
+        global.cursor_blueprint_cache[player_index].ready = true
     end
 end)

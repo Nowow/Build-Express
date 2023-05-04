@@ -1,4 +1,5 @@
 mod_gui = require("mod-gui")
+local constants = require("constants")
 
 local player_screens = {}
 local cam = {}
@@ -110,7 +111,7 @@ function createTaskFrame(task, task_flow)
     recipie_flow.style.horizontal_align = 'center'
     recipie_flow.add{type="label", caption="Blueprint: " .. task.blueprint_label}
 
-    --task worker
+    --task workera
     -- local worker_flow = task_table.add{type="flow", direction="horizontal"}
     -- worker_flow.style.height = 28
     -- worker_flow.style.width = 245
@@ -149,9 +150,37 @@ function createTaskFrame(task, task_flow)
         caption = "End task", tags={task_id=task.id, task_state=task.state}}
     button.style.height = 20
     button.style.width = 150
-
-
 end
+
+function displayCatchBlueprintOrderMessage(player_index, type, worker_type)
+
+    local player = game.get_player(player_index)
+    local center_widget = player.gui.center
+    local old_msg_flow = center_widget[constants.catch_blueprint_order_gui_flow_name]
+    if old_msg_flow then
+        old_msg_flow.destroy()
+    end
+    local msg_flow = center_widget.add{type="flow", name=constants.catch_blueprint_order_gui_flow_name, direction='vertical'}
+    msg_flow.style.height = 800
+    msg_flow.style.width = 1200
+    msg_flow.style.horizontal_align="center"
+    msg_flow.style.vertical_align="top"
+    local order_type_prefix = type == constants.order_type_blueprint and 'Blueprint' or type == constants.order_type_deconstruction and 'Deconsrtuction'
+    local message_text = order_type_prefix .. " order will be handled by Build Express, mode: " .. worker_type
+    local displayed_message = msg_flow.add{type="label", caption=message_text}
+    displayed_message.style.font = constants.catch_blueprint_order_hotkey_font
+    displayed_message.style.font_color = {r=0,g=1,b=1}
+end
+
+function destroyCatchBlueprintOrderMessage(player_index)
+    local player = game.get_player(player_index)
+    local center_widget = player.gui.center
+    local msg_flow = center_widget[constants.catch_blueprint_order_gui_flow_name]
+    if msg_flow then
+        msg_flow.destroy()
+    end
+end
+
 
 function toggleTestWidget(player_index)
     local element = game.get_player(player_index).gui.screen.buex_main_frame

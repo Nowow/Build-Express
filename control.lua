@@ -6,8 +6,6 @@ require("lib.construction_manager")
 require("lib.gui")
 require("lib.station_manager")
 
-
-local bl = require("lib.ghosts_on_water_port.blueprints")
 local constants = require("constants")
 local table_lib = require('__stdlib__/stdlib/utils/table')
 local pathfinder = require("lib.pathfinder")
@@ -102,8 +100,10 @@ script.on_event(defines.events.on_built_entity, function(event)
     
     local player_index = event.player_index
     local destroy_ghost = global.cursor_blueprint_cache[player_index].ready
+    local created_entity = event.created_entity
 
-    if destroy_ghost then event.created_entity.destroy() return end
+    if destroy_ghost and created_entity.valid then created_entity.destroy() return end
+    
 
     -- if player.is_cursor_blueprint() and not player.cursor_stack_temporary then
     --     local stack = game.get_player(event.player_index).cursor_stack
@@ -126,21 +126,7 @@ script.on_event(defines.events.on_built_entity, function(event)
     
 end, {{filter = "ghost"}, {filter = 'name', name = 'test-train-stop'}})
 
-script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
-    local player_index = event.player_index
-    global.cursor_blueprint_cache[player_index] = {}
-    global.catch_deconstruction_order[player_index] = nil
-end)
 
-script.on_event(defines.events.on_pre_build , function(event)
-    local player_index = event.player_index
-    if global.cursor_blueprint_cache[player_index].dummy_entities ~= nil then
-        global.cursor_blueprint_cache[player_index].build_params.direction = event.direction
-        global.cursor_blueprint_cache[player_index].build_params.position=event.position
-        global.cursor_blueprint_cache[player_index].tick = event.tick
-        global.cursor_blueprint_cache[player_index].ready = true
-    end
-end)
 
 script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     local player_index = event.player_index
@@ -155,40 +141,5 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
             deconstruct_entity_cache[player_index][tick] = {}
         end 
         table.insert(deconstruct_entity_cache[player_index][tick], entity)
-    end
-end)
-
-script.on_event("buex-build-blueprint", function(event)
-    --local stack = game.get_player(event.player_index).cursor_stack
-    local player_index = event.player_index
-    local player = game.players[player_index]
-    local held_blueprint = player.cursor_stack
-
-    --safety check: check if cursor stack is valid
-    if not held_blueprint then return end
-    if not held_blueprint.valid_for_read then return end
-
-    local blueprint_type = held_blueprint.type
-
-    if not blueprint_type then return end
-    if blueprint_type == 'blueprint' then
-        
-        if not held_blueprint.is_blueprint then return end
-        if not held_blueprint.is_blueprint_setup() then return end
-
-
-        local blueprint_entities = held_blueprint.get_blueprint_entities()
-        local dummy_entities = bl.bulkConvertEntitiesToDummies(blueprint_entities)
-
-        global.cursor_blueprint_cache[player_index].dummy_entities = dummy_entities
-        global.cursor_blueprint_cache[player_index].build_params = {
-            surface=player.surface,
-            force=player.force,
-            force_build=true,
-            skip_fog_of_war=true,
-        }
-
-    elseif blueprint_type == 'deconstruction-item' then
-        global.catch_deconstruction_order[player_index] = true
     end
 end)
