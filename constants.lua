@@ -45,7 +45,14 @@ constants.parking_wait_time = 60*60*10  -- 10 mins
 
 constants.subtask_construction_area_coverage_offset = 5
 
---fonts
-constants.bluid_blueprint_hotkey_font = "buex_bluid_blueprint_hotkey_font"
+--gui
+constants.order_type_blueprint = 'order_type_blueprint'
+constants.order_type_deconstruction = 'order_type_blueprint'
+constants.order_worker_type_construcion_train = 'worker_type_construction_train'
+constants.order_worker_type_express_construction_unit = 'worker_type_express_construction_unit'
+constants.catch_blueprint_order_naming_key = "catch_blueprint_order"
+constants.catch_blueprint_order_hotkey_font = constants.catch_blueprint_order_naming_key .. '_hotkey_font'
+constants.catch_blueprint_order_gui_flow_name = constants.catch_blueprint_order_naming_key .. '_flow'
+--constants.catch_blueprint_order_gui_msg_name = constants.catch_blueprint_order_naming_key .. '_msg'
 
 return constants
