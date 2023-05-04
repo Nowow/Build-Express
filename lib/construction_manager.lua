@@ -33,7 +33,6 @@ script.on_event(defines.events.on_tick, function(event)
 
     for player_index, cache in pairs(global.cursor_blueprint_cache) do
         if cache.ready then
-            game.print('Calling build blueprint for player ' .. player_index)
             local current_tick = event.tick
             local building_tick = cache.tick
             if current_tick > building_tick then
@@ -57,7 +56,13 @@ script.on_event(defines.events.on_tick, function(event)
                 })
                 blueprint.set_blueprint_entities(blueprint_entities)
                 if next(built_ghost_dummies) ~= nil then
-                    local task = EcuTask:new()
+                    local worker_type = build_params.worker_type
+                    local task
+                    if worker_type == constants.order_worker_type_express_construction_unit then
+                        task = EcuTask:new()
+                    else
+                        task = Task:new()
+                    end
                     task:initialize({
                         player_index=player_index,
                         type=constants.TASK_TYPES.BUILD,
