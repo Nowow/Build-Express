@@ -113,8 +113,14 @@ function SpiderCarrier:storeSpider()
         return false
     end
 
-    local spider_name = spider.name
     local wagon = self.wagon
+    local wagon_inventory = wagon.get_inventory(defines.inventory.cargo_wagon)
+    if not wagon_inventory.is_empty() then
+        log("Spider Carrier inventory is not empty, cant collect spider!!!")
+        return false
+    end
+
+    local spider_name = spider.name
     local proxy = self:spawnProxy()
 
     if not proxy.can_reach_entity(spider) then
@@ -132,14 +138,21 @@ function SpiderCarrier:storeSpider()
     
     local proxy_inv = proxy.get_inventory(defines.inventory.character_main)
     local spider_stack, _ = proxy_inv.find_item_stack(spider_name)
-    local wagon_inventory = wagon.get_inventory(defines.inventory.cargo_wagon)
+    
     if not wagon.can_insert(spider_stack) then
         log("Cant insert spider from proxy!!!!")
+        game.print("Something went very wrong during attemt to collect spider, spider wagon inventory was supposed to be empty, but it wasnt! Please report to mod author")
         self:spawnSpidertron(spider_stack)
         proxy.destroy()
         return false
     end
     wagon_inventory.insert(spider_stack)
+    proxy_inv.remove(spider_stack)
+    local resources_left = proxy_inv.get_contents()
+    local train = self.ECU.train
+    for item, count in pairs(resources_left) do
+        train.insert({name=item, count=count})
+    end
     proxy.destroy()
     return true
 end

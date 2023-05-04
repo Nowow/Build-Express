@@ -136,7 +136,7 @@ function EcuTask:PARKING()
     if parking_spot and current_rail == parking_spot and not path_end_rail then
         self:log("CHOOOO CHOOOOOOO!")
         self:log("Arrived at parking_spot!")
-        ECU:deploy()
+        ECU:deploy(self.cost_to_build)
         self:changeState(constants.TASK_STATES.PREPARING)
     end
 

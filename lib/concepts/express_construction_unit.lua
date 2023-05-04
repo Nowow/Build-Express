@@ -107,10 +107,24 @@ function ExpressConstructionUnit:goHome(rail)
 end
 
 
-function ExpressConstructionUnit:deploy()
+function ExpressConstructionUnit:deploy(resource_cost)
     local active_carrier = self.active_carrier
     active_carrier:releaseSpider()
-    -- add resource transfer
+    if not resource_cost then
+        return
+    end
+    local train = self.train
+    local spider = active_carrier.spider
+    for item, count in pairs(resource_cost) do
+        local available_in_train = train.get_item_count(item)
+        if available_in_train < count then
+            log("There was not enought of " .. item .. ", required: " .. count .. ', available: ' .. available_in_train)
+            count=available_in_train
+        end
+        local simple_item_stack = {name=item, count=count}
+        train.remove_item(simple_item_stack)
+        spider.insert(simple_item_stack)
+    end
 end
 
 function ExpressConstructionUnit:startProcessingSubtask(subtask)
