@@ -3,33 +3,6 @@ mod_gui = require("mod-gui")
 local player_screens = {}
 local cam = {}
 
--- function create_entity_cam(event)
---     game.print('asdassaasas')
---     local selected_entity = game.players[event.player_index].selected
---     game.print("selected entity " .. selected_entity.prototype.name)w
---     game.print(" at [gps=" .. selected_entity.position.x .. "," .. selected_entity.position.y .. ']')
---     local screen_element = get_player_screen(event.player_index)
-
---     local cam_frame = screen_element.cam_frame
---     if cam_frame == nil then
---         game.print('CAM FRAME NIL')
---         cam_frame = screen_element.add{type="frame", name="cam_frame", caption='cam_frame'}
---         local cam_frame_flow = cam_frame.add{type="flow", name="cam_frame_flow"}
---         cam_frame_flow.add{type="camera", name='cam_frame_camera', position=selected_entity.position}
---         cam_frame_flow.cam_frame_camera.position = selected_entity.position
---         cam_frame.cam_frame_flow.add{type="label", caption="asdsadsdasd"}
---     else
---         game.print('CAM FRAME ERGO SUM')
---         cam_frame.cam_frame_flow.cam_frame_camera.entity = selected_entity
---         cam_frame.cam_frame_flow.cam_frame_camera.visible = true
---         cam_frame.cam_frame_flow.cam_frame_camera.focus()
---         cam_frame.cam_frame_flow.add{type="label", caption=serpent.block(cam_frame.cam_frame_flow.cam_frame_camera)}
-        
---     end
-    
-    
--- end
-
 function get_player_screen(player_index)
     if player_screens[player_index] ~= nil then
         return player_screens[player_index]
