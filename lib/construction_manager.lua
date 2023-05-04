@@ -212,7 +212,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     end
 end)
 
-script.on_event("buex-build-blueprint_left", function(event)
+script.on_event("buex-build-blueprint-left", function(event)
     --local stack = game.get_player(event.player_index).cursor_stack
     
     local player_index = event.player_index
