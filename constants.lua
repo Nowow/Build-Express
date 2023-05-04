@@ -45,4 +45,7 @@ constants.parking_wait_time = 60*60*10  -- 10 mins
 
 constants.subtask_construction_area_coverage_offset = 5
 
+--fonts
+constants.bluid_blueprint_hotkey_font = "buex_bluid_blueprint_hotkey_font"
+
 return constants
