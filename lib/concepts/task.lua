@@ -63,7 +63,7 @@ function Task:initialize(params)
 end
 
 function Task:log(message)
-    log(string.format("TASK_ID %-12s", self.id .. ' ' .. self.state .. ':') .. message)
+    log(string.format("TASK_ID %-20s", self.id .. ' ' .. self.state .. ':') .. message)
 end
 
 function Task:changeState(new_state)
