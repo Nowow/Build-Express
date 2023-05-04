@@ -38,13 +38,17 @@ end
 
 function SpiderCarrier:spawnSpidertron(spider_stack)
     local wagon = self.wagon
+    local surface = wagon.surface
     local spider_name = spider_stack.prototype.place_result.name
-    return wagon.surface.create_entity({
+    local spider = surface.create_entity({
         name = spider_name,
         position = wagon.position,
         force = wagon.force,
         item = spider_stack
       })
+    surface.create_trivial_smoke({name='smoke-building', position=spider.position})
+    return spider
+    
 end
 
 function SpiderCarrier:getSpiderStack()
