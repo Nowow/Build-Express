@@ -29,6 +29,26 @@ function initConstructionTasks()
     end
 end
 
+function initOrderCaches()
+    if global.cursor_blueprint_cache == nil then
+        global.cursor_blueprint_cache = {}
+    end
+
+    if global.catch_deconstruction_order == nil then
+        global.catch_deconstruction_order = {}
+    end
+
+    for i, p in pairs(game.players) do
+        if not global.cursor_blueprint_cache[i] then
+            global.cursor_blueprint_cache[i] = {}
+        end
+        if not global.catch_deconstruction_order[i] then
+            global.catch_deconstruction_order[i] = {}
+        end
+    end
+end
+
+
 script.on_event(defines.events.on_tick, function(event)
 
     for player_index, cache in pairs(global.cursor_blueprint_cache) do
@@ -83,28 +103,35 @@ end)
 
 -- move create tasks from cached build ghosts 
 script.on_nth_tick(30, function(event)
-    if next(deconstruct_entity_cache) == nil then
-        return
-    end
-    log('Reached deconstruction task assembler')
     
-    for player_index, tick_cache in pairs(deconstruct_entity_cache) do
-        for tick, cache in pairs(tick_cache) do
-            if tick == event.tick then
-                return
+    
+    for player_index, info in pairs(global.catch_deconstruction_order) do
+        log('Reached deconstruction task assembler')
+        if info.ready then
+            local cache = info.cache
+            for tick, tick_cache in pairs(cache) do
+                if tick == event.tick then
+                    return
+                end
+                local worker_type = info.worker_type
+                local task
+                if worker_type == constants.order_worker_type_express_construction_unit then
+                    task = EcuTask:new()
+                else
+                    task = Task:new()
+                end
+                task:initialize({
+                    player_index=player_index,
+                    type=constants.TASK_TYPES.DECONSTRUCT,
+                    tick=tick,
+                    blueprint_label=constants.deconstruction_blueprint_label_placeholder,
+                    entities=tick_cache
+                })
+                task:changeState(constants.TASK_STATES.TASK_CREATED)
+                global.catch_deconstruction_order[tick] = nil
             end
-            local task = EcuTask:new()
-            task:initialize({
-                player_index=player_index,
-                type=constants.TASK_TYPES.DECONSTRUCT,
-                tick=tick,
-                blueprint_label=constants.deconstruction_blueprint_label_placeholder,
-                entities=cache
-            })
-            task:changeState(constants.TASK_STATES.TASK_CREATED)
-            deconstruct_entity_cache[player_index][tick] = nil
+            deconstruct_entity_cache[player_index] = nil
         end
-        deconstruct_entity_cache[player_index] = nil
     end
 end)
 
@@ -251,7 +278,8 @@ function handleConstructionOrder(event, worker_type)
         displayCatchBlueprintOrderMessage(player_index, constants.order_type_blueprint, worker_type)
 
     elseif blueprint_type == 'deconstruction-item' then
-        global.catch_deconstruction_order[player_index] = true
+        global.catch_deconstruction_order[player_index].ready = true
+        global.catch_deconstruction_order[player_index].worker_type = worker_type
         displayCatchBlueprintOrderMessage(player_index, constants.order_type_deconstruction, worker_type)
     end
 end
@@ -268,7 +296,7 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
     local player_index = event.player_index
     destroyCatchBlueprintOrderMessage(player_index)
     global.cursor_blueprint_cache[player_index] = {}
-    global.catch_deconstruction_order[player_index] = nil
+    global.catch_deconstruction_order[player_index] = {}
 end)
 
 script.on_event(defines.events.on_pre_build , function(event)

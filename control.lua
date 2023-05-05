@@ -22,18 +22,7 @@ function initGlobal()
     
     pathfinder.init()
 
-    if global.cursor_blueprint_cache == nil then
-        global.cursor_blueprint_cache = {}
-    end
-    for i, p in pairs(game.players) do
-        if not global.cursor_blueprint_cache[i] then
-            global.cursor_blueprint_cache[i] = {}
-        end
-    end
-
-    if global.catch_deconstruction_order == nil then
-        global.catch_deconstruction_order = {}
-    end
+    initOrderCaches()
 
     local emptySpaceTileCollisionLayerPrototype = game.entity_prototypes["collision-mask-empty-space-tile"]
     if emptySpaceTileCollisionLayerPrototype then
@@ -105,13 +94,15 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     local tick = event.tick
     local entity = event.entity
     if not entity.valid then return end
-    if global.catch_deconstruction_order[player_index] then
-        if deconstruct_entity_cache[player_index] == nil then
-            deconstruct_entity_cache[player_index] = {}
+
+    if global.catch_deconstruction_order[player_index].ready then
+        if not deconstruct_entity_cache[player_index].cache then
+            deconstruct_entity_cache[player_index].cache = {}
         end
-        if deconstruct_entity_cache[player_index][tick] == nil then
-            deconstruct_entity_cache[player_index][tick] = {}
-        end 
-        table.insert(deconstruct_entity_cache[player_index][tick], entity)
+        if deconstruct_entity_cache[player_index].cache[tick] == nil then
+            deconstruct_entity_cache[player_index].cache[tick] = {}
+        end
+        table.insert(deconstruct_entity_cache[player_index].cache[tick], entity)
     end
+
 end)
