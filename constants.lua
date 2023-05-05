@@ -47,12 +47,14 @@ constants.subtask_construction_area_coverage_offset = 5
 
 --gui
 constants.order_type_blueprint = 'order_type_blueprint'
-constants.order_type_deconstruction = 'order_type_blueprint'
+constants.order_type_deconstruction = 'order_type_deconstruction'
 constants.order_worker_type_construcion_train = 'Construction Train'
 constants.order_worker_type_express_construction_unit = 'Express Construction Unit'
 constants.catch_blueprint_order_naming_key = "catch_blueprint_order"
 constants.catch_blueprint_order_hotkey_font = constants.catch_blueprint_order_naming_key .. '_hotkey_font'
 constants.catch_blueprint_order_gui_flow_name = constants.catch_blueprint_order_naming_key .. '_flow'
 --constants.catch_blueprint_order_gui_msg_name = constants.catch_blueprint_order_naming_key .. '_msg'
+
+constants.ct_construction_wagon_name = "ct-construction-wagon"
 
 return constants
