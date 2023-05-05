@@ -53,12 +53,6 @@ script.on_event(defines.events.on_player_created, function(event)
     initGlobal()
 end)
 
--- script.on_event(defines.events.on_tick, function(event)
--- 	update_cam_position()
--- end)
-
-
-
 -- when a train station is destroyed
 script.on_event(defines.events.on_entity_renamed, function(event)
 
