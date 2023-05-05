@@ -224,6 +224,7 @@ function EcuTask:TERMINATING()
         if spider_is_back then
             ECU:goHome()
             global.construction_tasks[self.state]:remove(self.id)
+            update_task_frame(self, true)
             self:log("Task wrapped up!")
         else
             self:changeState(constants.TASK_STATES.TERMINATING)
