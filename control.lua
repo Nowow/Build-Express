@@ -103,27 +103,7 @@ script.on_event(defines.events.on_built_entity, function(event)
     local created_entity = event.created_entity
 
     if destroy_ghost and created_entity.valid then created_entity.destroy() return end
-    
 
-    -- if player.is_cursor_blueprint() and not player.cursor_stack_temporary then
-    --     local stack = game.get_player(event.player_index).cursor_stack
-    --     if stack.valid_for_read then
-    --         local blueprint_label = stack.label
-    --         local event_tick = event.tick
-    --         local player_index = event.player_index
-    --         if not blueprint_entity_cache[player_index] then
-    --             blueprint_entity_cache[player_index] = {}
-    --         end
-    --         if not blueprint_entity_cache[player_index][blueprint_label] then
-    --             blueprint_entity_cache[player_index][blueprint_label] = {}
-    --         end
-    --         if not blueprint_entity_cache[player_index][blueprint_label][event_tick] then
-    --             blueprint_entity_cache[player_index][blueprint_label][event_tick] = {}
-    --         end
-    --         table.insert(blueprint_entity_cache[player_index][blueprint_label][event_tick], event.created_entity)
-    --     end
-    -- end
-    
 end, {{filter = "ghost"}, {filter = 'name', name = 'test-train-stop'}})
 
 
