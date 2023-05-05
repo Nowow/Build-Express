@@ -100,8 +100,6 @@ script.on_event(defines.events.on_built_entity, function(event)
 
 end, {{filter = "ghost"}, {filter = 'name', name = 'test-train-stop'}})
 
-
-
 script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     local player_index = event.player_index
     local tick = event.tick
