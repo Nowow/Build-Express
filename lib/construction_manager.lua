@@ -14,8 +14,6 @@ local util = require('util')
 local bl = require("lib.ghosts_on_water_port.blueprints")
 local next = next
 
-deconstruct_entity_cache = {}
-
 function initConstructionTasks()
     if not global.construction_tasks then
         ---@type { [string]: TaskQueue }
@@ -46,56 +44,71 @@ function initOrderCaches()
             global.catch_deconstruction_order[i] = {}
         end
     end
+
+    global.blueprint_posted_trigger = {}
+    global.deconstruction_posted_trigger = {}
 end
 
 
 script.on_event(defines.events.on_tick, function(event)
 
+    if not global.blueprint_posted_trigger or not next(global.blueprint_posted_trigger) then
+        return
+    end
+
+    log('Reached blueprint task assembler')
+
     for player_index, cache in pairs(global.cursor_blueprint_cache) do
-        if cache.ready then
+        local ready = global.blueprint_posted_trigger[player_index]
+        if ready then
             local current_tick = event.tick
             local building_tick = cache.tick
-            if current_tick > building_tick then
-                local player = game.players[player_index]
-                -- little race unsafe, if player manages to lose blueprint from cursor stack in 1 tick
-                -- could be made safe with create_inventory, but probably will bother later
-                local blueprint = player.cursor_stack
-                local blueprint_label = blueprint.label or blueprint.label == nil and constants.unlabeled_blueprints_placeholder_label
-                local blueprint_entities = blueprint.get_blueprint_entities()
-                local cost_to_build = blueprint.cost_to_build
-                local build_params = cache.build_params
-                blueprint.set_blueprint_entities(cache.dummy_entities)
-                global.cursor_blueprint_cache[player_index].ready = nil
-                local built_ghost_dummies = blueprint.build_blueprint({
-                        surface=build_params.surface,
-                        force=build_params.force,
-                        position=build_params.position,
-                        force_build=build_params.force_build,
-                        skip_fog_of_war=build_params.skip_fog_of_war,
-                        direction=build_params.direction
-                })
-                blueprint.set_blueprint_entities(blueprint_entities)
-                if next(built_ghost_dummies) ~= nil then
-                    local worker_type = build_params.worker_type
-                    local task
-                    if worker_type == constants.order_worker_type_express_construction_unit then
-                        task = EcuTask:new()
-                    else
-                        task = Task:new()
-                    end
-                    task:initialize({
-                        player_index=player_index,
-                        type=constants.TASK_TYPES.BUILD,
-                        tick=building_tick,
-                        blueprint_label=blueprint_label,
-                        entities=built_ghost_dummies,
-                        cost_to_build=cost_to_build
-                    })
-                    task:changeState(constants.TASK_STATES.TASK_CREATED)
-                else
-                    log("NO DUMMIES GOT BUILT")
-                end
+            if current_tick <= building_tick then
+                log("BAD TICK FOR CONSTRUCTION " .. current_tick .. building_tick)
+                return
             end
+            -- invalidate trigger for this player
+            global.blueprint_posted_trigger[player_index] = nil
+            local player = game.players[player_index]
+            -- little race unsafe, if player manages to lose blueprint from cursor stack in 1 tick
+            -- could be made safe with create_inventory, but probably will bother later
+            local blueprint = player.cursor_stack
+            local blueprint_label = blueprint.label or blueprint.label == nil and constants.unlabeled_blueprints_placeholder_label
+            local blueprint_entities = blueprint.get_blueprint_entities()
+            local cost_to_build = blueprint.cost_to_build
+            local build_params = cache.build_params
+            blueprint.set_blueprint_entities(cache.dummy_entities)                
+            local built_ghost_dummies = blueprint.build_blueprint({
+                    surface=build_params.surface,
+                    force=build_params.force,
+                    position=build_params.position,
+                    force_build=build_params.force_build,
+                    skip_fog_of_war=build_params.skip_fog_of_war,
+                    direction=build_params.direction
+            })
+            blueprint.set_blueprint_entities(blueprint_entities)
+            if next(built_ghost_dummies) ~= nil then
+                local worker_type = cache.worker_type
+                local task
+                log("Creating task for worker type " .. worker_type)
+                if worker_type == constants.order_worker_type_express_construction_unit then
+                    task = EcuTask:new()
+                else
+                    task = Task:new()
+                end
+                task:initialize({
+                    player_index=player_index,
+                    type=constants.TASK_TYPES.BUILD,
+                    tick=building_tick,
+                    blueprint_label=blueprint_label,
+                    entities=built_ghost_dummies,
+                    cost_to_build=cost_to_build
+                })
+                task:changeState(constants.TASK_STATES.TASK_CREATED)
+            else
+                log("NO DUMMIES GOT BUILT")
+            end
+
         end
     end
     
@@ -103,16 +116,23 @@ end)
 
 -- move create tasks from cached build ghosts 
 script.on_nth_tick(30, function(event)
-    
+    if not global.deconstruction_posted_trigger or not next(global.deconstruction_posted_trigger) then
+        return
+    end
+
+    log('Reached deconstruction task assembler')
     
     for player_index, info in pairs(global.catch_deconstruction_order) do
-        log('Reached deconstruction task assembler')
-        if info.ready then
-            local cache = info.cache
+        local cache = info.cache
+        local ready = global.deconstruction_posted_trigger[player_index]
+        if ready and cache then
             for tick, tick_cache in pairs(cache) do
                 if tick == event.tick then
+                    log("BAD TICK FOR CONSTRUCTION " .. event.tick .. tick)
                     return
                 end
+                -- invalidate trigger for this player
+                global.deconstruction_posted_trigger[player_index] = nil
                 local worker_type = info.worker_type
                 local task
                 if worker_type == constants.order_worker_type_express_construction_unit then
@@ -130,7 +150,7 @@ script.on_nth_tick(30, function(event)
                 task:changeState(constants.TASK_STATES.TASK_CREATED)
                 global.catch_deconstruction_order[tick] = nil
             end
-            deconstruct_entity_cache[player_index] = nil
+            global.catch_deconstruction_order[player_index] = nil
         end
     end
 end)
@@ -275,10 +295,11 @@ function handleConstructionOrder(event, worker_type)
             force_build=true,
             skip_fog_of_war=true,
         }
+        
         displayCatchBlueprintOrderMessage(player_index, constants.order_type_blueprint, worker_type)
 
     elseif blueprint_type == 'deconstruction-item' then
-        global.catch_deconstruction_order[player_index].ready = true
+        global.deconstruction_posted_trigger[player_index] = true
         global.catch_deconstruction_order[player_index].worker_type = worker_type
         displayCatchBlueprintOrderMessage(player_index, constants.order_type_deconstruction, worker_type)
     end
@@ -297,6 +318,8 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
     destroyCatchBlueprintOrderMessage(player_index)
     global.cursor_blueprint_cache[player_index] = {}
     global.catch_deconstruction_order[player_index] = {}
+    global.blueprint_posted_trigger = {}
+    global.deconstruction_posted_trigger = {}
 end)
 
 script.on_event(defines.events.on_pre_build , function(event)
@@ -306,6 +329,6 @@ script.on_event(defines.events.on_pre_build , function(event)
         global.cursor_blueprint_cache[player_index].build_params.direction = event.direction
         global.cursor_blueprint_cache[player_index].build_params.position=event.position
         global.cursor_blueprint_cache[player_index].tick = event.tick
-        global.cursor_blueprint_cache[player_index].ready = true
+        global.blueprint_posted_trigger[player_index] = true
     end
 end)

@@ -82,7 +82,7 @@ script.on_event(defines.events.on_built_entity, function(event)
     end
     
     local player_index = event.player_index
-    local destroy_ghost = global.cursor_blueprint_cache[player_index].ready
+    local destroy_ghost = global.blueprint_posted_trigger[player_index]
     local created_entity = event.created_entity
 
     if destroy_ghost and created_entity.valid then created_entity.destroy() return end
@@ -94,15 +94,21 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     local tick = event.tick
     local entity = event.entity
     if not entity.valid then return end
-
-    if global.catch_deconstruction_order[player_index].ready then
-        if not deconstruct_entity_cache[player_index].cache then
-            deconstruct_entity_cache[player_index].cache = {}
+    if global.deconstruction_posted_trigger[player_index] then
+        if not global.catch_deconstruction_order[player_index].cache then
+            global.catch_deconstruction_order[player_index].cache = {}
         end
-        if deconstruct_entity_cache[player_index].cache[tick] == nil then
-            deconstruct_entity_cache[player_index].cache[tick] = {}
+        if global.catch_deconstruction_order[player_index].cache[tick] == nil then
+            global.catch_deconstruction_order[player_index].cache[tick] = {}
         end
-        table.insert(deconstruct_entity_cache[player_index].cache[tick], entity)
+        table.insert(global.catch_deconstruction_order[player_index].cache[tick], entity)
     end
 
+end)
+
+
+script.on_event(defines.events.on_train_created, function(event)
+
+    game.print("WRITE LOGIC FOR WHEN TRAIN IS CHANGED, LIKE NEW WAGON ADDED DURING TASK")
+    log("WRITE LOGIC FOR WHEN TRAIN IS CHANGED, LIKE NEW WAGON ADDED DURING TASK")
 end)
