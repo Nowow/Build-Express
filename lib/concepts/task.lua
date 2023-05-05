@@ -152,19 +152,23 @@ function Task:assignWorker()
             if not control or (control and control.valid and not control.disabled) then
                 local train = station.get_stopped_train()
                 if train ~= nil then
-                    self:log("Train found!")
-                    local train_contents = train.get_contents()
-                    local enough_resources = true
-                    for item, cost in pairs(train_contents) do
-                        if train_contents[item] < cost then
-                            enough_resources = false
+                    local carriages = train.carriages
+                    local is_construction_train = train.carriages[2].name == constants.ct_construction_wagon_name
+                    if is_construction_train then
+                        self:log("Train found!")
+                        local train_contents = train.get_contents()
+                        local enough_resources = true
+                        for item, cost in pairs(train_contents) do
+                            if train_contents[item] < cost then
+                                enough_resources = false
+                                break
+                            end
+                        end
+                        if enough_resources then
+                            self:log("Worker found!")
+                            worker = train
                             break
                         end
-                    end
-                    if enough_resources then
-                        self:log("Worker found!")
-                        worker = train
-                        break
                     end
                 end
             end
