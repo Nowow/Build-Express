@@ -115,15 +115,24 @@ function ExpressConstructionUnit:deploy(resource_cost)
     end
     local train = self.train
     local spider = active_carrier.spider
+
+    -- adding robots to resource transfer
+    local available_robots = train.get_item_count("construction-robot")
+    resource_cost["construction-robot"] = available_robots
+    
+    -- inserting resources for blueprint
     for item, count in pairs(resource_cost) do
         local available_in_train = train.get_item_count(item)
         if available_in_train < count then
             log("There was not enought of " .. item .. ", required: " .. count .. ', available: ' .. available_in_train)
             count=available_in_train
         end
-        local simple_item_stack = {name=item, count=count}
-        train.remove_item(simple_item_stack)
-        spider.insert(simple_item_stack)
+        local actually_inserted = spider.insert({name=item, count=count})
+        train.remove_item({name=item, count=math.min(count, actually_inserted)})
+        if actually_inserted ~= count then
+            log("Inserted less item than was planning, " .. count .. ' ' .. actually_inserted)
+        end
+        
     end
 end
 
