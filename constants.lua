@@ -43,7 +43,8 @@ constants.spider_carrier_navigate_subtask_action = 'spider_carrier_navigate_subt
 constants.spider_carrier_collect_spider_action = 'spider_carrier_collect_spider'
 constants.parking_wait_time = 60*60*10  -- 10 mins
 
-constants.subtask_construction_area_coverage_offset = 5
+constants.subtask_construction_area_coverage_construction_train_offset = 10
+constants.subtask_construction_area_coverage_ecu_offset = 5
 
 --gui
 constants.order_type_blueprint = 'order_type_blueprint'
