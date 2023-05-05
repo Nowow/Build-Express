@@ -21,25 +21,23 @@ end
 
 function EcuTask:assignWorker()
     self:log("Looking for workers")
-    local blueprint_name = self.blueprint_label
-    for _, station in pairs(global.worker_station_register[blueprint_name]) do
-        if station and station.valid then
+    
+    for station in iterateStations() do
+        local control = station.get_control_behavior()
+        if not control or (control and control.valid and not control.disabled) then
+            self:log("Station ok!")
             local train = station.get_stopped_train()
             if train ~= nil then
                 self:log("Train found!")
-                local control = station.get_control_behavior()
-                if not control or (control and control.valid and not control.disabled) then
-                    self:log("Station ok!")
-                    local ECU = ExpressConstructionUnit:create()
-                    ECU:setTrain(train)
-                    local has_spider_carriages = ECU:aquireSpiderCarriers()
-                    if has_spider_carriages then
-                        local has_enough_resources = ECU:checkIfHasResources(self.cost_to_build)
-                        if has_enough_resources then
-                            self:log("Express Construction Unit found!")
-                            self.worker = ECU
-                            return true
-                        end
+                local ECU = ExpressConstructionUnit:create()
+                ECU:setTrain(train)
+                local has_spider_carriages = ECU:aquireSpiderCarriers()
+                if has_spider_carriages then
+                    local has_enough_resources = ECU:checkIfHasResources(self.cost_to_build)
+                    if has_enough_resources then
+                        self:log("Express Construction Unit found!")
+                        self.worker = ECU
+                        return true
                     end
                 end
             end

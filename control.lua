@@ -42,32 +42,6 @@ script.on_event(defines.events.on_player_created, function(event)
     initGlobal()
 end)
 
--- when a train station is destroyed
-script.on_event(defines.events.on_entity_renamed, function(event)
-
-    local entity = event.entity
-    if event.entity.name == 'test-train-stop' then
-        unregisterWorkerStation(entity.backer_name, entity)
-        createBlueprintFrames(event.player_index)
-    end
-
-end)
-
--- when a train station is renamed
-script.on_event(defines.events.on_entity_renamed, function(event)
-
-    local entity = event.entity
-    if entity.name == 'test-train-stop' then
-        game.print("STATION NAME CHANGED FROM " .. event.old_name .. ' TO ' .. event.entity.backer_name)
-
-        unregisterWorkerStation(event.old_name, entity)
-        registerWorkerStation(entity)
-        createBlueprintFrames(event.player_index)
-        
-    end
-
-end)
-
 script.on_event(defines.events.on_built_entity, function(event)
 
 
@@ -76,7 +50,7 @@ script.on_event(defines.events.on_built_entity, function(event)
         local entity = event.created_entity
 
         registerWorkerStation(entity)
-        createBlueprintFrames(event.player_index)
+        --createBlueprintFrames(event.player_index)
         return
 
     end

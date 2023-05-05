@@ -145,34 +145,33 @@ end
 function Task:assignWorker()
 
     local worker
-    for _, station in pairs(global.worker_station_register[self.blueprint_label]) do
-        if station and station.valid then
+
+    for station in iterateStations() do
+        local control = station.get_control_behavior()
+        if not control or (control and control.valid and not control.disabled) then
             self:log("Station ok!")
-            local control = station.get_control_behavior()
-            if not control or (control and control.valid and not control.disabled) then
-                local train = station.get_stopped_train()
-                if train ~= nil then
-                    local carriages = train.carriages
-                    local is_construction_train = train.carriages[2].name == constants.ct_construction_wagon_name
-                    if is_construction_train then
-                        self:log("Train found!")
-                        local train_contents = train.get_contents()
-                        local enough_resources = true
-                        for item, cost in pairs(train_contents) do
-                            if train_contents[item] < cost then
-                                enough_resources = false
-                                break
-                            end
-                        end
-                        if enough_resources then
-                            self:log("Worker found!")
-                            worker = train
+            local train = station.get_stopped_train()
+            if train ~= nil then
+                local is_construction_train = train.carriages[2].name == constants.ct_construction_wagon_name
+                if is_construction_train then
+                    self:log("Train found!")
+                    local train_contents = train.get_contents()
+                    local enough_resources = true
+                    for item, cost in pairs(train_contents) do
+                        if train_contents[item] < cost then
+                            enough_resources = false
+                            self:log("But it didnt have enough resources, ")
                             break
                         end
                     end
+                    if enough_resources then
+                        self:log("Worker found!")
+                        worker = train
+                        break
+                    end
                 end
             end
-        end    
+        end
     end
 
     if not worker then
