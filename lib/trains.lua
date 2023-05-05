@@ -25,6 +25,7 @@ function getRoboportRange(train)
     local logistic_cell = roboport_wagon.logistic_cell
     if not logistic_cell then
         log("No logistic cell")
+        return 0
     end
     return logistic_cell.construction_radius
 end
