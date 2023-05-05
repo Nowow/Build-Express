@@ -165,11 +165,18 @@ function displayCatchBlueprintOrderMessage(player_index, type, worker_type)
     msg_flow.style.width = 1200
     msg_flow.style.horizontal_align="center"
     msg_flow.style.vertical_align="top"
-    local order_type_prefix = type == constants.order_type_blueprint and 'Blueprint' or type == constants.order_type_deconstruction and 'Deconsrtuction'
-    local message_text = order_type_prefix .. " order will be handled by Build Express, mode: " .. worker_type
+    local order_type_prefix, color
+    if type == constants.order_type_blueprint then
+        order_type_prefix = 'Blueprint'
+        color = {r=0,g=1,b=1}
+    else
+        order_type_prefix = 'Deconsrtuction'
+        color = {r=1,g=0,b=0}
+    end
+    local message_text = order_type_prefix .. " order will be handled by " .. worker_type
     local displayed_message = msg_flow.add{type="label", caption=message_text}
     displayed_message.style.font = constants.catch_blueprint_order_hotkey_font
-    displayed_message.style.font_color = {r=0,g=1,b=1}
+    displayed_message.style.font_color = color
 end
 
 function destroyCatchBlueprintOrderMessage(player_index)
