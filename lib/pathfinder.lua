@@ -44,7 +44,6 @@ function pathfinder.request_path(params)
         path_resolution_modifier=path_resolution_modifier,
     })
     global.pathfinding_requests[id] = params
-    game.print("GENERATED PATHING REQUEST " .. id)
 end
 
 function pathfinder.set_autopilot(unit, path) -- set path
@@ -58,7 +57,6 @@ end
 
 function pathfinder.handle_finished_pathing_request(event)
     local id = event.id
-    game.print("FINISHED PATHING REQUEST " .. id)
     local request_info = global.pathfinding_requests[id]
     local unit = request_info.unit
     local next_attempt = request_info.attempt + 1
