@@ -134,6 +134,7 @@ function EcuTask:PARKING()
     if parking_spot and path_end_rail then
         self:log("CHUGA CHUGA,")
         self:changeState(constants.TASK_STATES.PARKING)
+        return
     end
     if parking_spot and not path_end_rail then
         self:log("CHOOOO CHOOOOOOO!")
@@ -143,6 +144,7 @@ function EcuTask:PARKING()
         end
         ECU:deploy(self.cost_to_build)
         self:changeState(constants.TASK_STATES.PREPARING)
+        return
     end
     log("UB in EcuTask PARKING handler!")
 
