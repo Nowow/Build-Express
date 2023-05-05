@@ -131,23 +131,27 @@ function EcuTask:PARKING()
     end
     local current_rail = train.front_rail
     local path_end_rail = train.path_end_rail
-    if parking_spot and path_end_rail and not current_rail == parking_spot or path_end_rail then
+    if parking_spot and path_end_rail then
         self:log("CHUGA CHUGA,")
         self:changeState(constants.TASK_STATES.PARKING)
     end
-    if parking_spot and current_rail == parking_spot and not path_end_rail then
+    if parking_spot and not path_end_rail then
         self:log("CHOOOO CHOOOOOOO!")
         self:log("Arrived at parking_spot!")
+        if parking_spot ~= current_rail then
+            self:log("For some reason its a different rail, well whatever, logging for probable UB")
+        end
         ECU:deploy(self.cost_to_build)
         self:changeState(constants.TASK_STATES.PREPARING)
     end
+    log("UB in EcuTask PARKING handler!")
 
 end
 
 function EcuTask:PREPARING()
     local ECU = self.worker
     -- minus 5 to allow for spidertron unpredictable wiggling around destination
-    local worker_construction_radius = math.max(ECU:getWorkerConstructionRadius() - constants.subtask_construction_area_coverage_offset, 15)
+    local worker_construction_radius = math.max(ECU:getWorkerConstructionRadius() - constants.subtask_construction_area_coverage_ecu_offset, 15)
     if not worker_construction_radius then
         self:log("Couldnt get construction radius, looping back to PREPARED")
         self:changeState(constants.TASK_STATES.PREPARING)
