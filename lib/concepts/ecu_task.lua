@@ -79,9 +79,11 @@ end
 -----TASK FLOW
 ------------------------------------------------------------------
 
-function Task:TASK_CREATED()
+function EcuTask:TASK_CREATED()
     self:findBoundingBox()
-    self:tileWaterGhosts()
+    if self.type == constants.TASK_TYPES.BUILD then
+        self:tileWaterGhosts()    
+    end
     self:changeState(constants.TASK_STATES.UNASSIGNED)
 end
 
@@ -145,7 +147,7 @@ end
 function EcuTask:PREPARING()
     local ECU = self.worker
     -- minus 5 to allow for spidertron unpredictable wiggling around destination
-    local worker_construction_radius = ECU:getWorkerConstructionRadius() - constants.subtask_construction_area_coverage_offset
+    local worker_construction_radius = math.max(ECU:getWorkerConstructionRadius() - constants.subtask_construction_area_coverage_offset, 15)
     if not worker_construction_radius then
         self:log("Couldnt get construction radius, looping back to PREPARED")
         self:changeState(constants.TASK_STATES.PREPARING)

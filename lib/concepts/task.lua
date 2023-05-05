@@ -384,7 +384,9 @@ end
 
 function Task:TASK_CREATED()
     self:findBoundingBox()
-    self:tileWaterGhosts()
+    if self.type == constants.TASK_TYPES.BUILD then
+        self:tileWaterGhosts()
+    end
     self:changeState(constants.TASK_STATES.UNASSIGNED)
 end
 
