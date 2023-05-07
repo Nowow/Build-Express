@@ -59,7 +59,7 @@ function addStopToSchedule(rail, train, replace_next_temp)
         wait_conditions={
             {
                 type='time',
-                ticks=TASK_TIMEOUT_TICKS,
+                ticks=constants.task_timeout_ticks,
                 compare_type='and'
             },
             {
