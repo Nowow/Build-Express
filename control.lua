@@ -83,6 +83,10 @@ end)
 
 script.on_event(defines.events.on_train_created, function(event)
 
-    game.print("WRITE LOGIC FOR WHEN TRAIN IS CHANGED, LIKE NEW WAGON ADDED DURING TASK")
-    log("WRITE LOGIC FOR WHEN TRAIN IS CHANGED, LIKE NEW WAGON ADDED DURING TASK")
+        log(event.old_train_id_1)
+        log(event.old_train_id_2)
+        log(event.train.id)
+    -- local train = event.train
+    -- trainCreatedCallback(event.old_train_id_1, train)
+    -- trainCreatedCallback(event.old_train_id_2, train)
 end)

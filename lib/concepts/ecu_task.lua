@@ -37,6 +37,7 @@ function EcuTask:assignWorker()
                     if has_enough_resources then
                         self:log("Express Construction Unit found!")
                         self.worker = ECU
+                        registerTrainAsInAction(train, self)
                         return true
                     end
                 end
@@ -70,6 +71,10 @@ function EcuTask:startEndTask()
         ECU:orderRetractSpider()
     end
     update_task_frame(self)
+end
+
+function EcuTask:callbackWhenTrainCreated(old_train_1, old_train_id_2, new_train)
+    self.worker:setTrain(new_train)
 end
 
 
@@ -227,6 +232,7 @@ function EcuTask:TERMINATING()
         local spider_is_back = ECU:pollRetractSpider()
         if spider_is_back then
             ECU:goHome()
+            unregisterTrainAsInAction(ECU.train)
             global.construction_tasks[self.state]:remove(self.id)
             update_task_frame(self, true)
             self:log("Task wrapped up!")

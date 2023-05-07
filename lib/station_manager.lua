@@ -73,7 +73,7 @@ function trainCreatedCallback(old_train_id, new_train)
         local callback_source = train_entry.callback_source
         global.worker_register.trains_in_action[old_train_id] = nil
         global.worker_register.trains_in_action[new_train.id] = {train=new_train, callback_source=callback_source}
-        callback_source.callbackWhenTrainCreated(new_train)
+        callback_source:callbackWhenTrainCreated(new_train)
         
     end
 end

@@ -167,6 +167,7 @@ function Task:assignWorker()
                     if enough_resources then
                         self:log("Worker found!")
                         worker = train
+                        registerTrainAsInAction(worker, self)
                         break
                     end
                 end
@@ -367,6 +368,7 @@ function Task:endTask()
         --removing all temp stops except current, so worker waits for robots to come back
         removeTimePassedConditionFromCurrentStop(worker)
         local temps_removed = removeAllTempStops(worker, true)
+        unregisterTrainAsInAction(worker)
         self:log("REMOVED " .. temps_removed .. " TEMP STOPS")
     end
 
@@ -375,6 +377,9 @@ function Task:endTask()
     global.construction_tasks[self.state]:remove(self.id)
 end
 
+function Task:callbackWhenTrainCreated(new_train)
+    self.worker = new_train
+end
 
 
 ------------------------------------------------------------------

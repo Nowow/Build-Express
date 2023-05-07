@@ -112,13 +112,11 @@ script.on_event("test-custom-hotkey", function(event)
         end
 
         global.construction_tasks = nil
+        global.cursor_blueprint_cache = nil
+        global.catch_deconstruction_order = nil
+        global.worker_register = nil
         
         initGlobal()
-
-        local player_index = event.player_index
-        global.entity_selected = game.get_player(player_index).selected
-        
-
     end
 end)
 
