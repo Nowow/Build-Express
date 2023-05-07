@@ -12,7 +12,6 @@ constants.construction_wagon_prototype_name = 'ct-construction-wagon'
 constants.deconstruction_blueprint_label_placeholder = "DECONSTRUCTION"
 constants.task_timeout_ticks = 7200
 -- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
-constants.subtask_coverage_by_construction_area_offset = 10
 constants.task_flying_text_colors_by_task_type = {
     BUILD = {r=0,g=1,b=0.7},
     DECONSTRUCT = {r=1,g=0,b=1}

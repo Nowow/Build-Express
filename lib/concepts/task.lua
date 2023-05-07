@@ -108,8 +108,12 @@ function Task:checkTrainHasEnoughResources(train)
     local train_contents = train.get_contents()
     local cost_to_build = self.cost_to_build
     local enough_resources = true
+    local train_has_amount
+    local cost_modifier = settings.global["ecu-building-cost-modifier"].value
+    self:log("Cost modifier is: " .. cost_modifier)
     for item, cost in pairs(cost_to_build) do
-        local train_has_amount = train_contents[item] or 0
+        cost = math.floor(cost*cost_modifier)
+        train_has_amount = train_contents[item] or 0
         if train_has_amount < cost then
             enough_resources = false
             self:log("But it didnt have enough resources, item: " .. item .. ", cost: " .. cost .. ", available: " .. train_has_amount)

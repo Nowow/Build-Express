@@ -123,7 +123,8 @@ function EcuTask:PARKING()
     if not parking_spot then
         self:log("Going to find a parking spot")
         -- find and send to parking_spot
-        local candidates = findNearestRails(self.surface, self.bounding_box, 10)
+        local search_offset = settings.global["ecu-parking-spot-search-offset"].value
+        local candidates = findNearestRails(self.surface, self.bounding_box, search_offset)
         if #candidates > 0 then
             self:log("Parking spot candidates found: " .. #candidates )
             for _, rail in pairs(candidates) do
@@ -142,7 +143,6 @@ function EcuTask:PARKING()
         if not parking_spot then
             self:log("No parking spot found :(")
         end
-
         self:changeState(constants.TASK_STATES.PARKING)
         return
     end

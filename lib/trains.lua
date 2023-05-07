@@ -1,5 +1,4 @@
 require("lib.utils")
-require("settings")
 local constants = require("constants")
 
 TRAIN_STATES = {

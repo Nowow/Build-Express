@@ -6,7 +6,6 @@ require("lib.station_manager")
 require("lib.concepts.task_queue")
 require("lib.concepts.task")
 require("lib.concepts.ecu_task")
-require("settings")
 
 local constants = require("constants")
 local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
