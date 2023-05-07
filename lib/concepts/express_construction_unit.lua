@@ -99,7 +99,7 @@ function ExpressConstructionUnit:gotoRail(rail)
     train.schedule = schedule
 end
 
-function ExpressConstructionUnit:goHome(rail)
+function ExpressConstructionUnit:goHome()
     log("ECU going back home")
     local train = self.train
     local removed_temps = removeAllTempStops(train)
@@ -150,33 +150,29 @@ end
 function ExpressConstructionUnit:orderRetractSpider()
     local active_carrier = self.active_carrier
     self.wrapping_up = true
-    active_carrier:startCollectSpider()
+    local spider = active_carrier.spider
+    if spider then
+        active_carrier:startCollectSpider()
+    end
 end
 
 function ExpressConstructionUnit:pollRetractSpider()
     local active_carrier = self.active_carrier
     local spider = active_carrier.spider
-    local spider_inside = active_carrier:checkIfSpiderStored() and not (spider and spider.valid)
-    if spider_inside then
+    local spider_outside = (spider and spider.valid)
+    local spider_inside = active_carrier:checkIfSpiderStored()
+    if spider_inside and not spider_outside then
         log("Spider is back stored in wagon")
         return true
-    elseif spider and spider.valid then
-        log("Spider Carrier is empty, but still present, trying to store it")
+    elseif not spider_inside and spider_outside then
+        log("Spider Carrier is empty, but spider still present, trying to store it")
         return active_carrier:storeSpider()
+    elseif not spider_inside and not spider_outside then
+        log("Someone stole the spider!")
+        return true
     else
         log("Unhandled behavior while calling pollRetractSpider")
-        return
+        return true
     end
 
 end
-
-function ExpressConstructionUnit:checkIfHasResources(resource_cost)
-    local train_contents = self.train.get_contents()
-    for item, cost in pairs(resource_cost) do
-        if train_contents[item] < cost then
-            return false
-        end
-    end
-    return true
-end
-

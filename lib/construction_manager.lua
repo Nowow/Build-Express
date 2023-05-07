@@ -260,7 +260,7 @@ script.on_event(defines.events.on_gui_click, function(event)
         local element_tags = element.tags
         local task = global.construction_tasks[element_tags.task_state]:lookup(element_tags.task_id)
         game.print("END BUTTON CALLED, TAGS ".. task.id .. ', STATE ' .. task.state)
-        task:endTask()
+        task:forceChangeState(constants.TASK_STATES.TERMINATING)
         return
     end
 end)

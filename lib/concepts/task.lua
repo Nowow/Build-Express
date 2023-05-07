@@ -24,6 +24,7 @@ local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 ---@field worker unknown
 ---@field worker_construction_radius integer
 ---@field flying_text table
+---@field attempted_to_reaquire_worker boolean
 Task = {}
 Task.__index = Task
 
@@ -59,7 +60,7 @@ function Task:initialize(params)
 
     task.state=constants.TASK_STATES.TASK_CREATED
     task.flying_text=params.flying_text or {}
-
+    task.attempted_to_reaquire_worker = false
 end
 
 function Task:log(message)
@@ -74,6 +75,48 @@ function Task:changeState(new_state)
     end
     global.construction_tasks[new_state]:push(self)
     update_task_frame(self)
+end
+
+function Task:forceChangeState(new_state)
+    local id = self.id
+    local state = self.state
+    local old_queue = global.construction_tasks[state]
+    local task_popped = old_queue:remove(id)
+    if not task_popped then
+        self:log("something went wrong when force changing state, task was not in task queue of its current state " .. state)
+        return false
+    end
+    local new_queue = global.construction_tasks[new_state]
+    if not new_queue then
+        self:log("something went wrong when force changing state, task queue for new state "  .. new_state .. " does not exist")
+        old_queue:push(self)
+        return false
+    end
+    self:changeState(new_state)
+end
+
+function Task:checkTrainFitsTask(train)
+    local carriages = train.carriages
+    if carriages < 2 then
+        self:log("Train has only 1 carriage, not enough")
+        return false
+    end
+    return carriages[2].name == constants.ct_construction_wagon_name
+end
+
+function Task:checkTrainHasEnoughResources(train)
+    local train_contents = train.get_contents()
+    local cost_to_build = self.cost_to_build
+    local enough_resources = true
+    for item, cost in pairs(cost_to_build) do
+        local train_has_amount = train_contents[item] or 0
+        if train_has_amount < cost then
+            enough_resources = false
+            self:log("But it didnt have enough resources, item: " .. item .. ", cost: " .. cost .. ", available: " .. train_has_amount)
+            break
+        end
+    end
+    return enough_resources
 end
 
 function Task:findBoundingBox()
@@ -143,27 +186,17 @@ function Task:populateSubtasks()
 end
 
 function Task:assignWorker()
-
     local worker
-
     for station in iterateStations() do
         local control = station.get_control_behavior()
         if not control or (control and control.valid and not control.disabled) then
             self:log("Station ok!")
             local train = station.get_stopped_train()
             if train ~= nil then
-                local is_construction_train = train.carriages[2].name == constants.ct_construction_wagon_name
+                local is_construction_train = self:checkTrainFitsTask(train)
                 if is_construction_train then
                     self:log("Train found!")
-                    local train_contents = train.get_contents()
-                    local enough_resources = true
-                    for item, cost in pairs(train_contents) do
-                        if train_contents[item] < cost then
-                            enough_resources = false
-                            self:log("But it didnt have enough resources, ")
-                            break
-                        end
-                    end
+                    local enough_resources = self:checkTrainHasEnoughResources(train)
                     if enough_resources then
                         self:log("Worker found!")
                         worker = train
@@ -377,8 +410,23 @@ function Task:endTask()
     global.construction_tasks[self.state]:remove(self.id)
 end
 
-function Task:callbackWhenTrainCreated(new_train)
-    self.worker = new_train
+function Task:callbackWhenTrainCreated(old_train_id, new_train)
+    local fits = self:checkTrainFitsTask(new_train)
+    if fits then
+        self.attempted_to_reaquire_worker = false
+        self.worker = new_train
+        registerTrainAsInAction(new_train, self)
+        unregisterTrainAsInAction(old_train_id)
+        self:log("Reaquired worker after someone messed with train")
+    elseif self.attempted_to_reaquire_worker then
+        self:log("Unable to reaquire worker after someone messed with train, terminating")
+        unregisterTrainAsInAction(old_train_id)
+        self:forceChangeState(constants.TASK_STATES.TERMINATING)
+    else
+        self:log("Unable to reaquire worker after someone messed with train, one more attempt left")
+        self.attempted_to_reaquire_worker = true
+    end
+    
 end
 
 

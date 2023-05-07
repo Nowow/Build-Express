@@ -21,7 +21,6 @@ end
 
 function EcuTask:assignWorker()
     self:log("Looking for workers")
-    
     for station in iterateStations() do
         local control = station.get_control_behavior()
         if not control or (control and control.valid and not control.disabled) then
@@ -33,8 +32,8 @@ function EcuTask:assignWorker()
                 ECU:setTrain(train)
                 local has_spider_carriages = ECU:aquireSpiderCarriers()
                 if has_spider_carriages then
-                    local has_enough_resources = ECU:checkIfHasResources(self.cost_to_build)
-                    if has_enough_resources then
+                    local enough_resources = self:checkTrainHasEnoughResources(train)
+                    if enough_resources then
                         self:log("Express Construction Unit found!")
                         self.worker = ECU
                         registerTrainAsInAction(train, self)
@@ -73,8 +72,24 @@ function EcuTask:startEndTask()
     update_task_frame(self)
 end
 
-function EcuTask:callbackWhenTrainCreated(old_train_1, old_train_id_2, new_train)
-    self.worker:setTrain(new_train)
+function EcuTask:callbackWhenTrainCreated(old_train_id, new_train)
+    local ECU = self.worker
+    ECU:setTrain(new_train)
+    local fits = ECU:aquireSpiderCarriers()
+    if fits then
+        self.attempted_to_reaquire_worker = false
+        self.worker = ECU
+        registerTrainAsInAction(new_train, self)
+        unregisterTrainAsInAction(old_train_id)
+        self:log("Reaquired worker after someone messed with train")
+    elseif self.attempted_to_reaquire_worker then
+        self:log("Unable to reaquire worker after someone messed with train, terminating")
+        unregisterTrainAsInAction(old_train_id)
+        self:forceChangeState(constants.TASK_STATES.TERMINATING)
+    else
+        self:log("Unable to reaquire worker after someone messed with train, one more attempt left")
+        self.attempted_to_reaquire_worker = true
+    end
 end
 
 
@@ -92,7 +107,6 @@ end
 
 function EcuTask:UNASSIGNED()
     local worker_found = self:assignWorker()
-
     if not worker_found then
         --loop back
         self:changeState(constants.TASK_STATES.UNASSIGNED)
@@ -156,12 +170,12 @@ end
 function EcuTask:PREPARING()
     local ECU = self.worker
     -- minus 5 to allow for spidertron unpredictable wiggling around destination
-    local worker_construction_radius = math.max(ECU:getWorkerConstructionRadius() - constants.subtask_construction_area_coverage_ecu_offset, 15)
+    local worker_construction_radius = ECU:getWorkerConstructionRadius()
     if not worker_construction_radius then
         self:log("Couldnt get construction radius, looping back to PREPARED")
         self:changeState(constants.TASK_STATES.PREPARING)
     end
-    self.worker_construction_radius = worker_construction_radius
+    self.worker_construction_radius = math.max(worker_construction_radius - constants.subtask_construction_area_coverage_ecu_offset, 15)
     self:generateSubtasks()
     self:populateSubtasks()
     -- skipping tileing if deconstruct
@@ -221,9 +235,13 @@ function EcuTask:ASSIGNED()
     end
 end
 
-
 function EcuTask:TERMINATING()
     local ECU = self.worker
+    if not ECU then
+        update_task_frame(self, true)
+        self:log("Task wrapped up!")
+        return
+    end
     if not ECU.wrapping_up then
         self:startEndTask()
         self:changeState(constants.TASK_STATES.TERMINATING)
@@ -233,7 +251,7 @@ function EcuTask:TERMINATING()
         if spider_is_back then
             ECU:goHome()
             unregisterTrainAsInAction(ECU.train)
-            global.construction_tasks[self.state]:remove(self.id)
+            --global.construction_tasks[self.state]:remove(self.id) 
             update_task_frame(self, true)
             self:log("Task wrapped up!")
         else

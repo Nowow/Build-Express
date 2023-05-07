@@ -84,8 +84,8 @@ function SpiderCarrier:releaseSpider()
     return spider
 end
 
+log("Trying to collect spider")
 function SpiderCarrier:startCollectSpider()
-    log("Trying to collect spider")
     local spider = self.spider
     local wagon = self.wagon
     if not spider.valid then

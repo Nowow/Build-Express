@@ -57,13 +57,8 @@ function registerTrainAsInAction(train, callback_source)
     end
 end
 
-function unregisterTrainAsInAction(train)
-    local id = train.id
-    if global.worker_register.trains_in_action[id] == nil then
-        return
-    else
-        global.worker_register.trains_in_action[id] = ni
-    end
+function unregisterTrainAsInAction(train_id)
+    global.worker_register.trains_in_action[train_id] = nil
 end
 
 function trainCreatedCallback(old_train_id, new_train)
@@ -71,9 +66,20 @@ function trainCreatedCallback(old_train_id, new_train)
     if train_entry then
         log("Train that was created into new train was in train registry, calling callback")
         local callback_source = train_entry.callback_source
-        global.worker_register.trains_in_action[old_train_id] = nil
-        global.worker_register.trains_in_action[new_train.id] = {train=new_train, callback_source=callback_source}
-        callback_source:callbackWhenTrainCreated(new_train)
-        
+        callback_source:callbackWhenTrainCreated(old_train_id, new_train)
     end
 end
+
+script.on_event(defines.events.on_train_created, function(event)
+
+    local train = event.train
+    local old_1 = event.old_train_id_1
+    local old_2 = event.old_train_id_2
+    if old_1 then
+        trainCreatedCallback(old_1, train)
+    end
+    if old_2 then
+        trainCreatedCallback(old_2, train)    
+    end
+    
+end)

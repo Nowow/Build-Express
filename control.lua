@@ -79,14 +79,3 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     end
 
 end)
-
-
-script.on_event(defines.events.on_train_created, function(event)
-
-        log(event.old_train_id_1)
-        log(event.old_train_id_2)
-        log(event.train.id)
-    -- local train = event.train
-    -- trainCreatedCallback(event.old_train_id_1, train)
-    -- trainCreatedCallback(event.old_train_id_2, train)
-end)
