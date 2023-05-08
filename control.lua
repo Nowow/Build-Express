@@ -44,11 +44,9 @@ end)
 
 script.on_event(defines.events.on_built_entity, function(event)
 
-
-    if event.created_entity.prototype.name == 'test-train-stop' then
+    if event.created_entity.prototype.name == constants.buex_depot_name then
 
         local entity = event.created_entity
-
         registerWorkerStation(entity)
         --createBlueprintFrames(event.player_index)
         return
@@ -61,7 +59,7 @@ script.on_event(defines.events.on_built_entity, function(event)
 
     if destroy_ghost and created_entity.valid then created_entity.destroy() return end
 
-end, {{filter = "ghost"}, {filter = 'name', name = 'test-train-stop'}})
+end, {{filter = "ghost"}, {filter = 'name', name = constants.buex_depot_name}})
 
 script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     local player_index = event.player_index

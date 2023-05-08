@@ -3,6 +3,7 @@ require("prototypes.buttons")
 require("prototypes.spider_carrier")
 require("prototypes.proxy")
 require("prototypes.fonts")
+require("prototypes.technology")
 
 --buex-ghost-on-water
 --load groups

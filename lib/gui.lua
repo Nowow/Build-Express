@@ -52,13 +52,13 @@ function createTestWidget(player_index)
     tasks_tab.style.horizontal_align = 'center'
     local tasks_scroll_pane = tabs.add{type="scroll-pane", name="buex_tasks_scroll_pane", caption={"buex.tasks_scroll_pane_caption"}}
     
-    tasks_scroll_pane.style.width  = 525
+    tasks_scroll_pane.style.width  = 510
     tasks_scroll_pane.style.height = 400
     tasks_scroll_pane.style.horizontal_align = 'center'
 
     local tasks_flow = tasks_scroll_pane.add{type="flow", name="buex_tasks_flow", direction="vertical"}
 
-    tasks_flow.style.width  = 525
+    tasks_flow.style.width  = 510 
     tasks_flow.style.height = 400
     tasks_flow.style.horizontal_align = 'center'
     

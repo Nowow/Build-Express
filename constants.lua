@@ -8,7 +8,6 @@ constants.spaceLandfillTypes = { "se-space-platform-scaffold", "se-space-platfor
 
 -- tasks and blueprints
 constants.unlabeled_blueprints_placeholder_label = "unlabeled blueprint"
-constants.construction_wagon_prototype_name = 'ct-construction-wagon'
 constants.deconstruction_blueprint_label_placeholder = "DECONSTRUCTION"
 constants.task_timeout_ticks = 7200
 -- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
@@ -30,11 +29,16 @@ constants.TASK_TYPES = {
     DECONSTRUCT = "DECONSTRUCT"
 }
 
+--trains
+constants.ct_construction_wagon_name = "ct-construction-wagon"
+constants.buex_depot_name = "buex-depot"
+
 -- spiders
 constants.spider_carrier_prototype_name = 'buex-spider-carrier-wagon'
 constants.spider_carrier_equipment_category_prototype_name = 'buex-spider-carrier-wagon-equipment'
 constants.spider_carrier_grid_prototype_name = 'buex-spider-carrier-wagon-grid'
-constants.buex_technology = 'buex-technology'
+constants.buex_construction_train_technology = 'buex-construction-train-technology'
+constants.buex_express_construction_unit_technology = 'buex-express-construction-unit-technology'
 constants.spider_carrier_proxy_prototype_name = 'buex-spider-carrier-prototype'
 -- pathfinding
 constants.max_pathfinding_attempts = 5
@@ -55,7 +59,5 @@ constants.catch_blueprint_order_naming_key = "catch_blueprint_order"
 constants.catch_blueprint_order_hotkey_font = constants.catch_blueprint_order_naming_key .. '_hotkey_font'
 constants.catch_blueprint_order_gui_flow_name = constants.catch_blueprint_order_naming_key .. '_flow'
 --constants.catch_blueprint_order_gui_msg_name = constants.catch_blueprint_order_naming_key .. '_msg'
-
-constants.ct_construction_wagon_name = "ct-construction-wagon"
 
 return constants
