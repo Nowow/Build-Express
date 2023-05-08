@@ -125,7 +125,7 @@ function ExpressConstructionUnit:deploy(resource_cost)
     log("Cost modifier is: " .. cost_modifier)
     for item, count in pairs(resource_cost) do
         if item ~= "construction-robot" then
-            cost = cost*cost_modifier
+            count = count*cost_modifier
         end
         local available_in_train = train.get_item_count(item)
         if available_in_train < count then

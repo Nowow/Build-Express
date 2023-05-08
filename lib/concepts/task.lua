@@ -97,7 +97,7 @@ end
 
 function Task:checkTrainFitsTask(train)
     local carriages = train.carriages
-    if carriages < 2 then
+    if #carriages < 2 then
         self:log("Train has only 1 carriage, not enough")
         return false
     end
