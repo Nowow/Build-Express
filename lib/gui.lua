@@ -39,7 +39,7 @@ function createTestWidget(player_index)
     main_frame.style.maximal_width  = 1000
     main_frame.style.minimal_height = 200
     main_frame.style.maximal_height = 600
-    main_frame.style.natural_width  = 500
+    main_frame.style.natural_width  = 525
     main_frame.style.natural_height = 400
 
     main_frame.auto_center = true
@@ -47,42 +47,32 @@ function createTestWidget(player_index)
 
     -- tabs
     local tabs = main_frame.add{type="tabbed-pane", name="buex_gui_tabs"}
-    ---- worker tab
-    --local workers_tab = tabs.add{type="tab", name="buex_workers_tab", caption={"buex.workers_tab_caption"}}
-    --local workers_scroll_pane = tabs.add{type="scroll-pane", name="buex_workers_scroll_pane", caption={"buex.workers_scroll_pane_caption"}}
-    ---- blueprints tab
-    local blueprints_tab = tabs.add{type="tab", name="buex_blueprints_tab", caption={"buex.blueprints_tab_caption"}}
-    local blueprints_scroll_pane = tabs.add{type="scroll-pane", name="buex_blueprints_scroll_pane", caption={"buex.blueprints_scroll_pane_caption"}}
     ---- tasks tab
     local tasks_tab = tabs.add{type="tab", name="buex_tasks_tab", caption={"buex.tasks_tab_caption"}}
+    tasks_tab.style.horizontal_align = 'center'
     local tasks_scroll_pane = tabs.add{type="scroll-pane", name="buex_tasks_scroll_pane", caption={"buex.tasks_scroll_pane_caption"}}
-    tasks_scroll_pane.add{type="flow", name="buex_tasks_flow", direction="vertical"}
+    
+    tasks_scroll_pane.style.width  = 525
+    tasks_scroll_pane.style.height = 400
+    tasks_scroll_pane.style.horizontal_align = 'center'
 
-    --tabs.add_tab(workers_tab, workers_scroll_pane)
-    tabs.add_tab(blueprints_tab, blueprints_scroll_pane)
+    local tasks_flow = tasks_scroll_pane.add{type="flow", name="buex_tasks_flow", direction="vertical"}
+
+    tasks_flow.style.width  = 525
+    tasks_flow.style.height = 400
+    tasks_flow.style.horizontal_align = 'center'
+    
+
     tabs.add_tab(tasks_tab, tasks_scroll_pane)
 
-end
-
-function createBlueprintFrames(player_index)
-    local blueprints_scroll_pane = get_player_screen(player_index).buex_main_frame.buex_gui_tabs.buex_blueprints_scroll_pane
-    blueprints_scroll_pane.clear()
-    for recipie, stations in pairs(global.worker_station_register) do
-       local b_frame = blueprints_scroll_pane.add{type="frame", name="buex_recipies_"..recipie}
-       b_frame.style.height = 40
-       b_frame.style.width = 500
-
-       b_frame.add{type="label", caption="Recipie: " .. recipie}
-       b_frame.add{type="line", direction="vertical"}
-       b_frame.add{type="label", caption="count: " .. table_size(stations)}
-    end
 end
 
 function createTaskFrame(task, task_flow)
 
     local task_frame = task_flow.add{type="frame", name="buex_task_frame_".. task.id, direction="horizontal"}
-    task_frame.style.height = 70
+    task_frame.style.height = 77
     task_frame.style.width = 500
+    
 
     local task_table = task_frame.add{
         name="buex_task_table_" .. task.id, type="table",
@@ -130,6 +120,7 @@ function createTaskFrame(task, task_flow)
     progress_flow.style.height = 28
     progress_flow.style.width = 245
     progress_flow.style.horizontal_align = 'center'
+    progress_flow.style.vertical_align = 'center'
     
     if task.subtasks ~= nil then
         progress = (1.0 - (table_size(task.subtasks))/task.subtask_count)
