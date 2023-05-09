@@ -1,3 +1,5 @@
+landfillPlacer.lua and some of the code from other source files was copied for reuse in this mod
+
 MIT License
 
 Copyright (c) 2022 KeinNiemand
