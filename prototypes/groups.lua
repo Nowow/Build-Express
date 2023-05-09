@@ -6,7 +6,7 @@ local waterGhostItemGroup = {
     name = constants.dummyPrefix,
     order = "zzz",
     inventory_order = "zzz",
-    icon = "__GhostOnWater__/icons/waterGhostBlueprintUpdate.png",
+    icon = "__Build-Express__/graphics/waterGhostBlueprintUpdate.png",
     icon_size = 256,
 }
 
@@ -18,7 +18,7 @@ local waterGhostSubgroup = {
     group = constants.dummyPrefix,
     order = "zzz",
     inventory_order = "zzz",
-    icon = "__GhostOnWater__/icons/waterGhostBlueprintUpdate.png",
+    icon = "__Build-Express__/graphics/waterGhostBlueprintUpdate.png",
     icon_size = 256
 }
 

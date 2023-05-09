@@ -296,7 +296,7 @@ local function createDummyItem(originalItem)
             dummyItem.subgroup = constants.dummyPrefix
             --Compose icon
             local overlay_icon = {
-                icon = "__GhostOnWater__/icons/waterGhostBlueprintUpdate.png",
+                icon = "__Build-Express__/graphics/waterGhostBlueprintUpdate.png",
                 icon_size = 256,
                 scale = 0.075,
                 shift = {6, -6}
