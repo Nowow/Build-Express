@@ -13,14 +13,12 @@ end
 function registerWorkerStation(station)
     if not station.valid then return end
     log("register station called")
-    log(table_size(global.worker_register.stations))
     local unit_number = station.unit_number
     if global.worker_register.stations[unit_number] == nil then
         global.worker_register.stations[unit_number] = {
-            entity=station
+            entity=station, locked=false
         }
     end
-    log(table_size(global.worker_register.stations))
 end
 
 function iterateStations()
@@ -46,6 +44,20 @@ function iterateStations()
         end
     end
     return iter_f
+end
+
+function unlockStation(station)
+    log("Unlocking station")
+    local unit_number = station.unit_number
+    local station_entry = global.worker_register.stations[unit_number]
+    if station_entry == nil then
+        log("Cant lock, station is not in register")
+        return
+    elseif not station_entry.locked then
+        station_entry.locked = true
+    else
+        log("Cant lock, station alread locked")
+    end
 end
 
 function registerTrainAsInAction(train, callback_source)
