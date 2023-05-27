@@ -197,15 +197,22 @@ function Task:assignWorker()
             self:log("Station ok!")
             local train = station.get_stopped_train()
             if train ~= nil then
-                local is_construction_train = self:checkTrainFitsTask(train)
-                if is_construction_train then
-                    self:log("Train found!")
-                    local enough_resources = self:checkTrainHasEnoughResources(train)
-                    if enough_resources then
-                        self:log("Worker found!")
-                        worker = train
-                        registerTrainAsInAction(worker, self)
-                        break
+                self:log("Train is not nil")
+                local train_register_entry = global.worker_register.trains_in_action[train.id]
+                if train_register_entry == nil then
+                    self:log("Train not registred ")
+
+                    local is_construction_train = self:checkTrainFitsTask(train)
+                    if is_construction_train then
+                        self:log("Train found!")
+                        local enough_resources = self:checkTrainHasEnoughResources(train)
+                        if enough_resources then
+                            
+                            self:log("Worker found!")
+                            worker = train
+                            registerTrainAsInAction(worker, self)
+                            break
+                        end
                     end
                 end
             end
@@ -265,7 +272,7 @@ function Task:findBuildingSpot()
     local subtasks = self.subtasks
 
     for i, subtask in pairs(subtasks) do
-
+        hightligtBoundingBox(subtask.bounding_box)
         if next(subtask.entities) ~= nil then
             candidates = findNearestRails(self.surface, subtask.bounding_box, offset)
             self:log("Testing rails: found " .. #candidates .. ' rails for subtask ' .. i )
@@ -496,6 +503,13 @@ function Task:BUILDING()
             self:changeState(constants.TASK_STATES.ASSIGNED)
         end
     else
+        local worker = self.worker
+        local building_spot = self.building_spot
+        local building_spot_scheduled = isBuildingSpotInSchedule(worker, building_spot)
+        if not building_spot_scheduled then
+            self:log("Worker had no stop at building spot, redispatching it")
+            self:dispatchWorkerToNextStop()
+        end
         self:changeState(constants.TASK_STATES.BUILDING)
     end
 end
