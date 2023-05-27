@@ -104,6 +104,18 @@ function removeTimePassedConditionFromCurrentStop(train)
     train.schedule = new_schedule
 end
 
+function isBuildingSpotInSchedule(train, building_spot)
+    local records = train.schedule.records
+    local rail
+    for _, stop in pairs(records) do
+        rail = stop.rail
+        if rail == building_spot then
+            return true
+        end
+    end
+    return false
+end
+
 function removeAllTempStops(train, leave_current)
     local leave_current = leave_current or leave_current==nil and false
     local old_records = train.schedule.records
