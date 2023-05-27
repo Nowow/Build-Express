@@ -250,7 +250,7 @@ function EcuTask:TERMINATING()
         local spider_is_back = ECU:pollRetractSpider()
         if spider_is_back then
             ECU:goHome()
-            unregisterTrainAsInAction(ECU.train)
+            unregisterTrainAsInAction(ECU.train.id)
             --global.construction_tasks[self.state]:remove(self.id) 
             update_task_frame(self, true)
             self:log("Task wrapped up!")
