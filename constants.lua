@@ -9,7 +9,7 @@ constants.spaceLandfillTypes = { "se-space-platform-scaffold", "se-space-platfor
 -- tasks and blueprints
 constants.unlabeled_blueprints_placeholder_label = "unlabeled blueprint"
 constants.deconstruction_blueprint_label_placeholder = "DECONSTRUCTION"
-constants.task_timeout_ticks = 7200
+constants.task_timeout_ticks = 7200*10
 -- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
 constants.task_flying_text_colors_by_task_type = {
     BUILD = {r=0,g=1,b=0.7},
@@ -47,7 +47,7 @@ constants.spider_carrier_navigate_subtask_action = 'spider_carrier_navigate_subt
 constants.spider_carrier_collect_spider_action = 'spider_carrier_collect_spider'
 constants.parking_wait_time = 60*60*10  -- 10 mins
 
-constants.subtask_construction_area_coverage_construction_train_offset = 10
+constants.subtask_construction_area_coverage_construction_train_offset = 25
 constants.subtask_construction_area_coverage_ecu_offset = 5
 
 --gui

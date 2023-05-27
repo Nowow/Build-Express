@@ -261,7 +261,7 @@ function Task:tileWaterGhosts()
 end
 
 function Task:findBuildingSpot()
-    local offset = 1
+    local offset = 8
     local subtasks = self.subtasks
 
     for i, subtask in pairs(subtasks) do
