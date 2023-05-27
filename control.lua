@@ -12,6 +12,8 @@ local pathfinder = require("lib.pathfinder")
 
 local next = next
 
+if script.active_mods["gvv"] then require("__gvv__.gvv")() end
+
 function initGlobal()
 
     initWorkerStationRegister()
