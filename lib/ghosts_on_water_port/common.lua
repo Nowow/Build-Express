@@ -38,7 +38,7 @@ function replaceDummyEntityGhost(dummyEntity)
     --get the original entity name from the dummy entity name
     local originalEntityName = getOriginalEntityName(dummyEntity.ghost_name)
     --check if the original entity can be placed in the location and with the same direction of the dummy entity
-    if canPlaceOriginalEntity(originalEntityName, dummyEntity) then
+    if game.entity_prototypes[originalEntityName] ~= nil and canPlaceOriginalEntity(originalEntityName, dummyEntity) then
         --order upgrade (force, target)
         dummyEntity.order_upgrade({force = dummyEntity.force, target = originalEntityName})
         return true
