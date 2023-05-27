@@ -120,35 +120,35 @@ script.on_event("test-custom-hotkey", function(event)
     end
 end)
 
-    -- user triggered keyboard shortcut
-script.on_event("test-custom-hotkey-a", function(event)
-    game.print("CUSTOM HOTKEY A TRIGGERED")
-    -- local goal = event.cursor_position
-    -- pathfinder.request_path(global.entity_selected, goal)
+--     -- user triggered keyboard shortcut
+-- script.on_event("test-custom-hotkey-a", function(event)
+--     game.print("CUSTOM HOTKEY A TRIGGERED")
+--     -- local goal = event.cursor_position
+--     -- pathfinder.request_path(global.entity_selected, goal)
 
-    local player = game.get_player(event.player_index)
-    local cursor_position = event.cursor_position
-    local surface = player.surface
-    local bb = {
-        left_top={cursor_position.x-20, cursor_position.y-20},
-        right_bottom={cursor_position.x+20, cursor_position.y+20},
-    }
+--     local player = game.get_player(event.player_index)
+--     local cursor_position = event.cursor_position
+--     local surface = player.surface
+--     local bb = {
+--         left_top={cursor_position.x-20, cursor_position.y-20},
+--         right_bottom={cursor_position.x+20, cursor_position.y+20},
+--     }
 
-    printSpiderLogisticCell(player.selected, cursor_position)
+--     printSpiderLogisticCell(player.selected, cursor_position)
 
-    -- local tiles = player.surface.find_tiles_filtered{
-    --     area = bb,
-    --     collision_mask="water-tile",
-    --     invert=true
-    -- } 
-    -- for _, tile in pairs(tiles) do
-    --     rendering.draw_rectangle({
-    --         left_top={tile.position.x-0.5, tile.position.y-0.5},
-    --         right_bottom={tile.position.x+0.5, tile.position.y+0.5},
-    --         color={r=0,g=1,b=1},
-    --         surface=surface,
-    --         time_to_live=700
-    --     })
-    -- end
-end
-)
+--     -- local tiles = player.surface.find_tiles_filtered{
+--     --     area = bb,
+--     --     collision_mask="water-tile",
+--     --     invert=true
+--     -- } 
+--     -- for _, tile in pairs(tiles) do
+--     --     rendering.draw_rectangle({
+--     --         left_top={tile.position.x-0.5, tile.position.y-0.5},
+--     --         right_bottom={tile.position.x+0.5, tile.position.y+0.5},
+--     --         color={r=0,g=1,b=1},
+--     --         surface=surface,
+--     --         time_to_live=700
+--     --     })
+--     -- end
+-- end
+-- )
