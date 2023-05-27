@@ -53,6 +53,7 @@ function TaskQueue:remove(task_id)
     
     -- removing task from queue and 
     self.data[task_queue_index] = nil
+    self.task_id_index[task_id] = nil
     local last = self.head_tail.last
 
     -- reindexing everything was further from release from queue than provided task
