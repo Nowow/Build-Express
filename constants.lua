@@ -28,6 +28,10 @@ constants.TASK_TYPES = {
     BUILD = "BUILD",
     DECONSTRUCT = "DECONSTRUCT"
 }
+constants.CAPTURE_MODES = {
+    ADDITIVE = "ADDITIVE",
+    REGULAR = "REGULAR"
+}
 
 --trains
 constants.ct_construction_wagon_name = "ct-construction-wagon"
