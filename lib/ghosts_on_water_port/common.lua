@@ -29,7 +29,7 @@ function canPlaceOriginalEntity(originalEntityName, dummyEntity)
         --check if the original entity can be placed on water
         return surface.can_fast_replace { name = originalEntityName, position = position, direction = direction, force = dummyEntity.force }
     end
-    return surface.can_place_entity { name = originalEntityName, position = position, direction = direction }
+    return surface.can_place_entity { name = originalEntityName, position = position, direction = direction, build_check_type=defines.build_check_type.manual }
 end
 
 --function that replaces all dummy entity ghosts with the original entity ghosts
