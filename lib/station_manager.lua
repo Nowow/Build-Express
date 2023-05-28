@@ -63,6 +63,7 @@ end
 function registerTrainAsInAction(train, callback_source)
     local id = train.id
     if global.worker_register.trains_in_action[id] ~= nil then
+        log("Trying to reregister train " .. id)
         return
     else
         global.worker_register.trains_in_action[id] = {train=train, callback_source=callback_source}
