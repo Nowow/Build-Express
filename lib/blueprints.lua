@@ -136,18 +136,26 @@ function attributeGhostsToSubtask(ghosts, subtasks)
             ghosts[ghost_i] = nil
         else
             local entity_type = ghost.type
-            local ghost_bb
-            if entity_type == 'entity-ghost' then
-                ghost_bb = ghost.ghost_prototype.selection_box
-            else
-                ghost_bb = ghost.prototype.selection_box
-            end
-            ghost_bb.left_top.x = ghost_bb.left_top.x + ghost.position.x
-            ghost_bb.left_top.y = ghost_bb.left_top.y + ghost.position.y
-            ghost_bb.right_bottom.x = ghost_bb.right_bottom.x + ghost.position.x
-            ghost_bb.right_bottom.y = ghost_bb.right_bottom.y + ghost.position.y
+            local entity_position = ghost.position
+            local x = entity_position.x
+            local y = entity_position.y
+            -- local ghost_bb
+            -- if entity_type == 'entity-ghost' then
+            --     ghost_bb = ghost.ghost_prototype.selection_box
+            -- else
+            --     ghost_bb = ghost.prototype.selection_box
+            -- end
+            -- ghost_bb.left_top.x = ghost_bb.left_top.x + ghost.position.x
+            -- ghost_bb.left_top.y = ghost_bb.left_top.y + ghost.position.y
+            -- ghost_bb.right_bottom.x = ghost_bb.right_bottom.x + ghost.position.x
+            -- ghost_bb.right_bottom.y = ghost_bb.right_bottom.y + ghost.position.y
             for subtask_i, subtask in pairs(subtasks) do
-                if rectangleOverlapsRectangle(ghost_bb, subtask.bounding_box) then
+                local subtask_bb = subtask.bounding_box
+                local left_top = subtask_bb.left_top
+                local right_bottom = subtask_bb.right_bottom
+                
+                if x >= left_top.x and x <= right_bottom.x and y >= left_top.y and y <= right_bottom.y then
+                -- if rectangleOverlapsRectangle(ghost_bb, subtask.bounding_box) then
                     table.insert(subtask.ghosts, ghost)
                     break
                 end
