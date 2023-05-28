@@ -1,46 +1,9 @@
 require("lib.utils")
+require("lib.ghosts_on_water_port.common")
 
-TASK_STATES = {
-    TASK_CREATED = 'TASK_CREATED',
-    UNASSIGNED = 'UNASSIGNED',
-    PREPARING = 'PREPARING',
-    ASSIGNED = 'ASSIGNED',
-    BUILDING = 'BUILDING',
-    TERMINATING = 'TERMINATING'
-}
-
-TASK_TYPES = {
-    BUILD = "BUILD",
-    DECONSTRUCT = "DECONSTRUCT"
-}
 
 function log_task(task_id, msg)
     log(string.format("TASK_ID %-12s", task_id .. ':') .. msg)
-end
-
-
-function createTask(task_type, tick, player_index, blueprint_label, ghosts, cost_to_build, tiles)
-    local tiles = tiles or tiles == nil and {}
-    local cost_to_build = cost_to_build or cost_to_build == nil and {}
-    return {
-        id=player_index .. '_' .. tick,
-        tick=tick,
-        task_type=task_type,
-        player_index=player_index,
-        blueprint_label=blueprint_label,
-        ghosts=ghosts,
-        tile_ghosts=tiles,
-        surface=game.players[player_index].surface,
-        bounding_box=nil,
-        subtasks=nil,
-        worker=nil,
-        worker_construction_radius=nil,
-        active_subtask=nil,
-        building_spot=nil,
-        state=TASK_STATES.TASK_CREATED,
-        flying_text={},
-        cost_to_build=cost_to_build
-    }
 end
 
 function createSubtask(bounding_box)
@@ -51,13 +14,25 @@ function createSubtask(bounding_box)
     }
 end
 
-
-function HightlightCachedEntities(entities)
+function calculateActualCostToBuild(entities)
+    local cost_to_build = {}
+    local item
+    local item_to_place
+    local e_name
+    local count
     for _, e in pairs(entities) do
-        hightlightEntity(e, 2)
+        item_to_place = e.ghost_prototype.items_to_place_this[1]
+        e_name = item_to_place.name
+        count = item_to_place.count
+        item = getOriginalEntityName(e_name)
+        if cost_to_build[item] == nil then
+            cost_to_build[item] = count
+        else
+            cost_to_build[item] = cost_to_build[item] + count
+        end
     end
+    return cost_to_build
 end
-
 
 function findBlueprintBoundigBox(entities)
     local left_top_x = math.huge
@@ -194,14 +169,3 @@ function findBuildingSpot(task, offset)
     end
     return task
 end
-
- 
--- algorithm:
-
--- 1. Calculate bounding box for a blueprint
--- 2. tile it into proportional rectangles, their shape depedning on the expected train construction area
--- 3. select subarea, find closest possible rail (1 tile away, two tiles away, etc until train construction are cant cover them)
--- 4. if found, check if reachable
--- 5. if reachable, send train and build
--- 6. repeat for all subareas
--- 8. when done, check if any ghosts left, calculate closest spot individually (maybe can optimize by getting best shared spot)
