@@ -164,7 +164,8 @@ function displayCatchBlueprintOrderMessage(player_index, type, worker_type)
         order_type_prefix = 'Deconsrtuction'
         color = {r=1,g=0,b=0}
     end
-    local message_text = order_type_prefix .. " order will be handled by " .. worker_type
+    local current_mode = global.order_catch_mode[player_index]
+    local message_text = order_type_prefix .. " by " .. worker_type .. ", capture mode: " .. current_mode
     local displayed_message = msg_flow.add{type="label", caption=message_text}
     displayed_message.style.font = constants.catch_blueprint_order_hotkey_font
     displayed_message.style.font_color = color

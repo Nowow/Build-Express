@@ -35,6 +35,26 @@ function initOrderCaches()
         global.catch_deconstruction_order = {}
     end
 
+    if global.captured_task_cache == nil then
+        global.captured_task_cache = {}
+    end
+
+    if global.blueprint_posted_trigger == nil then
+        global.blueprint_posted_trigger = {}
+    end
+
+    if global.deconstruction_posted_trigger == nil then
+        global.deconstruction_posted_trigger = {}
+    end
+
+    if global.order_catch_mode == nil then
+        global.order_catch_mode = {}
+    end
+
+    if global.worker_type == nil then
+        global.worker_type = {}
+    end
+
     for i, p in pairs(game.players) do
         if not global.cursor_blueprint_cache[i] then
             global.cursor_blueprint_cache[i] = {}
@@ -42,16 +62,17 @@ function initOrderCaches()
         if not global.catch_deconstruction_order[i] then
             global.catch_deconstruction_order[i] = {}
         end
+        if not global.captured_task_cache[i] then
+            global.captured_task_cache[i] = {}
+        end
     end
 
-    global.blueprint_posted_trigger = {}
-    global.deconstruction_posted_trigger = {}
 end
 
 
 script.on_event(defines.events.on_tick, function(event)
 
-    if not global.blueprint_posted_trigger or not next(global.blueprint_posted_trigger) then
+    if not next(global.blueprint_posted_trigger)then
         return
     end
 
@@ -74,7 +95,6 @@ script.on_event(defines.events.on_tick, function(event)
             local blueprint = player.cursor_stack
             local blueprint_label = blueprint.label or blueprint.label == nil and constants.unlabeled_blueprints_placeholder_label
             local blueprint_entities = blueprint.get_blueprint_entities()
-            local cost_to_build = blueprint.cost_to_build
             local build_params = cache.build_params
             blueprint.set_blueprint_entities(cache.dummy_entities)                
             local built_ghost_dummies = blueprint.build_blueprint({
@@ -87,31 +107,100 @@ script.on_event(defines.events.on_tick, function(event)
             })
             blueprint.set_blueprint_entities(blueprint_entities)
             if next(built_ghost_dummies) ~= nil then
-                local worker_type = cache.worker_type
-                local task
-                log("Creating task for worker type " .. worker_type)
-                if worker_type == constants.order_worker_type_express_construction_unit then
-                    task = EcuTask:new()
-                else
-                    task = Task:new()
-                end
-                task:initialize({
+                local cost_to_build = calculateActualCostToBuild(built_ghost_dummies)
+                local payload = {
                     player_index=player_index,
                     type=constants.TASK_TYPES.BUILD,
                     tick=building_tick,
                     blueprint_label=blueprint_label,
                     entities=built_ghost_dummies,
                     cost_to_build=cost_to_build
-                })
-                task:changeState(constants.TASK_STATES.TASK_CREATED)
+                }
+                local capture_mode = cache.capture_mode
+                local worker_type = cache.worker_type
+
+                if capture_mode == nil then
+                    log("Catch mode is nil, dont know why")
+                elseif capture_mode == constants.CAPTURE_MODES.REGULAR then
+                    log("Capture mode is " .. capture_mode)
+                    local task
+                    log("Creating task for worker type " .. worker_type)
+                    if worker_type == constants.order_worker_type_express_construction_unit then
+                        task = EcuTask:new()
+                    else
+                        task = Task:new()
+                    end
+                    task:initialize(payload)
+                    task:changeState(constants.TASK_STATES.TASK_CREATED)
+                elseif capture_mode == constants.CAPTURE_MODES.ADDITIVE then
+                    log("Capture mode is " .. capture_mode)
+                    payload.worker_type = worker_type
+                    table.insert(global.captured_task_cache[player_index], payload)
+                end
             else
                 log("NO DUMMIES GOT BUILT")
             end
 
         end
     end
-    
 end)
+
+function mergePayloadsInTask(player_index)
+    local player_payload_cache = global.captured_task_cache[player_index]
+    if not next(player_payload_cache) then
+        log("Nothing to merge for player " .. player_index)
+        return
+    end
+    local worker_type = player_payload_cache[1].worker_type
+    local entities
+    local cost_to_build
+    local n
+    local final_payload
+    for _, payload in pairs(player_payload_cache) do
+        final_payload = payload
+        n = _
+        if payload.worker_type ~= worker_type then
+            log("ALARM WORKER TYPES IN ONE MERGE ARE DIFFERENT, SOMETHING WENT WRONG")
+        end
+
+        local payload_entities = payload.entities
+        local payload_cost_to_build = payload.cost_to_build
+        if entities == nil then
+            log("First payload, assigning entities")
+            entities = payload_entities
+        else
+            local index = #entities
+            log("Merging task entities cache had " .. index .. " entities")
+            for _, e in pairs(payload_entities) do
+                index = index + 1
+                entities[index] = e
+            end
+            log("Now has " .. index .. " entities")
+        end
+        if cost_to_build == nil then
+            log("First payload, assigning cost to build")
+            cost_to_build = payload_cost_to_build
+        else
+            log("Cost to build was:" .. serpent.block(cost_to_build))
+            for item, count in pairs(payload_cost_to_build) do
+                cost_to_build[item] = cost_to_build[item] + count
+            end
+            log("Cost to build now:" .. serpent.block(cost_to_build))
+        end
+    end
+
+    log("Merged " .. n .. " tasks, creating merged task...")
+    final_payload.entities = entities
+    final_payload.cost_to_build = cost_to_build
+    if worker_type == constants.order_worker_type_express_construction_unit then
+        task = EcuTask:new()
+    else
+        task = Task:new()
+    end
+    task:initialize(final_payload)
+    task:changeState(constants.TASK_STATES.TASK_CREATED)
+    global.captured_task_cache[player_index] = {}
+end
 
 -- move create tasks from cached build ghosts 
 script.on_nth_tick(30, function(event)
@@ -264,7 +353,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     end
 end)
 
-function handleConstructionOrder(event, worker_type)
+function handleConstructionOrder(event)
     local player_index = event.player_index
     local player = game.players[player_index]
     local held_blueprint = player.cursor_stack
@@ -274,8 +363,13 @@ function handleConstructionOrder(event, worker_type)
     if not held_blueprint.valid_for_read then return end
 
     local blueprint_type = held_blueprint.type
-
     if not blueprint_type then return end
+
+    local worker_type = global.worker_type[player_index]
+    if not worker_type then
+        log("handleConstructionOrder called but no worker type in global for player " .. player_index)
+    end
+
     if blueprint_type == 'blueprint' then
         
         if not held_blueprint.is_blueprint then return end
@@ -288,6 +382,7 @@ function handleConstructionOrder(event, worker_type)
         global.cursor_blueprint_cache[player_index] = {}
         global.cursor_blueprint_cache[player_index].worker_type = worker_type
         global.cursor_blueprint_cache[player_index].dummy_entities = dummy_entities
+        global.cursor_blueprint_cache[player_index].capture_mode = global.order_catch_mode[player_index]
         global.cursor_blueprint_cache[player_index].build_params = {
             surface=player.surface,
             force=player.force,
@@ -300,20 +395,63 @@ function handleConstructionOrder(event, worker_type)
     elseif blueprint_type == 'deconstruction-item' then
         global.deconstruction_posted_trigger[player_index] = true
         global.catch_deconstruction_order[player_index].worker_type = worker_type
+        global.catch_deconstruction_order[player_index].capture_mode = global.order_catch_mode[player_index]
         displayCatchBlueprintOrderMessage(player_index, constants.order_type_deconstruction, worker_type)
     end
 end
 
+function setOrderCatchMode(player_index, worker_type_changed)
+    local current_mode = global.order_catch_mode[player_index]
+
+    if current_mode == nil then
+        log("BUEX mode is set to " .. constants.CAPTURE_MODES.REGULAR)
+        global.order_catch_mode[player_index] = constants.CAPTURE_MODES.REGULAR
+        return
+    end
+    if worker_type_changed then
+        return
+    end
+
+    if current_mode == constants.CAPTURE_MODES.ADDITIVE then
+        log("BUEX mode is set to " .. constants.CAPTURE_MODES.REGULAR)
+        global.order_catch_mode[player_index] = constants.CAPTURE_MODES.REGULAR
+    elseif current_mode == constants.CAPTURE_MODES.REGULAR then
+        log("BUEX mode is set to " .. constants.CAPTURE_MODES.ADDITIVE)
+        global.order_catch_mode[player_index] = constants.CAPTURE_MODES.ADDITIVE
+    else
+        log("Unexpected behavior when setting BUEX mode, do nothing")
+    end
+end
+
 script.on_event("buex-build-blueprint-left", function(event)
-    handleConstructionOrder(event, constants.order_worker_type_express_construction_unit)
+    local player_index = event.player_index
+    local current_worker_type = global.worker_type[player_index]
+    local worker_type_changed = current_worker_type ~= nil and current_worker_type ~= constants.order_worker_type_express_construction_unit
+    if worker_type_changed then
+        mergePayloadsInTask(player_index)
+    end
+    setOrderCatchMode(player_index, worker_type_changed)
+    global.worker_type[player_index] = constants.order_worker_type_express_construction_unit
+    handleConstructionOrder(event)
 end)
 
 script.on_event("buex-build-blueprint-right", function(event)
-    handleConstructionOrder(event, constants.order_worker_type_construcion_train)
+    local player_index = event.player_index
+    local current_worker_type = global.worker_type[player_index]
+    local worker_type_changed = current_worker_type ~= nil and current_worker_type ~= constants.order_worker_type_construcion_train
+    if worker_type_changed then
+        mergePayloadsInTask(player_index)
+    end
+    setOrderCatchMode(player_index, worker_type_changed)
+    global.worker_type[player_index] = constants.order_worker_type_construcion_train
+    handleConstructionOrder(event)
 end)
 
 script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
     local player_index = event.player_index
+    mergePayloadsInTask(player_index)
+    global.order_catch_mode[player_index] = nil
+    global.worker_type[player_index] = nil  
     destroyCatchBlueprintOrderMessage(player_index)
     global.cursor_blueprint_cache[player_index] = {}
     global.catch_deconstruction_order[player_index] = {}
@@ -330,4 +468,40 @@ script.on_event(defines.events.on_pre_build , function(event)
         global.cursor_blueprint_cache[player_index].tick = event.tick
         global.blueprint_posted_trigger[player_index] = true
     end
+end)
+
+script.on_event(defines.events.on_built_entity, function(event)
+
+    if event.created_entity.prototype.name == constants.buex_depot_name then
+
+        local entity = event.created_entity
+        registerWorkerStation(entity)
+        --createBlueprintFrames(event.player_index)
+        return
+
+    end
+    
+    local player_index = event.player_index
+    local destroy_ghost = global.blueprint_posted_trigger[player_index]
+    local created_entity = event.created_entity
+
+    if destroy_ghost and created_entity.valid then created_entity.destroy() return end
+
+end, {{filter = "ghost"}, {filter = 'name', name = constants.buex_depot_name}})
+
+script.on_event(defines.events.on_marked_for_deconstruction, function(event)
+    local player_index = event.player_index
+    local tick = event.tick
+    local entity = event.entity
+    if not entity.valid then return end
+    if global.deconstruction_posted_trigger[player_index] then
+        if not global.catch_deconstruction_order[player_index].cache then
+            global.catch_deconstruction_order[player_index].cache = {}
+        end
+        if global.catch_deconstruction_order[player_index].cache[tick] == nil then
+            global.catch_deconstruction_order[player_index].cache[tick] = {}
+        end
+        table.insert(global.catch_deconstruction_order[player_index].cache[tick], entity)
+    end
+
 end)

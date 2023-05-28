@@ -44,38 +44,3 @@ script.on_event(defines.events.on_player_created, function(event)
     initGlobal()
 end)
 
-script.on_event(defines.events.on_built_entity, function(event)
-
-    if event.created_entity.prototype.name == constants.buex_depot_name then
-
-        local entity = event.created_entity
-        registerWorkerStation(entity)
-        --createBlueprintFrames(event.player_index)
-        return
-
-    end
-    
-    local player_index = event.player_index
-    local destroy_ghost = global.blueprint_posted_trigger[player_index]
-    local created_entity = event.created_entity
-
-    if destroy_ghost and created_entity.valid then created_entity.destroy() return end
-
-end, {{filter = "ghost"}, {filter = 'name', name = constants.buex_depot_name}})
-
-script.on_event(defines.events.on_marked_for_deconstruction, function(event)
-    local player_index = event.player_index
-    local tick = event.tick
-    local entity = event.entity
-    if not entity.valid then return end
-    if global.deconstruction_posted_trigger[player_index] then
-        if not global.catch_deconstruction_order[player_index].cache then
-            global.catch_deconstruction_order[player_index].cache = {}
-        end
-        if global.catch_deconstruction_order[player_index].cache[tick] == nil then
-            global.catch_deconstruction_order[player_index].cache[tick] = {}
-        end
-        table.insert(global.catch_deconstruction_order[player_index].cache[tick], entity)
-    end
-
-end)
