@@ -195,20 +195,24 @@ function Task:assignWorker()
         local control = station.get_control_behavior()
         if not control or (control and control.valid and not control.disabled) then
             self:log("Station ok!")
+
             local train = station.get_stopped_train()
             if train ~= nil then
                 self:log("Train is not nil")
+
                 local train_register_entry = global.worker_register.trains_in_action[train.id]
                 if train_register_entry == nil then
                     self:log("Train not registred ")
 
                     local is_construction_train = self:checkTrainFitsTask(train)
                     if is_construction_train then
-                        self:log("Train found!")
+                        self:log("Train is Construction Train!")
+
                         local enough_resources = self:checkTrainHasEnoughResources(train)
                         if enough_resources then
-                            
-                            self:log("Worker found!")
+                            self:log("Train has enough resources!")
+                            self:log("Worker found, registring as in action!")
+
                             worker = train
                             registerTrainAsInAction(worker, self)
                             break
@@ -391,16 +395,30 @@ end
 
 function Task:endTask()
     self:log("ENDING TASK IN STATE " .. self.state)
-
-    -- destroying all entities that are left
+    local task_type = self.type
     local valid_entities_counter = 0
-    for _, entity in pairs(self.entities) do
-        if entity.valid then
-            entity.destroy()
-            valid_entities_counter = valid_entities_counter + 1
+
+    if task_type == constants.TASK_TYPES.BUILD then
+        -- destroying all ghosts that are left
+        for _, entity in pairs(self.entities) do
+            if entity.valid then
+                entity.destroy()
+                valid_entities_counter = valid_entities_counter + 1
+            end
         end
+        self:log("VALID GHOSTS LEFT: " .. valid_entities_counter)
+    elseif task_type == constants.TASK_TYPES.DECONSTRUCT then
+        -- unmarking for deconstruction 
+        local force = game.get_player(self.player_index).force
+        for _, entity in pairs(self.entities) do
+            if entity.valid then
+                entity.cancel_deconstruction(force)
+                valid_entities_counter = valid_entities_counter + 1
+            end
+        end
+        self:log("UNMARKED ENTITIES COUNT: " .. valid_entities_counter)
     end
-    self:log("VALID GHOSTS LEFT: " .. valid_entities_counter)
+    
 
     --destroying flying textx
     for _, render_id in pairs(self.flying_text) do
