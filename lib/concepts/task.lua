@@ -523,10 +523,12 @@ function Task:BUILDING()
     else
         local worker = self.worker
         local building_spot = self.building_spot
-        local building_spot_scheduled = isBuildingSpotInSchedule(worker, building_spot)
-        if not building_spot_scheduled then
-            self:log("Worker had no stop at building spot, redispatching it")
-            self:dispatchWorkerToNextStop()
+        if building_spot ~= nil then
+            local building_spot_scheduled = isBuildingSpotInSchedule(worker, building_spot)
+            if not building_spot_scheduled then
+                self:log("Worker had no stop at building spot, redispatching it")
+                self:dispatchWorkerToNextStop()
+            end
         end
         self:changeState(constants.TASK_STATES.BUILDING)
     end
