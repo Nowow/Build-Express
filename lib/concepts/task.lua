@@ -112,7 +112,9 @@ function Task:checkTrainHasEnoughResources(train)
     local cost_modifier = settings.global["ecu-building-cost-modifier"].value
     self:log("Cost modifier is: " .. cost_modifier)
     for item, cost in pairs(cost_to_build) do
-        cost = math.floor(cost*cost_modifier)
+        if item ~= "construction-robot" and item ~= "cliff-explosives" then
+            cost = math.floor(cost*cost_modifier)
+        end
         train_has_amount = train_contents[item] or 0
         if train_has_amount < cost then
             enough_resources = false
@@ -245,6 +247,7 @@ function Task:tileWaterGhosts()
             local dummy_replaced = replaceDummyEntityGhost(ghost)
             -- if ghost still valid then replacement didnt take place
             if not dummy_replaced then
+                global.water_ghosts:push(ghost)
                 local landfill_ghosts = landfill.placeGhostLandfill(ghost)
                 tile_cache[ghost.unit_number] = landfill_ghosts
                 hightlightEntity(ghost, 3, {r=1,g=1,b=0})
@@ -458,6 +461,11 @@ function Task:callbackWhenTrainCreated(old_train_id, new_train)
     
 end
 
+function Task:addFixedCosts()
+    local cost_to_build = self.cost_to_build
+    cost_to_build["construction-robot"] = constants.construction_robot_fixed_cost
+    cost_to_build["cliff-explosives"] = constants.cliff_explosives_cost
+end
 
 ------------------------------------------------------------------
 -----TASK FLOW
@@ -468,6 +476,7 @@ function Task:TASK_CREATED()
     if self.type == constants.TASK_TYPES.BUILD then
         self:tileWaterGhosts()
     end
+    self:addFixedCosts()
     self:changeState(constants.TASK_STATES.UNASSIGNED)
 end
 

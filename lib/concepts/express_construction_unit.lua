@@ -116,7 +116,7 @@ function ExpressConstructionUnit:deploy(resource_cost)
     local train = self.train
     local spider = active_carrier.spider
 
-    -- adding robots to resource transfer
+    -- overwriting robots cost to resource transfer
     local available_robots = train.get_item_count("construction-robot")
     resource_cost["construction-robot"] = available_robots
     
@@ -124,18 +124,23 @@ function ExpressConstructionUnit:deploy(resource_cost)
     local cost_modifier = settings.global["ecu-building-cost-modifier"].value
     log("Cost modifier is: " .. cost_modifier)
     for item, count in pairs(resource_cost) do
-        if item ~= "construction-robot" then
-            count = count*cost_modifier
+        log("Inserting item " .. item)
+        if item ~= "construction-robot" and item ~= "cliff-explosives" then
+            count = math.floor(count*cost_modifier)
         end
         local available_in_train = train.get_item_count(item)
-        if available_in_train < count then
-            log("There was not enought of " .. item .. ", required: " .. count .. ', available: ' .. available_in_train)
-            count=available_in_train
-        end
-        local actually_inserted = spider.insert({name=item, count=count})
-        train.remove_item({name=item, count=math.min(count, actually_inserted)})
-        if actually_inserted ~= count then
-            log("Inserted less item than was planning, " .. count .. ' ' .. actually_inserted)
+        if available_in_train > 0 then
+            if available_in_train < count then
+                log("There was not enough, required: " .. count .. ', available: ' .. available_in_train)
+                count=available_in_train
+            end
+            local actually_inserted = spider.insert({name=item, count=count})
+            train.remove_item({name=item, count=math.min(count, actually_inserted)})
+            if actually_inserted ~= count then
+                log("Inserted less than was planning, " .. count .. ' ' .. actually_inserted)
+            end
+        else
+            log("There is no such item in ECU!")
         end
         
     end
@@ -145,6 +150,7 @@ function ExpressConstructionUnit:startProcessingSubtask(subtask)
     log("Starting processing subtask in ECU")
     local active_carrier = self.active_carrier
     self.subtask_processing_result = nil
+    --subtask.cost_to_build = calculateActualCostToBuild(subtask.entities)
     active_carrier:navigateSpiderToSubtask(subtask)
 end
 
