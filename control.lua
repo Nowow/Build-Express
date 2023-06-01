@@ -5,6 +5,7 @@ require("lib.blueprints")
 require("lib.construction_manager")
 require("lib.gui")
 require("lib.station_manager")
+require("lib.ghosts_on_water_port.water_dummies_replacer")
 
 local constants = require("constants")
 local table_lib = require('__stdlib__/stdlib/utils/table')
@@ -25,6 +26,8 @@ function initGlobal()
     pathfinder.init()
 
     initOrderCaches()
+
+    initWaterGhostReplacerQueue()
 
     local emptySpaceTileCollisionLayerPrototype = game.entity_prototypes["collision-mask-empty-space-tile"]
     if emptySpaceTileCollisionLayerPrototype then
