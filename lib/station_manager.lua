@@ -1,13 +1,15 @@
+local constants = require("constants")
 
-function initWorkerStationRegister()
+function initWorkerStationRegister(surface)
     if not global.worker_register then
 		global.worker_register = {
             -- to have an index of trains that are taking part in tasks, because if you add or remove a carriage train ceases to exist and has to be replaced
-            trains_in_action = {}, 
+            trains_in_action = {},
             -- to register modded stations so dont have to scan surface every time you need a worker
             stations = {}
         }
 	end
+    reregisterAllStations()
 end
 
 function registerWorkerStation(station)
@@ -80,6 +82,17 @@ function trainCreatedCallback(old_train_id, new_train)
         log("Train that was created into new train was in train registry, calling callback")
         local callback_source = train_entry.callback_source
         callback_source:callbackWhenTrainCreated(old_train_id, new_train)
+    end
+end
+
+function reregisterAllStations()
+    for _, surface in pairs(game.surfaces) do
+        local stops = surface.find_entities_filtered{
+            name=constants.buex_depot_name
+        }
+        for __, stop in pairs(stops) do
+            registerWorkerStation(stop)
+        end
     end
 end
 
