@@ -97,14 +97,6 @@ end
 -----TASK FLOW
 ------------------------------------------------------------------
 
-function EcuTask:TASK_CREATED()
-    self:findBoundingBox()
-    if self.type == constants.TASK_TYPES.BUILD then
-        self:tileWaterGhosts()    
-    end
-    self:changeState(constants.TASK_STATES.UNASSIGNED)
-end
-
 function EcuTask:UNASSIGNED()
     local worker_found = self:assignWorker()
     if not worker_found then
