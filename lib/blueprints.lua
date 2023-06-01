@@ -10,7 +10,7 @@ function createSubtask(bounding_box)
     return {
         bounding_box=bounding_box,
         entities={},
-        tiles={}
+        cost_to_build={}
     }
 end
 
@@ -73,15 +73,8 @@ end
 function solveBoundingBoxSubdivision(bounding_box, max_side_length)
     local bb_width = bounding_box.right_bottom.x - bounding_box.left_top.x
     local bb_height = bounding_box.right_bottom.y - bounding_box.left_top.y
-    local subtask_width = 0
-    local subtask_height = 0
-    if bb_width >= bb_height then
-        subtask_width = max_side_length
-        subtask_height = max_side_length*bb_height/bb_width
-    else
-        subtask_height = max_side_length
-        subtask_width = max_side_length*bb_width/bb_height
-    end
+    local subtask_width = max_side_length
+    local subtask_height = max_side_length
     local side_x_ceil = math.ceil(bb_width/subtask_width)
     local side_y_ceil = math.ceil(bb_height/subtask_height)
     local subtasks = {}
