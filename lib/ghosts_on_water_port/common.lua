@@ -1,6 +1,5 @@
 local constants = require('constants')
 
-
 function getOriginalEntityName(dummyEntityName)
     --get the original entity name from the dummy entity name
     local prefix_len = string.len(constants.dummyPrefix)
@@ -9,7 +8,6 @@ function getOriginalEntityName(dummyEntityName)
     end
     return dummyEntityName
 end
-
 
 function dummyEntityPrototypeExists(entityName)
     --check if the dummy entity prototype exists
@@ -39,12 +37,30 @@ end
 --use orderUpgrade to upgrade the dummy entity ghosts to the original entity ghosts
 function replaceDummyEntityGhost(dummyEntity)
     --get the original entity name from the dummy entity name
-    local originalEntityName = getOriginalEntityName(dummyEntity.ghost_name)
+    -- local originalEntityName = getOriginalEntityName(dummyEntity.ghost_name)
+    local originalEntityName = global.dummy_names_index[dummyEntity.ghost_name] or dummyEntity.ghost_name
     --check if the original entity can be placed in the location and with the same direction of the dummy entity
-    if game.entity_prototypes[originalEntityName] ~= nil and canPlaceOriginalEntity(originalEntityName, dummyEntity) then
+    if canPlaceOriginalEntity(originalEntityName, dummyEntity) then
         --order upgrade (force, target)
         dummyEntity.order_upgrade({force = dummyEntity.force, target = originalEntityName})
         return true
     end
     return false
+end
+
+function fillWaterGhostTypes()
+    if global.dummy_names_index == nil then
+        global.dummy_names_index = {}
+    end
+    local prefix_len = string.len(constants.dummyPrefix)
+    local original_name
+    local cntr = 0
+    for name, _ in pairs(game.entity_prototypes) do
+        if string.sub(name, 1, prefix_len)==constants.dummyPrefix then
+            original_name = string.sub(name, prefix_len + 1)
+            global.dummy_names_index[name] = original_name
+            cntr = cntr + 1
+        end
+    end
+    log("Filled " .. cntr .. " dummy names")
 end
