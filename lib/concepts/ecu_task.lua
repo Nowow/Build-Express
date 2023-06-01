@@ -166,6 +166,7 @@ function EcuTask:PREPARING()
     if not worker_construction_radius then
         self:log("Couldnt get construction radius, looping back to PREPARED")
         self:changeState(constants.TASK_STATES.PREPARING)
+        return
     end
     self.worker_construction_radius = math.max(worker_construction_radius - constants.subtask_construction_area_coverage_ecu_offset, 15)
     self:generateSubtasks()
