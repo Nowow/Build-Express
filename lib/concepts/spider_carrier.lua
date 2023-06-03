@@ -109,6 +109,21 @@ function SpiderCarrier:startCollectSpider()
     pathfinder.request_path(pathing_request_info)
 end
 
+function SpiderCarrier:findNearestSpider()
+    local candidates = self.wagon.surface.find_entities_filtered{
+        type='spider-vehicle', radius=constants.spider_carrier_spider_search_radius
+    }
+    for _, spider in pairs(candidates) do
+        if spider.get_driver() == nil then
+            log("Spider Carrier found a spider nearby")
+            self.spider=spider
+            return self:storeSpider()
+        end
+    end
+    log("Spider Carrier found no spiders nearby")
+    return false
+end
+
 function SpiderCarrier:storeSpider()
     log("Trying to store spider")
     local spider = self.spider

@@ -8,6 +8,7 @@ local constants = require("constants")
 ---@field parked boolean
 ---@field subtask_processing_result boolean
 ---@field wrapping_up boolean
+---@field going_home boolean
 ExpressConstructionUnit = {}
 ExpressConstructionUnit.__index = ExpressConstructionUnit
 
@@ -19,6 +20,8 @@ function ExpressConstructionUnit:create()
     local ecu = {}
     ecu.spider_carriers = {}
     ecu.parked = false
+    ecu.wrapping_up = false
+    ecu.going_home = false
 
     setmetatable(ecu, ExpressConstructionUnit)
     return ecu
@@ -103,9 +106,34 @@ function ExpressConstructionUnit:goHome()
     log("ECU going back home")
     local train = self.train
     local removed_temps = removeAllTempStops(train)
+    self.going_home = true
     log("Temp station removed: " .. removed_temps)
 end
 
+function ExpressConstructionUnit:orderFindSpiders()
+    if next(self.spider_carriers) == nil then
+        error("ECU was ordered to find spiders, but has no spider carriers!")
+        return
+    end
+    local spider_carriers = self.spider_carriers
+    local already_has_spider
+    local spider_stored
+    local at_least_one_spider_stored = false
+    for _, carrier in pairs(spider_carriers) do
+        already_has_spider = carrier:checkIfSpiderStored() or at_least_one_spider_stored
+        at_least_one_spider_stored = already_has_spider or at_least_one_spider_stored
+        if already_has_spider then
+            log("SpiderCarrier already has a spider stored")
+        else
+            spider_stored = carrier:findNearestSpider() or at_least_one_spider_stored
+            at_least_one_spider_stored = spider_stored or at_least_one_spider_stored
+            if spider_stored then
+                log("Spider Carrier found and stored a spider!")
+            end
+        end
+    end
+    return at_least_one_spider_stored
+end
 
 function ExpressConstructionUnit:deploy(resource_cost)
     local active_carrier = self.active_carrier
@@ -186,4 +214,13 @@ function ExpressConstructionUnit:pollRetractSpider()
         return true
     end
 
+end
+
+function ExpressConstructionUnit:checkIfBackHome()
+    local train = self.train
+    local schedule = train.schedule
+    local is_current_stop_tmp = schedule.records[schedule.current].temporary or false
+    -- 7 is 'station_wait'
+    -- checking for tmp just for some player freedom
+    return train.state == 7 and not is_current_stop_tmp
 end
