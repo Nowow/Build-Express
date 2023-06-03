@@ -85,6 +85,7 @@ function EcuTask:callbackWhenTrainCreated(old_train_id, new_train)
     elseif self.attempted_to_reaquire_worker then
         self:log("Unable to reaquire worker after someone messed with train, terminating")
         unregisterTrainAsInAction(old_train_id)
+        self.worker = nil
         self:forceChangeState(constants.TASK_STATES.TERMINATING)
     else
         self:log("Unable to reaquire worker after someone messed with train, one more attempt left")
@@ -123,10 +124,18 @@ function EcuTask:PARKING()
                 if rail.valid and not rail.to_be_deconstructed() and checkIfTrainCanGetToRail(train, rail) then
                     hightlighRail(rail, {r = 0, g = 1, b = 0})
                     self:log("Found parking spot")
-                    parking_spot = rail
-                    self.parking_spot = parking_spot
-                    ECU:gotoRail(parking_spot)
-                    break
+                    local has_at_least_one_spider = ECU:orderFindSpiders()
+                    if has_at_least_one_spider then
+                        self:log("ECU has at least one spider, dispatching!")
+                        parking_spot = rail
+                        self.parking_spot = parking_spot
+                        ECU:gotoRail(parking_spot)
+                        break
+                    else
+                        self:log("ECU has no spiders, looping back to PARKING")
+                        self:changeState(constants.TASK_STATES.PARKING)
+                    end
+                    
                 else
                     hightlighRail(rail, {r = 1, g = 0, b = 0})
                 end
@@ -241,14 +250,28 @@ function EcuTask:TERMINATING()
         return
     else
         local spider_is_back = ECU:pollRetractSpider()
-        if spider_is_back then
+        if not spider_is_back then
+            self:log("Spider not back yet")
+            self:changeState(constants.TASK_STATES.TERMINATING)
+            return
+        end
+
+        local going_home = ECU.going_home
+        if spider_is_back and not going_home then
+            self:log("Sent ECU back home!")
             ECU:goHome()
+            self:changeState(constants.TASK_STATES.TERMINATING)
+            return
+        end
+
+        local home = ECU:checkIfBackHome()
+        if home then
+            ECU:deploy()
             unregisterTrainAsInAction(ECU.train.id)
-            --global.construction_tasks[self.state]:remove(self.id) 
             update_task_frame(self, true)
             self:log("Task wrapped up!")
-        else
-            self:changeState(constants.TASK_STATES.TERMINATING)
+            return
         end
+        self:changeState(constants.TASK_STATES.TERMINATING)
     end
 end
