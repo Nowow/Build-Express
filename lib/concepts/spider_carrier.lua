@@ -110,8 +110,9 @@ function SpiderCarrier:startCollectSpider()
 end
 
 function SpiderCarrier:findNearestSpider()
-    local candidates = self.wagon.surface.find_entities_filtered{
-        type='spider-vehicle', radius=constants.spider_carrier_spider_search_radius
+    local wagon = self.wagon
+    local candidates = wagon.surface.find_entities_filtered{
+        type='spider-vehicle', radius=constants.spider_carrier_spider_search_radius, position=wagon.position
     }
     for _, spider in pairs(candidates) do
         if spider.get_driver() == nil then
@@ -210,7 +211,6 @@ function SpiderCarrier:callback(path, pathing_request_info)
             self.ECU:subtaskProcessingCallback(true)
             pathfinder.set_autopilot(self.spider, path)
         else
-            log(#self.goal_candidates)
             local candidate_index = pathing_request_info.candidate_index
             log("Path not found for path n0 " .. candidate_index)
             local next_candidate = self.goal_candidates[candidate_index + 1]
@@ -247,6 +247,7 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
     local start = self:getSpiderPathStartPosition()
     if not start then
         log('Start was not found')
+        --self.ECU:subtaskProcessingCallback(false)
         return
     end
     local bounding_box = subtask.bounding_box
@@ -257,6 +258,7 @@ function SpiderCarrier:navigateSpiderToSubtask(subtask)
         log("Found " .. #possible_building_spots .. " goal candidates")
     else
         log("No goal candidates found")
+        self.ECU:subtaskProcessingCallback(false)
         return
     end
 
