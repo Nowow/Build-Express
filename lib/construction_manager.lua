@@ -183,7 +183,7 @@ function mergePayloadsInTask(player_index)
         else
             log("Cost to build was:" .. serpent.block(cost_to_build))
             for item, count in pairs(payload_cost_to_build) do
-                cost_to_build[item] = cost_to_build[item] + count
+                cost_to_build[item] = (cost_to_build[item] or 0) + count
             end
             log("Cost to build now:" .. serpent.block(cost_to_build))
         end
