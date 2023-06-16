@@ -93,6 +93,16 @@ function EcuTask:callbackWhenTrainCreated(old_train_id, new_train)
     end
 end
 
+function EcuTask:ensureHasValidEntities(subtask)
+    --making sure there is at least one valid entity in subtask
+    for _, e in pairs(subtask.entities) do
+        if e.valid then
+            return true
+        end
+    end
+    return false
+end
+
 
 ------------------------------------------------------------------
 -----TASK FLOW
@@ -134,6 +144,7 @@ function EcuTask:PARKING()
                     else
                         self:log("ECU has no spiders, looping back to PARKING")
                         self:changeState(constants.TASK_STATES.PARKING)
+                        return
                     end
                     
                 else
@@ -194,15 +205,23 @@ function EcuTask:ASSIGNED()
     local subtasks = self.subtasks
     local subtask_processing_index = self.subtask_processing_index
     local subtasks_left = table_size(self.subtasks)
-    local next_subtask_processing_index, subtask_to_process
+    local next_subtask_processing_index, subtask_to_process, has_valid_entities
 
     if subtasks_left == 0 then
         self:log("ASSIGNED, but no more subtasks left, puttin task into TERMINATION due to completion")
         self:changeState(constants.TASK_STATES.TERMINATING)
+        return
     end
 
     if not subtask_processing_index then --assign a new subtasks to be processed
         next_subtask_processing_index, subtask_to_process = next(subtasks)
+        has_valid_entities = self:ensureHasValidEntities(subtask_to_process)
+        if not has_valid_entities then
+            self:log("Subtask " .. next_subtask_processing_index .. "has no valid entities, deleting it")
+            subtasks[next_subtask_processing_index] = nil
+            self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
+            return
+        end
         self.subtask_processing_index = next_subtask_processing_index
         self:log("Starting task processing, next subtask is " .. next_subtask_processing_index)
         ECU:startProcessingSubtask(subtask_to_process)
@@ -215,15 +234,32 @@ function EcuTask:ASSIGNED()
         if processing_result == nil then
             self:log("Processing result for subtask " .. subtask_processing_index .. "is yet to be determined")
             self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
+            return
         elseif processing_result == false then
             self:log("Processing result for subtask " .. subtask_processing_index .. "is false")
-            subtasks[subtask_processing_index] = nil
-            self:log("Deleted subtask " .. subtask_processing_index)
-            
-            next_subtask_processing_index, subtask_to_process = next(subtasks)
-            ECU:startProcessingSubtask(subtask_to_process)
+            --subtasks[subtask_processing_index] = nil
+            self:log("Skipping subtask " .. subtask_processing_index)
+
+            next_subtask_processing_index, subtask_to_process = next(subtasks, subtask_processing_index)
+
+            -- should circle back to prevoiusly skipped subtasks if any
+            if next_subtask_processing_index == nil then
+                self.subtask_processing_index = nil
+                self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
+                return
+            end
+
+            has_valid_entities = self:ensureHasValidEntities(subtask_to_process)
+            if not has_valid_entities then
+                self:log("Subtask " .. next_subtask_processing_index .. "has no valid entities, deleting it")
+                subtasks[next_subtask_processing_index] = nil
+                self.subtask_processing_index = nil
+                self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
+                return
+            end
             self.subtask_processing_index = next_subtask_processing_index
             self:log("Now processing subtaks " .. next_subtask_processing_index)
+            ECU:startProcessingSubtask(subtask_to_process)
             self:changeState(constants.TASK_STATES.ASSIGNED) -- looping back
             return
         else
