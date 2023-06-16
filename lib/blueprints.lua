@@ -77,25 +77,91 @@ function solveBoundingBoxSubdivision(bounding_box, max_side_length)
     local subtask_height = max_side_length
     local side_x_ceil = math.ceil(bb_width/subtask_width)
     local side_y_ceil = math.ceil(bb_height/subtask_height)
-    local subtasks = {}
-    local subtask_left_top_x
-    local subtask_left_top_y
-    local subtask_right_bottom_x
-    local subtask_right_bottom_y
 
-    for i=1, side_x_ceil do
-        for j=1, side_y_ceil do
-            subtask_left_top_x = bounding_box.left_top.x + subtask_width*(i-1)
-            subtask_left_top_y = bounding_box.left_top.y + subtask_height*(j-1)
-            subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*i
-            subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*j
-            table.insert(subtasks, createSubtask({
+
+
+    local traverse_outer_layer_counterclockwise = function (ii, jj, h, w)
+        local subtask_sequence = {}
+        local subtask_left_top_x
+        local subtask_left_top_y
+        local subtask_right_bottom_x
+        local subtask_right_bottom_y
+
+        -- traversing from left top to left bottom
+        for t=1,h do
+            subtask_left_top_x = bounding_box.left_top.x + subtask_width*(ii-1)
+            subtask_left_top_y = bounding_box.left_top.y + subtask_height*(jj-1)
+            subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*ii
+            subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*jj
+            table.insert(subtask_sequence, createSubtask({
+                left_top={x=subtask_left_top_x, y=subtask_left_top_y},
+                right_bottom={x=subtask_right_bottom_x, y=subtask_right_bottom_y}
+            }))
+            jj = jj + 1
+        end
+        jj = jj - 1
+
+        -- traversing from left bottom to right bottom
+        for t=1,w-1 do
+            ii = ii + 1
+            subtask_left_top_x = bounding_box.left_top.x + subtask_width*(ii-1)
+            subtask_left_top_y = bounding_box.left_top.y + subtask_height*(jj-1)
+            subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*ii
+            subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*jj
+            table.insert(subtask_sequence, createSubtask({
                 left_top={x=subtask_left_top_x, y=subtask_left_top_y},
                 right_bottom={x=subtask_right_bottom_x, y=subtask_right_bottom_y}
             }))
         end
+
+        -- traversing from right bottom to right top
+        for t=1,h-1 do
+            jj = jj - 1
+            subtask_left_top_x = bounding_box.left_top.x + subtask_width*(ii-1)
+            subtask_left_top_y = bounding_box.left_top.y + subtask_height*(jj-1)
+            subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*ii
+            subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*jj
+            table.insert(subtask_sequence, createSubtask({
+                left_top={x=subtask_left_top_x, y=subtask_left_top_y},
+                right_bottom={x=subtask_right_bottom_x, y=subtask_right_bottom_y}
+            }))
+        end
+
+        -- traversing from right top up to starting point
+        for t=1,w-2 do
+            ii = ii - 1
+            subtask_left_top_x = bounding_box.left_top.x + subtask_width*(ii-1)
+            subtask_left_top_y = bounding_box.left_top.y + subtask_height*(jj-1)
+            subtask_right_bottom_x = bounding_box.left_top.x + subtask_width*ii
+            subtask_right_bottom_y = bounding_box.left_top.y + subtask_height*jj
+            table.insert(subtask_sequence, createSubtask({
+                left_top={x=subtask_left_top_x, y=subtask_left_top_y},
+                right_bottom={x=subtask_right_bottom_x, y=subtask_right_bottom_y}
+            }))
+        end
+        return subtask_sequence
+
     end
-    return subtasks
+
+    local traverse_subtasks_counterclockwise
+    traverse_subtasks_counterclockwise = function (start_i, start_j, h, w)
+
+        local subtask_sequence = traverse_outer_layer_counterclockwise(start_i, start_j, h, w)
+
+        local next_i, next_j, next_h, next_w = start_i + 1, start_j + 1, h - 2, w - 2
+        if next_h < 1 or next_w < 1 then
+            return subtask_sequence
+        else
+            local inner_subtask_sequence = traverse_subtasks_counterclockwise(next_i, next_j, next_h, next_w)
+            for _, s in pairs(inner_subtask_sequence) do
+                table.insert(subtask_sequence, s)
+            end
+            return subtask_sequence
+        end
+    end
+
+    return traverse_subtasks_counterclockwise(1, 1, side_y_ceil, side_x_ceil)
+    
 end
 
 function attributeGhostsToSubtask(ghosts, subtasks)
