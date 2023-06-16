@@ -14,25 +14,29 @@ function createSubtask(bounding_box)
     }
 end
 
-function calculateActualCostToBuild(entities)
+function calculateCostToBuild(entities)
     local cost_to_build = {}
-    local item
-    local item_to_place
-    local e_name
-    local count
-    for _, e in pairs(entities) do
-        item_to_place = e.ghost_prototype.items_to_place_this[1]
-        e_name = item_to_place.name
+    local item_to_place, item_name, count
+    for _, entity in pairs(entities) do
+        item_to_place = entity.ghost_prototype.items_to_place_this[1]
+        item_name = item_to_place.name
         count = item_to_place.count
-        item = getOriginalEntityName(e_name)
-        if cost_to_build[item] == nil then
-            cost_to_build[item] = count
-        else
-            cost_to_build[item] = cost_to_build[item] + count
-        end
+        cost_to_build[item_name] = (cost_to_build[item_name] or 0) + count
     end
     return cost_to_build
 end
+
+function convertDummyCostToActualCost(cost_to_build)
+    local real_item_name
+    for item, cost in pairs(cost_to_build) do
+        real_item_name = getOriginalEntityName(item)
+        if item ~= real_item_name then
+            cost_to_build[item] = nil
+            cost_to_build[real_item_name] = cost
+        end
+    end
+    return cost_to_build
+end 
 
 function findBlueprintBoundigBox(entities)
     local left_top_x = math.huge

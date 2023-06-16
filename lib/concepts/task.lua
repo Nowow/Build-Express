@@ -152,6 +152,8 @@ end
 function Task:populateSubtasks()
     local entities = self.entities
     local subtasks = self.subtasks
+    local item_to_place, item_name, count
+
     for i, entity in pairs(entities) do
         if not entity.valid then
             entities[i] = nil
@@ -170,10 +172,18 @@ function Task:populateSubtasks()
             for _, subtask in pairs(subtasks) do
                 if rectangleOverlapsRectangle(entity_bb, subtask.bounding_box) then
                     table.insert(subtask.entities, entity)
+                    item_to_place = entity.ghost_prototype.items_to_place_this[1]
+                    item_name = item_to_place.name
+                    count = item_to_place.count
+                    subtask.cost_to_build[item_name] = (subtask.cost_to_build[item_name] or 0) + count
                     local placed_landfill_ghosts = self.tiles[entity.unit_number]
                     if placed_landfill_ghosts and #placed_landfill_ghosts > 0 then
                         for j=1, #placed_landfill_ghosts do
                             table.insert(subtask.entities, placed_landfill_ghosts[j])
+                            item_to_place = entity.ghost_prototype.items_to_place_this[1]
+                            item_name = item_to_place.name
+                            count = item_to_place.count
+                            subtask.cost_to_build[item_name] = (subtask.cost_to_build[item_name] or 0) + count
                         end
                     end
                     break
@@ -184,7 +194,8 @@ function Task:populateSubtasks()
     self:log("Entity attribution finished, subtask statistics:")
     local checksum = 0
     for i, subtask in pairs(subtasks) do
-        local entities_count = table_size(subtask.entities)
+        subtask.cost_to_build = convertDummyCostToActualCost(subtask.cost_to_build)
+        local entities_count = table_size(subtask.entities)    
         checksum = checksum + entities_count
         self:log("subtask id: " .. i .. ", entities count: " .. entities_count)
     end

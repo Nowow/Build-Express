@@ -107,7 +107,8 @@ script.on_event(defines.events.on_tick, function(event)
             })
             blueprint.set_blueprint_entities(blueprint_entities)
             if next(built_ghost_dummies) ~= nil then
-                local cost_to_build = calculateActualCostToBuild(built_ghost_dummies)
+                local cost_to_build = calculateCostToBuild(built_ghost_dummies)
+                cost_to_build = convertDummyCostToActualCost(cost_to_build)
                 local payload = {
                     player_index=player_index,
                     type=constants.TASK_TYPES.BUILD,
