@@ -120,7 +120,7 @@ script.on_event("test-custom-hotkey", function(event)
     end
 end)
 
---     -- user triggered keyboard shortcut
+-- --     -- user triggered keyboard shortcut
 -- script.on_event("test-custom-hotkey-a", function(event)
 --     game.print("CUSTOM HOTKEY A TRIGGERED")
 --     -- local goal = event.cursor_position
@@ -130,12 +130,28 @@ end)
 --     local cursor_position = event.cursor_position
 --     local surface = player.surface
 --     local bb = {
---         left_top={cursor_position.x-20, cursor_position.y-20},
---         right_bottom={cursor_position.x+20, cursor_position.y+20},
+--         left_top={x=cursor_position.x-100, y=cursor_position.y-100},
+--         right_bottom={x=cursor_position.x+100, y=cursor_position.y+100},
 --     }
 
---     printSpiderLogisticCell(player.selected, cursor_position)
+--     local subs = solveBoundingBoxSubdivision(bb, 30)
 
+--     for i, s in pairs(subs) do
+--         local bounding_box = s.bounding_box
+--         hightligtBoundingBox(s.bounding_box, {r = math.random(), g = math.random(), b = math.random()})
+--         rendering.draw_text({
+--             text="SUBTASK " .. i,
+--             surface = surface,
+--             target = {
+--                 x=bounding_box.left_top.x + (bounding_box.right_bottom.x - bounding_box.left_top.x)/2,
+--                 y=bounding_box.left_top.y + (bounding_box.right_bottom.y - bounding_box.left_top.y)/2,
+--             },
+--             color={r=0,g=1,b=1},
+--             scale=3.0,
+--             time_to_live=1200
+--         })
+--     end
+    
 --     -- local tiles = player.surface.find_tiles_filtered{
 --     --     area = bb,
 --     --     collision_mask="water-tile",
