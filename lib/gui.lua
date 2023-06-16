@@ -14,16 +14,18 @@ function get_player_screen(player_index)
 end
 
 function update_task_frame(task, destroy)
+    destroy = destroy or false
     local screen_element = get_player_screen(task.player_index)
     local task_flow = screen_element.buex_main_frame.buex_gui_tabs.buex_tasks_scroll_pane.buex_tasks_flow
     local old_task_frame = task_flow["buex_task_frame_" .. task.id]
 
-    if old_task_frame ~= nil then old_task_frame.destroy() end
-
-    if not destroy then
+    if destroy then
+        if old_task_frame ~= nil then old_task_frame.destroy() end
+    else
+        if old_task_frame ~= nil then old_task_frame.clear() end
         createTaskFrame(task, task_flow)
     end
-
+    
 end
 
 function createTestWidget(player_index)
@@ -59,20 +61,26 @@ function createTestWidget(player_index)
     local tasks_flow = tasks_scroll_pane.add{type="flow", name="buex_tasks_flow", direction="vertical"}
 
     tasks_flow.style.width  = 510 
-    tasks_flow.style.height = 400
+    --tasks_flow.style.height = 400
+    tasks_flow.style.natural_height = 400
+    tasks_flow.style.maximal_height = 1500
     tasks_flow.style.horizontal_align = 'center'
+    tasks_flow.style.vertically_stretchable = true
     
 
     tabs.add_tab(tasks_tab, tasks_scroll_pane)
 
 end
 
-function createTaskFrame(task, task_flow)
+function createTaskFrame(task, task_flow, from_scratch)
 
-    local task_frame = task_flow.add{type="frame", name="buex_task_frame_".. task.id, direction="horizontal"}
-    task_frame.style.height = 77
-    task_frame.style.width = 500
-    
+
+    local task_frame = task_flow["buex_task_frame_" .. task.id]
+    if not task_frame then
+        task_frame = task_flow.add{type="frame", name="buex_task_frame_".. task.id, direction="horizontal"}
+        task_frame.style.height = 77
+        task_frame.style.width = 500
+    end
 
     local task_table = task_frame.add{
         name="buex_task_table_" .. task.id, type="table",
