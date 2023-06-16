@@ -28,12 +28,13 @@ function pathfinder.request_path(params)
     
     local surface = unit.surface
     local pathing_collision_mask = params.pathing_collision_mask or {"water-tile", "consider-tile-transitions", "colliding-with-tiles-only", "not-colliding-with-itself"}
-    local bounding_box = params.bounding_box or {{0.0, 0.0}, {0.0, 0.0}}
+    --local bounding_box = params.bounding_box or {{0.0, 0.0}, {0.0, 0.0}}
+    local bounding_box = params.bounding_box or  {{-0.015, -0.015}, {0.015, 0.015}}
     -- if landfill_job then
     --     bounding_box = {{-0.015, -0.015}, {0.015, 0.015}}
     --     path_resolution_modifier = 0
     -- end
-    local path_resolution_modifier = -2
+    local path_resolution_modifier = 0
     local id = surface.request_path({
         bounding_box=bounding_box,
         collision_mask=pathing_collision_mask,
