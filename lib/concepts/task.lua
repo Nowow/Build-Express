@@ -19,6 +19,7 @@ local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 ---@field cost_to_build table
 ---@field bounding_box table
 ---@field subtasks table
+---@field subtask_iterator function
 ---@field active_subtask integer
 ---@field building_spot unknown
 ---@field worker unknown
@@ -147,6 +148,21 @@ function Task:generateSubtasks()
     self.subtasks = subtasks
     self.subtask_count = #subtasks
     self:log("Subdivision finished, total subtasks: " .. self.subtask_count)
+end
+
+function Task:getSubtaskIterator()
+    local subtasks = self.subtasks
+    local i
+    local subtask
+    local n = table_size(subtasks)
+    self:log("Going to iterate over subtasks, subtask count before invalidation: " .. n)
+
+    local iter_f
+    iter_f = function ()
+        i, subtask = next(subtasks, i)
+        return subtask
+    end
+    return iter_f
 end
 
 function Task:populateSubtasks()
