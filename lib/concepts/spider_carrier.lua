@@ -88,11 +88,17 @@ log("Trying to collect spider")
 function SpiderCarrier:startCollectSpider()
     local spider = self.spider
     local wagon = self.wagon
+    if not spider then
+        log("Spider is nil!")
+        return
+    end
     if not spider.valid then
         log("Spider is not valid!")
+        return
     end
     if not wagon.valid then
         log("Wagon is not valid!")
+        return
     end
     local start = self:getSpiderPathStartPosition()
     local goal = wagon.position
@@ -123,6 +129,35 @@ function SpiderCarrier:findNearestSpider()
     end
     log("Spider Carrier found no spiders nearby")
     return false
+end
+
+function SpiderCarrier:checkIfSpiderIsReachable()
+    log("Checking if spider is reachable")
+    local spider = self.spider
+    local wagon = self.wagon
+    if not spider then
+        log("Spider is nil!")
+        return
+    end
+    if not spider.valid then
+        log("Spider is not valid!")
+        return
+    end
+    if not wagon.valid then
+        log("Wagon is not valid!")
+        return
+    end
+
+    local proxy = self:spawnProxy()
+    local can_reach = proxy.can_reach_entity(spider)
+    proxy.destroy()
+    if can_reach then
+        log("Spider is reachable!!!")
+    else
+        log("Spider is not reachable yet...")
+    end
+    return can_reach
+    
 end
 
 function SpiderCarrier:storeSpider()
