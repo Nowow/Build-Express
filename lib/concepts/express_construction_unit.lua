@@ -151,6 +151,7 @@ function ExpressConstructionUnit:deploy(resource_cost)
     -- inserting resources for blueprint
     local cost_modifier = settings.global["ecu-building-cost-modifier"].value
     log("Cost modifier is: " .. cost_modifier)
+
     for item, count in pairs(resource_cost) do
         log("Inserting item " .. item)
         if item ~= "construction-robot" and item ~= "cliff-explosives" then
@@ -184,6 +185,12 @@ end
 
 function ExpressConstructionUnit:subtaskProcessingCallback(result)
     self.subtask_processing_result = result
+end
+
+function ExpressConstructionUnit:moveSpiderToCarrier()
+    log("ECU got order to move active carrier to carrier")
+    local active_carrier = self.active_carrier
+    active_carrier:startCollectSpider()
 end
 
 function ExpressConstructionUnit:orderRetractSpider()
