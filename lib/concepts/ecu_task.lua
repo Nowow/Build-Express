@@ -273,6 +273,16 @@ function EcuTask:ASSIGNED()
     end
 end
 
+function EcuTask:RESUPPLYING()
+    local ECU = self.worker
+    if not ECU then
+        self:log("Cant resupply because no ECU, ALARM!")
+        self:changeState(constants.TASK_STATES.RESUPPLYING)
+        return
+    end
+    
+end
+
 function EcuTask:TERMINATING()
     local ECU = self.worker
     if not ECU then
