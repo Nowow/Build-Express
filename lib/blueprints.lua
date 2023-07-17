@@ -28,14 +28,12 @@ end
 
 function convertDummyCostToActualCost(cost_to_build)
     local real_item_name
+    local converted_cost = {}
     for item, cost in pairs(cost_to_build) do
         real_item_name = getOriginalEntityName(item)
-        if item ~= real_item_name then
-            cost_to_build[item] = nil
-            cost_to_build[real_item_name] = cost
-        end
+        converted_cost[real_item_name] = cost
     end
-    return cost_to_build
+    return converted_cost
 end 
 
 function findBlueprintBoundigBox(entities)
