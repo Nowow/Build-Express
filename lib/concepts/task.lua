@@ -168,18 +168,19 @@ end
 function Task:populateSubtasks()
     local entities = self.entities
     local subtasks = self.subtasks
-    local item_to_place, item_name, count
+    local item_to_place, item_name, count, entity_type, entity_bb
 
     for i, entity in pairs(entities) do
         if not entity.valid then
             entities[i] = nil
         else
-            local entity_type = entity.type
-            local entity_bb
+            entity_type = entity.type
             if entity_type == 'entity-ghost' then
                 entity_bb = entity.ghost_prototype.selection_box
+                item_to_place = entity.ghost_prototype.items_to_place_this[1]
             else
                 entity_bb = entity.prototype.selection_box
+                item_to_place = entity.prototype.items_to_place_this[1]
             end
             entity_bb.left_top.x = entity_bb.left_top.x + entity.position.x
             entity_bb.left_top.y = entity_bb.left_top.y + entity.position.y
@@ -188,7 +189,6 @@ function Task:populateSubtasks()
             for _, subtask in pairs(subtasks) do
                 if rectangleOverlapsRectangle(entity_bb, subtask.bounding_box) then
                     table.insert(subtask.entities, entity)
-                    item_to_place = entity.ghost_prototype.items_to_place_this[1]
                     item_name = item_to_place.name
                     count = item_to_place.count
                     subtask.cost_to_build[item_name] = (subtask.cost_to_build[item_name] or 0) + count
