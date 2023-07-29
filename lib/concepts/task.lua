@@ -379,6 +379,9 @@ function Task:invalidateTaskEntities()
     local active_subtask_index = self.active_subtask_index
     local subtask = self.subtasks[self.active_subtask_index]
     local subtask_entities = subtask.entities
+    local current_subtask_cost = {}
+    local item_to_place, item_name, count
+
     hightligtBoundingBox(subtask.bounding_box, {r = 0, g = 0, b = 1})
     local subtask_finished = true
     local task_type = self.type
@@ -390,10 +393,15 @@ function Task:invalidateTaskEntities()
             if ghost.valid then
                 hightlightEntity(ghost, 2)
                 subtask_finished = false
+                item_to_place = ghost.ghost_prototype.items_to_place_this[1]
+                item_name = item_to_place.name
                 local is_water_ghost = util.string_starts_with(ghost.ghost_name, constants.dummyPrefix)
                 if is_water_ghost then
                     replaceDummyEntityGhost(ghost)
+                    item_name = getOriginalEntityName(item_name)
                 end
+                count = item_to_place.count
+                current_subtask_cost[item_name] = (current_subtask_cost[item_name] or 0) + count
             else
                 subtask_entities[j] = nil
             end
@@ -403,6 +411,7 @@ function Task:invalidateTaskEntities()
             self:log("Some ghosts got invalidated for subtask " .. active_subtask_index)
             self:log("Was ghosts: " .. start_subbtask_ghosts .. " | Left ghosts " .. end_subtask_ghosts)
         end
+        subtask.cost_to_build = current_subtask_cost
 
     elseif task_type == constants.TASK_TYPES.DECONSTRUCT then
         local start_subbtask_entities = table_size(subtask_entities)
@@ -488,12 +497,6 @@ function Task:callbackWhenTrainCreated(old_train_id, new_train)
     
 end
 
-function Task:addFixedCosts()
-    local cost_to_build = self.cost_to_build
-    cost_to_build["construction-robot"] = constants.construction_robot_fixed_cost
-    cost_to_build["cliff-explosives"] = constants.cliff_explosives_cost
-end
-
 ------------------------------------------------------------------
 -----TASK FLOW
 ------------------------------------------------------------------
@@ -503,7 +506,6 @@ function Task:TASK_CREATED()
     if self.type == constants.TASK_TYPES.BUILD then
         self:tileWaterGhosts()
     end
-    self:addFixedCosts()
     self:changeState(constants.TASK_STATES.UNASSIGNED)
 end
 
