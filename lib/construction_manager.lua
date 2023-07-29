@@ -324,8 +324,17 @@ script.on_nth_tick(36, function(event)
     task:BUILDING()
 end)
 
--- termination
 script.on_nth_tick(37, function(event)
+    if next(global.construction_tasks.RESUPPLYING.data) == nil then
+        return
+    end
+
+    local task = global.construction_tasks.RESUPPLYING:pop()
+    task:RESUPPLYING()
+end)
+
+-- termination
+script.on_nth_tick(38, function(event)
     if next(global.construction_tasks.TERMINATING.data) == nil then
         return
     end
