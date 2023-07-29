@@ -10,6 +10,10 @@ local build_express_tech = {
       {
         type = "unlock-recipe",
         recipe = constants.buex_depot_name
+      },
+      {
+        type = "unlock-recipe",
+        recipe = constants.buex_locomotive
       }
     },
     prerequisites = {"personal-roboport-equipment", "railway", "ct-construction-train"},

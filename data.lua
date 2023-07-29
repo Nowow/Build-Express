@@ -4,6 +4,7 @@ require("prototypes.spider_carrier")
 require("prototypes.proxy")
 require("prototypes.fonts")
 require("prototypes.technology")
+require("prototypes.locomotive")
 
 --buex-ghost-on-water
 --load groups

@@ -39,6 +39,8 @@ constants.CAPTURE_MODES = {
 --trains
 constants.ct_construction_wagon_name = "ct-construction-wagon"
 constants.buex_depot_name = "buex-depot"
+constants.buex_locomotive = "buex-locomotive"
+
 
 -- spiders
 constants.spider_carrier_prototype_name = 'buex-spider-carrier-wagon'
