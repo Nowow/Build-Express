@@ -7,6 +7,7 @@ local constants = require("constants")
 ---@field active_carrier SpiderCarrier
 ---@field parked boolean
 ---@field subtask_processing_result boolean
+---@field state string
 ---@field wrapping_up boolean
 ---@field going_home boolean
 ExpressConstructionUnit = {}
@@ -135,6 +136,72 @@ function ExpressConstructionUnit:orderFindSpiders()
     return at_least_one_spider_stored
 end
 
+
+function ExpressConstructionUnit:attemptInsertInSpider(train, spider, item, count)
+    log("Inserting item " .. item .. " in amount " .. count)
+    local available_in_train = train.get_item_count(item)
+    if available_in_train > 0 then
+        if available_in_train < count then
+            log("There was not enough, required: " .. count .. ', available: ' .. available_in_train)
+            count=available_in_train
+        end
+        local actually_inserted = spider.insert({name=item, count=count})
+        train.remove_item({name=item, count=math.min(count, actually_inserted)})
+        if actually_inserted ~= count then
+            log("Inserted less than was planning, " .. count .. ' ' .. actually_inserted)
+        end
+    else
+        log("There is no such item in ECU!")
+    end
+end
+
+function ExpressConstructionUnit:supplyInventory()
+    local train = self.train
+    local spider = self.active_carrier.spider
+
+    local spider_grid = spider.grid
+    local total_robot_limit = 0
+    for name, limit in pairs(global.roboport_prototypes) do
+        total_robot_limit = total_robot_limit + (spider_grid.count(name) * limit)
+    end
+    local robot_cost = math.min(train.get_item_count("construction-robot") or 0, total_robot_limit)
+    if robot_cost == 0 then
+        log("ECU has no robots to supply!")
+    end
+    local explosives_cost = constants.cliff_explosives_cost
+    self:attemptInsertInSpider(train, spider, 'construction-robot', robot_cost)
+    self:attemptInsertInSpider(train, spider, 'cliff-explosives', explosives_cost)
+
+end
+
+function ExpressConstructionUnit:supplyResources(resource_cost)
+    local cost_modifier = settings.global["ecu-building-cost-modifier"].value
+    log("Cost modifier is: " .. cost_modifier)
+
+    local train = self.train
+    local spider = self.active_carrier.spider
+
+    for item, count in pairs(resource_cost) do
+        count = math.floor(count*cost_modifier)
+        self:attemptInsertInSpider(train, spider, item, count)
+    end
+end
+
+function ExpressConstructionUnit:emptySpiderInventory()
+    local train = self.train
+    local spider = self.active_carrier.spider
+    local spider_inv = spider.get_inventory(defines.inventory.spider_trunk)
+
+    local spider_inv_contents = spider_inv.get_contents()
+    spider_inv_contents['construction-robot'] = nil
+    spider_inv_contents['cliff-explosives'] = nil
+
+    for item, count in pairs(spider_inv_contents) do
+        spider_inv.remove({name=item, count=count})
+        train.insert({name=item, count=count})
+    end
+end
+
 function ExpressConstructionUnit:deploy(resource_cost)
     local active_carrier = self.active_carrier
     active_carrier:releaseSpider()
@@ -144,35 +211,18 @@ function ExpressConstructionUnit:deploy(resource_cost)
     local train = self.train
     local spider = active_carrier.spider
 
-    -- overwriting robots cost to resource transfer
-    local available_robots = train.get_item_count("construction-robot")
-    resource_cost["construction-robot"] = available_robots
-    
-    -- inserting resources for blueprint
-    local cost_modifier = settings.global["ecu-building-cost-modifier"].value
-    log("Cost modifier is: " .. cost_modifier)
+    self:supplyInventory()
+    self:supplyResources(resource_cost)
+end
 
-    for item, count in pairs(resource_cost) do
-        log("Inserting item " .. item)
-        if item ~= "construction-robot" and item ~= "cliff-explosives" then
-            count = math.floor(count*cost_modifier)
-        end
-        local available_in_train = train.get_item_count(item)
-        if available_in_train > 0 then
-            if available_in_train < count then
-                log("There was not enough, required: " .. count .. ', available: ' .. available_in_train)
-                count=available_in_train
-            end
-            local actually_inserted = spider.insert({name=item, count=count})
-            train.remove_item({name=item, count=math.min(count, actually_inserted)})
-            if actually_inserted ~= count then
-                log("Inserted less than was planning, " .. count .. ' ' .. actually_inserted)
-            end
-        else
-            log("There is no such item in ECU!")
-        end
-        
-    end
+function ExpressConstructionUnit:resupply(resource_cost)
+    local train = self.train
+    local spider = self.active_carrier.spider
+    local spider_inv = spider.get_inventory(defines.inventory.spider_trunk)
+
+    self:emptySpiderInventory()
+    self:supplyResources(resource_cost)
+
 end
 
 function ExpressConstructionUnit:startProcessingSubtask(subtask)
@@ -188,7 +238,7 @@ function ExpressConstructionUnit:subtaskProcessingCallback(result)
 end
 
 function ExpressConstructionUnit:moveSpiderToCarrier()
-    log("ECU got order to move active carrier to carrier")
+    log("ECU got order to move spider to active carrier")
     local active_carrier = self.active_carrier
     active_carrier:startCollectSpider()
 end
