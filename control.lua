@@ -33,6 +33,15 @@ function initGlobal()
     if emptySpaceTileCollisionLayerPrototype then
         global.emptySpaceCollsion = table_lib.first(table_lib.keys(emptySpaceTileCollisionLayerPrototype.collision_mask))
     end
+
+    global.roboport_prototypes = {}
+    local robot_limit
+    for name, prototype in pairs(game.equipment_prototypes) do
+        if prototype.type == "roboport-equipment" then
+            robot_limit = prototype.logistic_parameters.robot_limit
+            global.roboport_prototypes[name] = robot_limit
+        end
+    end
 end 
 
 script.on_configuration_changed(function(data)
