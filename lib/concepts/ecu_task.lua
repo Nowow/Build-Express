@@ -273,6 +273,62 @@ function EcuTask:ASSIGNED()
     end
 end
 
+function EcuTask:BUILDING()
+    
+    local subtask_finished = self:invalidateTaskEntities()
+
+    -- removing subtask and either restarting loop or task is finished
+    if subtask_finished then
+        self.subtasks[self.active_subtask_index] = nil
+        self.active_subtask_index = nil
+        self.building_spot = nil --for regular tasks only, may be outdated
+        self.timer_tick = nil
+        if next(self.subtasks) == nil then
+            -- task is finished, sending back to depot
+            self:log("Puttin task into TERMINATION due to completion")
+            self:changeState(constants.TASK_STATES.TERMINATING)
+        else
+            -- rerun loop, complete new subtask
+            self:log("Subtasks left: " .. table_size(self.subtasks))
+            self:log("Looping task back to ASSIGNED")
+            self:changeState(constants.TASK_STATES.ASSIGNED)
+        end
+    else
+        local worker = self.worker
+        
+        -- determining whether resupply is necessary
+        local spider = worker.active_carrier.spider
+        if spider == nil then
+            self:log("No spider present during BUILDING, wtf")
+        else
+            local spider_contents = spider.get_inventory(defines.inventory.spider_trunk).get_contents()
+            local subtask = self.subtasks[self.active_subtask_index]
+            local spider_available_count
+            for item, count in pairs(subtask.cost_to_build) do
+                self:log("Assessing if spider has enought of: " .. item)
+                spider_available_count = spider_contents[item] or 0
+                self:log("Spider has: " .. spider_available_count .. ", current cost: " .. count)
+                if count > spider_available_count then
+                    self:log("RESUPPLY IS IN ORDER!")
+                    worker:moveSpiderToCarrier()
+                    self:changeState(constants.TASK_STATES.RESUPPLYING)
+                    return
+                end
+            end
+        end
+        
+        local building_spot = self.building_spot
+        if building_spot ~= nil then
+            local building_spot_scheduled = isBuildingSpotInSchedule(worker, building_spot)
+            if not building_spot_scheduled then
+                self:log("Worker had no stop at building spot, redispatching it")
+                self:dispatchWorkerToNextStop()
+            end
+        end
+        self:changeState(constants.TASK_STATES.BUILDING)
+    end
+end
+
 function EcuTask:RESUPPLYING()
     local ECU = self.worker
     if not ECU then
@@ -280,6 +336,18 @@ function EcuTask:RESUPPLYING()
         self:changeState(constants.TASK_STATES.RESUPPLYING)
         return
     end
+    local spider_carrier = ECU.active_carrier
+    local spider_is_near = spider_carrier:checkIfSpiderIsReachable()
+    if not spider_is_near then
+        self:log("Resupplying, but spider is not yet near")
+        self:changeState(constants.TASK_STATES.RESUPPLYING)
+        return
+    end
+    self:log("Spider is near carrier, trying to insert whats left of subtask")
+    ECU:resupply()
+    spider_carrier:navigateSpiderToSubtask()
+    self:log("Resupply finished, sending spider back to subtask")
+    self:changeState(constants.TASK_STATES.BUILDING)
     
 end
 
