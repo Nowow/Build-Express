@@ -215,12 +215,20 @@ function ExpressConstructionUnit:deploy(resource_cost)
     self:supplyResources(resource_cost)
 end
 
-function ExpressConstructionUnit:resupply(resource_cost)
-    local train = self.train
-    local spider = self.active_carrier.spider
-    local spider_inv = spider.get_inventory(defines.inventory.spider_trunk)
+function ExpressConstructionUnit:resupply(args)
+    local empty_spider = args.empty_spider
+    empty_spider = true and empty_spider == nil or empty_spider
 
-    self:emptySpiderInventory()
+    local resource_cost = args.resource_cost
+    if resource_cost == nil then
+        log("Resupplying, but no resource cost provided")
+        resource_cost = {}
+    end
+
+    if empty_spider then
+        log("Emptying spider during resupply")
+        self:emptySpiderInventory()
+    end
     self:supplyResources(resource_cost)
 
 end

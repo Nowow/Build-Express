@@ -344,8 +344,12 @@ function EcuTask:RESUPPLYING()
         return
     end
     self:log("Spider is near carrier, trying to insert whats left of subtask")
-    ECU:resupply()
-    spider_carrier:navigateSpiderToSubtask()
+    ECU:resupply({
+        resource_cost=self.cost_to_build,
+        empty_spider=true
+    })
+    local current_subtask = self.subtasks[self.active_subtask_index]
+    spider_carrier:navigateSpiderToSubtask(current_subtask)
     self:log("Resupply finished, sending spider back to subtask")
     self:changeState(constants.TASK_STATES.BUILDING)
     
