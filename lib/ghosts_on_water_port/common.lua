@@ -1,8 +1,8 @@
 local constants = require('constants')
+local prefix_len = string.len(constants.dummyPrefix)
 
 function getOriginalEntityName(dummyEntityName)
     --get the original entity name from the dummy entity name
-    local prefix_len = string.len(constants.dummyPrefix)
     if string.sub(dummyEntityName, 1, prefix_len)==constants.dummyPrefix then
         return string.sub(dummyEntityName, string.len(constants.dummyPrefix) + 1)
     end
