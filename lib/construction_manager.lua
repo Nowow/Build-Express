@@ -3,6 +3,7 @@ require("lib.trains")
 require("lib.blueprints")
 require("lib.gui")
 require("lib.station_manager")
+require("lib.train_register")
 require("lib.concepts.task_queue")
 require("lib.concepts.task")
 require("lib.concepts.ecu_task")
@@ -482,22 +483,23 @@ end)
 
 script.on_event(defines.events.on_built_entity, function(event)
 
-    if event.created_entity.prototype.name == constants.buex_depot_name then
+    local created_entity = event.created_entity
+    local prototype_name = created_entity.prototype.name
 
-        local entity = event.created_entity
-        registerWorkerStation(entity)
-        --createBlueprintFrames(event.player_index)
+    if prototype_name == constants.buex_depot_name then
+        registerWorkerStation(created_entity)
         return
-
     end
     
     local player_index = event.player_index
     local destroy_ghost = global.blueprint_posted_trigger[player_index]
-    local created_entity = event.created_entity
 
     if destroy_ghost and created_entity.valid then created_entity.destroy() return end
 
-end, {{filter = "ghost"}, {filter = 'name', name = constants.buex_depot_name}})
+end, {
+    {filter = "ghost"},
+    {filter = 'name', name = constants.buex_depot_name}
+})
 
 script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     local player_index = event.player_index
@@ -515,3 +517,14 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
     end
 
 end)
+
+-- script.on_event(defines.events.on_robot_built_entity, function(event)
+--     local created_entity = event.created_entity
+--     local prototype_name = created_entity.prototype.name
+
+--     if prototype_name == constants.buex_locomotive then
+--         game.print("AAAAAAAA!")
+--     end
+
+-- end, {{filter = 'name', name = constants.buex_locomotive}})
+
