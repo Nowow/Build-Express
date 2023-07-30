@@ -95,17 +95,3 @@ function reregisterAllStations()
         end
     end
 end
-
-script.on_event(defines.events.on_train_created, function(event)
-
-    local train = event.train
-    local old_1 = event.old_train_id_1
-    local old_2 = event.old_train_id_2
-    if old_1 then
-        trainCreatedCallback(old_1, train)
-    end
-    if old_2 then
-        trainCreatedCallback(old_2, train)    
-    end
-    
-end)
