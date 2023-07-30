@@ -5,6 +5,7 @@ require("lib.blueprints")
 require("lib.construction_manager")
 require("lib.gui")
 require("lib.station_manager")
+require("lib.train_register")
 require("lib.ghosts_on_water_port.water_dummies_replacer")
 
 local constants = require("constants")
@@ -18,6 +19,8 @@ if script.active_mods["gvv"] then require("__gvv__.gvv")() end
 function initGlobal()
 
     initWorkerStationRegister()
+
+    initTrainRegister()
 
     initConstructionTasks()
 
