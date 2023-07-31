@@ -11,21 +11,20 @@ end
 
 TrainRegister = {}
 
+TrainRegister.checkIfTrainInRegister = function (train_id)
+    return global.train_register.free[train_id] ~= nil or global.train_register.busy[train_id] ~= nil
+end
+
 TrainRegister.registerTrain = function (train)
     local train_id = train.id
     log("Train Register registers train " .. train_id)
     global.train_register.free[train_id] = train
 end
 
-TrainRegister.unregisterTrain = function (train_id)
-    log("Train Register unregisters train " .. train_id)
+TrainRegister.removeTrainFromRegister = function (train_id)
+    log("Train Register removed train from register without any callbacks " .. train_id)
     global.train_register.free[train_id] = nil
-
-    local busy_record = global.train_register.busy[train_id]
-    if busy_record ~= nil then
-        log("Train " .. train_id .. " was found in busy register, calling empty callback to terminate task")
-        busy_record.callback:trainRegisterCallback(nil)
-    end
+    global.train_register.free[train_id] = nil
     
 end
 
@@ -66,19 +65,31 @@ end
 
 TrainRegister.updateRegister = function (train, old_train_id_1, old_train_id_2)
     
-    log("Brand new Build Express construnction train was registred")
-    TrainRegister.registerTrain(train)
-
+    if train then
+        TrainRegister.registerTrain(train)    
+    end
+    
     local old_train_1_busy_record = global.train_register.busy[old_train_id_1]
+    local old_train_2_busy_record = global.train_register.busy[old_train_id_2]
+    TrainRegister.removeTrainFromRegister(old_train_id_1)
+    TrainRegister.removeTrainFromRegister(old_train_id_2)
+
     if old_train_1_busy_record then
+        -- if first old train was busy on task, disregard second old train 
+        -- because in case you merged two busy Build Express trains one of respective tasks should be terminated
+        -- so probably dont do that
         log("Old train 1 was busy")
-        local callback = old_train_1_busy_record.callback
         TrainRegister.lockTrain(train.id)
-        callback:trainRegisterCallback(train)
+        old_train_1_busy_record.callback:trainRegisterCallback(train)
+
+        -- if it is indeed that case, terminating task that was utilizing second old train
+        if old_train_2_busy_record then
+            log("Terminating task that was utilizing second old train")
+            old_train_2_busy_record.callback:trainRegisterCallback(nil)
+        end
         return
     end
 
-    local old_train_2_busy_record = global.train_register.busy[old_train_id_2]
     if old_train_2_busy_record then
         log("Old train 2 was busy")
         local callback = old_train_2_busy_record.callback
@@ -96,13 +107,22 @@ script.on_event(defines.events.on_train_created, function(event)
     local old_1 = event.old_train_id_1
     local old_2 = event.old_train_id_2
 
-    local front_stock = train.front_stock
-    if not front_stock.prototype.name == constants.buex_locomotive then
-        return
+    local front_stock_buex = train.front_stock.prototype.name == constants.buex_locomotive
+    local old_trains_in_register = TrainRegister.checkIfTrainInRegister(old_1) or TrainRegister.checkIfTrainInRegister(old_2)
+    local buex_in_train = false
+    for _, stock in pairs(train.locomotives) do
+        if stock.prototype.name == constants.buex_locomotive then
+            buex_in_train = true
+            break
+        end
+    end
+    
+    if front_stock_buex then
+        log("A new Build Express train got created with id " .. train.id)
+        TrainRegister.updateRegister(train, old_1, old_2)
+    elseif old_trains_in_register and then
+        log("A new train created that is not Build Express train, but one of the old ones was")
+        TrainRegister.updateRegister(nil, old_1, old_2)
     end
 
-    log("A new Build Express train got created")
-    TrainRegister.updateRegister(train, old_1, old_2)
-
-    
 end)
