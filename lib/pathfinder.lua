@@ -68,7 +68,7 @@ function pathfinder.handle_finished_pathing_request(event)
     if event.try_again_later then
         game.print("Pathfinder was too busy!")
         if autoretry then
-            if not next_attempt > constants.max_pathfinding_attempts then
+            if not (next_attempt > constants.max_pathfinding_attempts) then
                 game.print("Trying one more time, attempt " .. next_attempt)
                 request_info.attempt = next_attempt
                 pathfinder.request_path(request_info)
