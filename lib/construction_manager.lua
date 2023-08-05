@@ -486,6 +486,10 @@ script.on_event(defines.events.on_built_entity, function(event)
     local created_entity = event.created_entity
     local prototype_name = created_entity.prototype.name
 
+    if prototype_name == constants.buex_locomotive then
+        game.print("AAAAAAAA!")
+    end
+
     if prototype_name == constants.buex_depot_name then
         registerWorkerStation(created_entity)
         return
@@ -518,13 +522,13 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 
 end)
 
--- script.on_event(defines.events.on_robot_built_entity, function(event)
---     local created_entity = event.created_entity
---     local prototype_name = created_entity.prototype.name
+script.on_event(defines.events.on_robot_built_entity, function(event)
+    local created_entity = event.created_entity
+    local prototype_name = created_entity.prototype.name
 
---     if prototype_name == constants.buex_locomotive then
---         game.print("AAAAAAAA!")
---     end
+    if prototype_name == constants.buex_locomotive then
+        game.print("AAAAAAAA!")
+    end
 
--- end, {{filter = 'name', name = constants.buex_locomotive}})
+end, {{filter = 'name', name = constants.buex_locomotive}})
 

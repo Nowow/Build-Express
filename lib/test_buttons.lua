@@ -116,6 +116,8 @@ script.on_event("test-custom-hotkey", function(event)
         global.catch_deconstruction_order = nil
         global.worker_register = nil
         
+        log(serpent.block(global.train_register.free))
+        log(serpent.block(global.train_register.busy))
         initGlobal()
     end
 end)

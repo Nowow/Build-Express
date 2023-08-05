@@ -3,6 +3,7 @@ local constants = require("constants")
 function initTrainRegister()
     if not global.train_register then
 		global.train_register = {
+            locomotives={},
             free={},
             busy={}
         }
@@ -10,6 +11,8 @@ function initTrainRegister()
 end
 
 TrainRegister = {}
+
+TrainRegister.registerLocomotive = 
 
 TrainRegister.checkIfTrainInRegister = function (train_id)
     return global.train_register.free[train_id] ~= nil or global.train_register.busy[train_id] ~= nil
@@ -108,6 +111,12 @@ script.on_event(defines.events.on_train_created, function(event)
     local old_2 = event.old_train_id_2
 
     local front_stock_buex = train.front_stock.prototype.name == constants.buex_locomotive
+    if front_stock_buex then
+        log("A new Build Express train got created with id " .. train.id)
+        TrainRegister.updateRegister(train, old_1, old_2)
+        return
+    end
+
     local old_trains_in_register = TrainRegister.checkIfTrainInRegister(old_1) or TrainRegister.checkIfTrainInRegister(old_2)
     local buex_in_train = false
     for _, stock in pairs(train.locomotives) do
@@ -117,10 +126,8 @@ script.on_event(defines.events.on_train_created, function(event)
         end
     end
     
-    if front_stock_buex then
-        log("A new Build Express train got created with id " .. train.id)
-        TrainRegister.updateRegister(train, old_1, old_2)
-    elseif old_trains_in_register and then
+    
+    if old_trains_in_register and then
         log("A new train created that is not Build Express train, but one of the old ones was")
         TrainRegister.updateRegister(nil, old_1, old_2)
     end
