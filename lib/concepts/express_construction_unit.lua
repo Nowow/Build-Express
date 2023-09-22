@@ -32,18 +32,23 @@ function ExpressConstructionUnit:setTrain(train)
     self.train = train
 end
 
-function ExpressConstructionUnit:aquireSpiderCarriers()
+function ExpressConstructionUnit:findSpiderCarriers(train)
     log("Looking for Spider Carriers")
-    local carriages = self.train.carriages
+    local carriages = train
     log("Found " .. #carriages .. "carriages")
-    local spider_carriers = self.spider_carriers
-
+    local spider_carriers = {}
     for _, carriage in pairs(carriages) do
         if carriage.name == constants.spider_carrier_prototype_name then
             local spider_carrier = SpiderCarrier:create(carriage, self)
             table.insert(spider_carriers, spider_carrier)
         end
     end
+    return spider_carriers
+end
+
+function ExpressConstructionUnit:aquireSpiderCarriers()
+    log("Trying to aquire Spider Carriers")
+    local spider_carriers = self.findSpiderCarriers(self.train)
     if #spider_carriers == 0 then
         log("No spider carriages!")
         return false
