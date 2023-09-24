@@ -12,8 +12,6 @@ end
 
 TrainRegister = {}
 
-TrainRegister.registerLocomotive = 
-
 TrainRegister.checkIfTrainInRegister = function (train_id)
     return global.train_register.free[train_id] ~= nil or global.train_register.busy[train_id] ~= nil
 end
