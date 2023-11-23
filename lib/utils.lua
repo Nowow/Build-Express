@@ -1,7 +1,13 @@
 
 function Round(v)
     return v and math.floor(v + 0.5)
-  end
+end
+
+function DistanceBetweenTwoPoints(point_a, point_b)
+    local dx = point_a.x - point_b.x
+    local dy = point_a.y - point_b.y
+    return math.sqrt(dx*dx + dy*dy)
+end
 
 function PrintTrainWhereabouts(train)
     local train_id = train.id
@@ -95,3 +101,4 @@ end
 function formatGpsString(position)
     return " at [gps=" .. position.x .. "," .. position.y .. ']'
 end
+
