@@ -25,7 +25,6 @@ local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 ---@field worker unknown
 ---@field worker_construction_radius integer
 ---@field flying_text table
----@field attempted_to_reaquire_worker boolean
 Task = {}
 Task.__index = Task
 
@@ -61,7 +60,6 @@ function Task:initialize(params)
 
     task.state=constants.TASK_STATES.TASK_CREATED
     task.flying_text=params.flying_text or {}
-    task.attempted_to_reaquire_worker = false
 end
 
 function Task:log(message)
@@ -478,23 +476,23 @@ function Task:endTask()
     global.construction_tasks[self.state]:remove(self.id)
 end
 
-function Task:callbackWhenTrainCreated(old_train_id, new_train)
+function Task:callbackWhenTrainCreated(new_train)
+    self:log("callbackWhenTrainCreated called")
+    if new_train == nil then
+        self:log("No new train provided")
+        self:log("Unable to reaquire worker after someone messed with train, terminating")
+        self.worker = nil
+        self:forceChangeState(constants.TASK_STATES.TERMINATING)
+    end
     local fits = self:checkTrainFitsTask(new_train)
     if fits then
-        self.attempted_to_reaquire_worker = false
         self.worker = new_train
-        registerTrainAsInAction(new_train, self)
-        unregisterTrainAsInAction(old_train_id)
         self:log("Reaquired worker after someone messed with train")
-    elseif self.attempted_to_reaquire_worker then
-        self:log("Unable to reaquire worker after someone messed with train, terminating")
-        unregisterTrainAsInAction(old_train_id)
-        self:forceChangeState(constants.TASK_STATES.TERMINATING)
     else
-        self:log("Unable to reaquire worker after someone messed with train, one more attempt left")
-        self.attempted_to_reaquire_worker = true
+        self:log("Unable to reaquire worker after someone messed with train, terminating")
+        self.worker = nil
+        self:forceChangeState(constants.TASK_STATES.TERMINATING)
     end
-    
 end
 
 ------------------------------------------------------------------

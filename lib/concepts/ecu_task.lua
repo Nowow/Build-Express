@@ -72,24 +72,25 @@ function EcuTask:startEndTask()
     update_task_frame(self)
 end
 
-function EcuTask:callbackWhenTrainCreated(old_train_id, new_train)
+function EcuTask:callbackWhenTrainCreated(new_train)
+    self:log("callbackWhenTrainCreated called")
+    if new_train == nil then
+        self:log("No new train provided")
+        self:log("Unable to reaquire worker after someone messed with train, terminating")
+        self.worker = nil
+        self:forceChangeState(constants.TASK_STATES.TERMINATING)
+    end
     local ECU = self.worker
     ECU:setTrain(new_train)
     local fits = ECU:aquireSpiderCarriers()
     if fits then
-        self.attempted_to_reaquire_worker = false
         self.worker = ECU
-        registerTrainAsInAction(new_train, self)
-        unregisterTrainAsInAction(old_train_id)
         self:log("Reaquired worker after someone messed with train")
-    elseif self.attempted_to_reaquire_worker then
+    else
+        self:log("ECU from provided new train does not fit for some reason, UB")
         self:log("Unable to reaquire worker after someone messed with train, terminating")
-        unregisterTrainAsInAction(old_train_id)
         self.worker = nil
         self:forceChangeState(constants.TASK_STATES.TERMINATING)
-    else
-        self:log("Unable to reaquire worker after someone messed with train, one more attempt left")
-        self.attempted_to_reaquire_worker = true
     end
 end
 
