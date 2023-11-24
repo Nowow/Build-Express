@@ -443,7 +443,7 @@ function EcuTask:TERMINATING()
         local home = ECU:checkIfBackHome()
         if home then
             ECU:deploy()
-            unregisterTrainAsInAction(ECU.train.id)
+            fleet_manager.unregisterTrainAsInAction(ECU.train.id)
             update_task_frame(self, true)
             self:log("Task wrapped up!")
             return
