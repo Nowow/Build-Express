@@ -59,7 +59,10 @@ function SpiderCarrier:getSpiderStack()
         log("Cant give spider stack because no contents in this wagon")
         return
     end
+    log("DEBUG: contents of spider wagon: " .. spider_name)
+    
     local spider_stack, _ = wagon_inv.find_item_stack(spider_name)
+    log("DEBUG: contents of spider_stack: " .. spider_stack.prototype.name)
     if not spider_stack.prototype.place_result.type == 'spider-vehicle' then
         log("Cant give spider stack because item inside is not spider!!!")
         return
