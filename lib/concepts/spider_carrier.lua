@@ -220,12 +220,12 @@ function SpiderCarrier:getSpiderPathStartPosition()
     local spider = self.spider
     local start_area = {
         left_top={
-            x=spider.position.x-3,
-            y=spider.position.y-3
+            x=spider.position.x-6,
+            y=spider.position.y-6
         },
         right_bottom={
-            x=spider.position.x+3,
-            y=spider.position.y+3
+            x=spider.position.x+6,
+            y=spider.position.y+6
         }
     }
     return pathfinder.find_non_colliding_spot(spider.surface, start_area)
