@@ -118,7 +118,7 @@ function Task:checkTrainHasEnoughResources(train)
         train_has_amount = train_contents[item] or 0
         if train_has_amount < cost then
             enough_resources = false
-            self:log("But it didnt have enough resources, item: " .. item .. ", cost: " .. cost .. ", available: " .. train_has_amount)
+            self:log("But it didnt have enough resources, item: " .. item .. ", cost: " .. cost .. ", available: " .. train_has_amount .. ", train: " .. train.id)
             break
         end
     end
