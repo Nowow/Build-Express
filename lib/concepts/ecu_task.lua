@@ -157,6 +157,16 @@ end
 ------------------------------------------------------------------
 
 function EcuTask:UNASSIGNED()
+
+    local search_offset = settings.global["ecu-parking-spot-search-offset"].value
+    local candidates = findNearestRails(self.surface, self.bounding_box, search_offset)
+
+    if #candidates < 1 then
+        self:log("No possible parking spot available, waiting for options to appear")
+        self:changeState(constants.TASK_STATES.UNASSIGNED)
+        return
+    end
+
     local worker_found = self:assignWorker()
     if not worker_found then
         --loop back

@@ -508,6 +508,16 @@ function Task:TASK_CREATED()
 end
 
 function Task:UNASSIGNED()
+
+    local offset = constants.construction_train_building_spot_search_area_offset
+    local candidates = findNearestRails(self.surface, self.bounding_box, offset)
+
+    if #candidates < 1 then
+        self:log("No possible building spot available, waiting for options to appear")
+        self:changeState(constants.TASK_STATES.UNASSIGNED)
+        return
+    end
+
     local worker_found = self:assignWorker()
 
     if not worker_found then
