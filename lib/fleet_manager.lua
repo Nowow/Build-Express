@@ -1,7 +1,6 @@
-local constants = require("constants")
-local utils = require("lib.utils")
+require("lib.utils")
 
-local DRONE_TYPES = constants.DRONE_TYPES
+local constants = require("constants")
 
 function initFleetRegister(surface)
     if not global.fleet_register then
@@ -24,7 +23,7 @@ FleetRegister.registerNewDrone = function (wagon)
         return false
     end
 
-    local wagon_type = wagon.prototype_name
+    local wagon_type = wagon.name
     log("Wagon type is " .. wagon_type)
     if global.fleet_register[wagon_type] == nil then
         error("Wagon of type " .. wagon_type .. " cant be registred")
@@ -60,7 +59,7 @@ FleetRegister.getFreeDronesSortedByDistance = function (task_coords, drone_type)
                     if next(locomotives) ~= nil then
                         log("Wagon №" .. unit_number .." train has locomotives! Calculating distance...")
                         drone_pos = wagon.position
-                        distance = utils.DistanceBetweenTwoPoints(drone_pos, task_coords)
+                        distance = DistanceBetweenTwoPoints(drone_pos, task_coords)
                         log("Wagon №" .. unit_number .." is " .. distance .. " units away from task!")
                         distances[distance] = {train=drone_train, wagon=wagon}
                         table.insert(sorter, distance)
@@ -71,10 +70,12 @@ FleetRegister.getFreeDronesSortedByDistance = function (task_coords, drone_type)
     end
     if next(distances) == nil then
         log("No eligible trains were found")
-        return
+        return {}
     end
+
     table.sort(sorter)
-    for _, distance in sorter do
+
+    for _, distance in pairs(sorter) do
         table.insert(result, distances[distance])
     end
     return result
@@ -84,7 +85,7 @@ end
 FleetRegister.registerTrainAsInAction = function (train, wagon, task)
     
     local train_id = train.id
-    log("Registring train " .. train_id .. " as in action")
+    log("Registring train " .. train_id .. " as in action for task " .. task.id)
     global.fleet_register.trains_in_action[train_id] = {train=train, wagon=wagon, task=task}
 end
 
@@ -131,7 +132,7 @@ script.on_event(defines.events.on_train_created, function(event)
         for _, carriage in pairs(carriages) do
             if carriage.unit_number == wagon.unit_number then
                 log("Found the wagon from old train 2!")
-                task.worker = train
+                task:callbackWhenTrainCreated(train)
                 FleetRegister.registerTrainAsInAction(train, wagon, task)
                 return
             end
@@ -148,7 +149,7 @@ script.on_event(defines.events.on_train_created, function(event)
         for _, carriage in pairs(carriages) do
             if carriage.unit_number == wagon.unit_number then
                 log("Found the wagon in old train 1!")
-                task.worker = train
+                task:callbackWhenTrainCreated(train)
                 FleetRegister.registerTrainAsInAction(train, wagon, task)
             end
         end
@@ -156,3 +157,18 @@ script.on_event(defines.events.on_train_created, function(event)
 
 
 end)
+
+function FleetRegister.reregisterAllWagons()
+    for _, surface in pairs(game.surfaces) do
+        game.print(surface.name)
+        local wagons = surface.find_entities_filtered{
+            name= {constants.spider_carrier_prototype_name, constants.ct_construction_wagon_name}
+        }
+        game.print("Found " .. #wagons .. " wagons to register!")
+        for __, wagon in pairs(wagons) do
+            FleetRegister.registerNewDrone(wagon)
+        end
+    end
+end
+
+return FleetRegister
