@@ -46,21 +46,21 @@ FleetRegister.getFreeDronesSortedByDistance = function (task_coords, drone_type)
     local drone_pos, drone_train, drone_train_id, locomotives, distance
 
     for unit_number, wagon in pairs(drone_fleet) do
-        log("Checking wagon №" .. unit_number .."...")
+        log("Checking wagon " .. unit_number .."...")
         if wagon.valid then
-            log("Wagon №" .. unit_number .." is valid")
+            log("Wagon " .. unit_number .." is valid")
             drone_train = wagon.train
             if drone_train ~= nil then
-                log("Wagon №" .. unit_number .." has a train!")
                 drone_train_id = drone_train.id
+                log("Wagon " .. unit_number .." has a train! Train number: " .. drone_train_id)
                 if trains_in_action[drone_train_id] == nil then
-                    log("Train is not busy!")
+                    log("Train " .. drone_train_id .. " is not busy!")
                     locomotives = drone_train.locomotives
                     if next(locomotives) ~= nil then
-                        log("Wagon №" .. unit_number .." train has locomotives! Calculating distance...")
+                        log("Train " .. drone_train_id .." train has locomotives! Calculating distance...")
                         drone_pos = wagon.position
                         distance = DistanceBetweenTwoPoints(drone_pos, task_coords)
-                        log("Wagon №" .. unit_number .." is " .. distance .. " units away from task!")
+                        log("Wagon " .. unit_number .." is " .. distance .. " units away from task!")
                         distances[distance] = {train=drone_train, wagon=wagon}
                         table.insert(sorter, distance)
                     end
@@ -159,6 +159,7 @@ script.on_event(defines.events.on_train_created, function(event)
 end)
 
 function FleetRegister.reregisterAllWagons()
+    global.fleet_register.trains_in_action = {}
     for _, surface in pairs(game.surfaces) do
         game.print(surface.name)
         local wagons = surface.find_entities_filtered{
