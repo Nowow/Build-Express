@@ -125,7 +125,7 @@ script.on_event(defines.events.on_train_created, function(event)
     end
     
     
-    if old_trains_in_register and then
+    if old_trains_in_register then
         log("A new train created that is not Build Express train, but one of the old ones was")
         TrainRegister.updateRegister(nil, old_1, old_2)
     end
