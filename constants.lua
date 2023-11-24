@@ -12,6 +12,7 @@ constants.deconstruction_blueprint_label_placeholder = "DECONSTRUCTION"
 constants.task_timeout_ticks = 7200*10
 constants.construction_robot_fixed_cost = 200
 constants.cliff_explosives_cost = 40
+constants.construction_train_building_spot_search_area_offset = 8
 -- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
 constants.task_flying_text_colors_by_task_type = {
     BUILD = {r=0,g=1,b=0.7},
