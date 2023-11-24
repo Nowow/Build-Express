@@ -29,12 +29,20 @@ function ExpressConstructionUnit:create()
 end
 
 function ExpressConstructionUnit:setTrain(train)
+    log("Setting train for ECU")
+    if train == nil then
+        error("Trying to set ECU train, but it is NIL")    
+    end
+    
+    if not train.valid then
+        error("Trying to set ECU train, but it is NOT VALID")    
+    end
     self.train = train
 end
 
 function ExpressConstructionUnit:findSpiderCarriers(train)
     log("Looking for Spider Carriers")
-    local carriages = train
+    local carriages = train.carriages
     log("Found " .. #carriages .. "carriages")
     local spider_carriers = {}
     for _, carriage in pairs(carriages) do
@@ -43,19 +51,21 @@ function ExpressConstructionUnit:findSpiderCarriers(train)
             table.insert(spider_carriers, spider_carrier)
         end
     end
-    return spider_carriers
-end
+        return spider_carriers
+    end
 
 function ExpressConstructionUnit:aquireSpiderCarriers()
     log("Trying to aquire Spider Carriers")
-    local spider_carriers = self.findSpiderCarriers(self.train)
+    local spider_carriers = self:findSpiderCarriers(self.train)
     if #spider_carriers == 0 then
         log("No spider carriages!")
         return false
     end
 
+    self.spider_carriers = spider_carriers
+
     --planning to make more than one spider carrier usable, now only one
-    self.active_carrier = self.spider_carriers[1]
+    self.active_carrier = spider_carriers[1]
     return true
 end
 
