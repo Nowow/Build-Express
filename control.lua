@@ -20,7 +20,7 @@ function initGlobal()
 
     initWorkerStationRegister()
 
-    initTrainRegister()
+    initFleetRegister()
 
     initConstructionTasks()
 
