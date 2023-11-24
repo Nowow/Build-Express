@@ -4,6 +4,7 @@ require("lib.blueprints")
 require("lib.gui")
 require("lib.station_manager")
 require("lib.train_register")
+
 require("lib.concepts.task_queue")
 require("lib.concepts.task")
 require("lib.concepts.ecu_task")
@@ -12,6 +13,7 @@ local constants = require("constants")
 local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
 local util = require('util')
 local bl = require("lib.ghosts_on_water_port.blueprints")
+local fleet_manager = require("lib.fleet_manager")
 local next = next
 
 function initConstructionTasks()
@@ -486,14 +488,15 @@ script.on_event(defines.events.on_built_entity, function(event)
     local created_entity = event.created_entity
     local prototype_name = created_entity.prototype.name
 
-    if prototype_name == constants.buex_locomotive then
+    if prototype_name == constants.buex_locomotive or prototype_name == constants.ct_construction_wagon_name then
         game.print("AAAAAAAA!")
+        fleet_manager.registerNewDrone(created_entity)
     end
 
-    if prototype_name == constants.buex_depot_name then
-        registerWorkerStation(created_entity)
-        return
-    end
+    -- if prototype_name == constants.buex_depot_name then
+    --     registerWorkerStation(created_entity)
+    --     return
+    -- end
     
     local player_index = event.player_index
     local destroy_ghost = global.blueprint_posted_trigger[player_index]
@@ -502,7 +505,8 @@ script.on_event(defines.events.on_built_entity, function(event)
 
 end, {
     {filter = "ghost"},
-    {filter = 'name', name = constants.buex_depot_name}
+    {filter = 'name', name = constants.spider_carrier_prototype_name},
+    {filter = 'name', name = constants.ct_construction_wagon_name}
 })
 
 script.on_event(defines.events.on_marked_for_deconstruction, function(event)
@@ -526,9 +530,13 @@ script.on_event(defines.events.on_robot_built_entity, function(event)
     local created_entity = event.created_entity
     local prototype_name = created_entity.prototype.name
 
-    if prototype_name == constants.buex_locomotive then
+    if prototype_name == constants.buex_locomotive or prototype_name == constants.ct_construction_wagon_name then
         game.print("AAAAAAAA!")
+        fleet_manager.registerNewDrone(created_entity)
     end
 
-end, {{filter = 'name', name = constants.buex_locomotive}})
+end, {
+    {filter = 'name', name = constants.spider_carrier_prototype_name},
+    {filter = 'name', name = constants.ct_construction_wagon_name}
+})
 
