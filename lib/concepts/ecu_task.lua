@@ -1,7 +1,9 @@
 require("lib.concepts.task")
 require("lib.concepts.express_construction_unit")
 require("lib.trains")
+
 local constants = require("constants")
+local fleet_manager = require("lib.fleet_manager")
 
 ---@class EcuTask: Task
 ---@field parking_spot unknown
@@ -21,28 +23,38 @@ end
 
 function EcuTask:assignWorker()
     self:log("Looking for workers")
-    for station in iterateStations() do
-        local control = station.get_control_behavior()
-        if not control or (control and control.valid and not control.disabled) then
-            self:log("Station ok!")
-            local train = station.get_stopped_train()
-            if train ~= nil then
-                self:log("Train found!")
-                local ECU = ExpressConstructionUnit:create()
-                ECU:setTrain(train)
-                local has_spider_carriages = ECU:aquireSpiderCarriers()
-                if has_spider_carriages then
-                    local enough_resources = self:checkTrainHasEnoughResources(train)
-                    if enough_resources then
-                        self:log("Express Construction Unit found!")
-                        self.worker = ECU
-                        registerTrainAsInAction(train, self)
-                        return true
-                    end
-                end
+
+    local bounding_box = self.bounding_box
+    local task_coords = {
+        x=bounding_box.left_top.x + (bounding_box.right_bottom.x - bounding_box.left_top.x)/2,
+        y=bounding_box.left_top.y + (bounding_box.right_bottom.y - bounding_box.left_top.y)/2,
+    }
+
+    local available_trains = fleet_manager.getFreeDronesSortedByDistance(task_coords, constants.spider_carrier_prototype_name)
+
+    self:log("Found " .. #available_trains .. " available candidates!")
+
+    local train, wagon
+
+    for _, candidate in pairs(available_trains) do
+        wagon = candidate.wagon
+        train = candidate.train
+        local ECU = ExpressConstructionUnit:create()
+        ECU:setTrain(train)
+        local has_spider_carriages = ECU:aquireSpiderCarriers()
+        if has_spider_carriages then
+            self:log("Train does have at least one spider carriage!")
+            local enough_resources = self:checkTrainHasEnoughResources(train)
+            if enough_resources then
+                self:log("Train does have enough resources!")
+                self:log("Express Construction Unit found!")
+                self.worker = ECU
+                fleet_manager.registerTrainAsInAction(train, wagon, self)
+                return true
             end
         end
     end
+
     self:log('No workers available for ECU')
     return false
 end
@@ -104,6 +116,41 @@ function EcuTask:ensureHasValidEntities(subtask)
     return false
 end
 
+function EcuTask:findParkingSpot()
+    self:log("Going to find a parking spot")
+    -- find and send to parking_spot
+    local search_offset = settings.global["ecu-parking-spot-search-offset"].value
+    local candidates = findNearestRails(self.surface, self.bounding_box, search_offset)
+    if #candidates > 0 then
+        self:log("Parking spot candidates found: " .. #candidates )
+        for _, rail in pairs(candidates) do
+            if rail.valid and not rail.to_be_deconstructed() and checkIfTrainCanGetToRail(train, rail) then
+                hightlighRail(rail, {r = 0, g = 1, b = 0})
+                self:log("Found parking spot")
+                local has_at_least_one_spider = ECU:orderFindSpiders()
+                if has_at_least_one_spider then
+                    self:log("ECU has at least one spider, dispatching!")
+                    parking_spot = rail
+                    self.parking_spot = parking_spot
+                    ECU:gotoRail(parking_spot)
+                    break
+                else
+                    self:log("ECU has no spiders, looping back to PARKING")
+                    self:changeState(constants.TASK_STATES.PARKING)
+                    return
+                end
+                
+            else
+                hightlighRail(rail, {r = 1, g = 0, b = 0})
+            end
+        end
+    end
+    if not parking_spot then
+        self:log("No parking spot found :(")
+    end
+    self:changeState(constants.TASK_STATES.PARKING)
+    return
+end
 
 ------------------------------------------------------------------
 -----TASK FLOW

@@ -6,6 +6,7 @@ require("lib.gui")
 local constants = require("constants")
 local util = require('util')
 local landfill = require("lib.ghosts_on_water_port.landfillPlacer")
+local fleet_manager = require("lib.fleet_manager")
 
 ---@class Task
 ---@field id string
@@ -217,35 +218,34 @@ function Task:populateSubtasks()
 end
 
 function Task:assignWorker()
-    local worker
-    for station in iterateStations() do
-        local control = station.get_control_behavior()
-        if not control or (control and control.valid and not control.disabled) then
-            self:log("Station ok!")
 
-            local train = station.get_stopped_train()
-            if train ~= nil then
-                self:log("Train is not nil")
+    self:log("Looking for workers")
 
-                local train_register_entry = global.worker_register.trains_in_action[train.id]
-                if train_register_entry == nil then
-                    self:log("Train not registred ")
+    local bounding_box = self.bounding_box
+    local task_coords = {
+        x=bounding_box.left_top.x + (bounding_box.right_bottom.x - bounding_box.left_top.x)/2,
+        y=bounding_box.left_top.y + (bounding_box.right_bottom.y - bounding_box.left_top.y)/2,
+    }
 
-                    local is_construction_train = self:checkTrainFitsTask(train)
-                    if is_construction_train then
-                        self:log("Train is Construction Train!")
+    local available_trains = fleet_manager.getFreeDronesSortedByDistance(task_coords, constants.ct_construction_wagon_name)
 
-                        local enough_resources = self:checkTrainHasEnoughResources(train)
-                        if enough_resources then
-                            self:log("Train has enough resources!")
-                            self:log("Worker found, registring as in action!")
+    self:log("Found " .. #available_trains .. " available candidates!")
 
-                            worker = train
-                            registerTrainAsInAction(worker, self)
-                            break
-                        end
-                    end
-                end
+    local train, wagon, worker
+
+    for _, candidate in pairs(available_trains) do
+        wagon = candidate.wagon
+        train = candidate.train
+        local is_construction_train = self:checkTrainFitsTask(train)
+        if is_construction_train then
+            self:log("Train is Construction Train!")
+            local enough_resources = self:checkTrainHasEnoughResources(train)
+            if enough_resources then
+                self:log("Train has enough resources!")
+                self:log("Worker found, registring as in action!")
+                worker = train
+                fleet_manager.registerTrainAsInAction(train, wagon, self)
+                break
             end
         end
     end
@@ -300,7 +300,7 @@ function Task:tileWaterGhosts()
 end
 
 function Task:findBuildingSpot()
-    local offset = 8
+    local offset = constants.construction_train_building_spot_search_area_offset
     local subtasks = self.subtasks
 
     for i, subtask in pairs(subtasks) do
