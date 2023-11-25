@@ -173,6 +173,7 @@ end
 function ExpressConstructionUnit:attemptInsertInSpider(train, spider, item, count)
     log("Inserting item " .. item .. " in amount " .. count)
     local available_in_train = train.get_item_count(item)
+    log("DEBUG: in attemptInsertInSpider available_in_train = " .. available_in_train)
     if available_in_train > 0 then
         if available_in_train < count then
             log("There was not enough, required: " .. count .. ', available: ' .. available_in_train)
@@ -198,11 +199,13 @@ function ExpressConstructionUnit:supplyInventory()
         total_robot_limit = total_robot_limit + (spider_grid.count(name) * limit)
     end
     local robot_cost = math.min(train.get_item_count("construction-robot") or 0, total_robot_limit)
-    if robot_cost == 0 then
-        log("ECU has no robots to supply!")
+    if robot_cost > 0 then
+        self:attemptInsertInSpider(train, spider, 'construction-robot', robot_cost)
+        log("ECU supplied " ..  robot_cost .. " robots to train!")
+    else
+        log("ECU has 0 robots to supply!")
     end
     local explosives_cost = constants.cliff_explosives_cost
-    self:attemptInsertInSpider(train, spider, 'construction-robot', robot_cost)
     self:attemptInsertInSpider(train, spider, 'cliff-explosives', explosives_cost)
 
 end
