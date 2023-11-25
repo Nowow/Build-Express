@@ -45,9 +45,8 @@ constants.buex_locomotive = "buex-locomotive"
 
 constants.WORKER_STATE = {
     IDLE = "IDLE",
-    MOVING_TO_DESTINATION = "MOVING_TO_DESTINATION",
+    ON_TASK = "ON_TASK",
     GOING_HOME = "GOING_HOME"
-
 }
 
 
