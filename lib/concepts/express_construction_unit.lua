@@ -305,7 +305,20 @@ function ExpressConstructionUnit:pollRetractSpider()
         log("Spider is back stored in wagon")
         return true
     elseif not spider_inside and spider_outside then
-        log("Spider Carrier is empty, but spider still present, trying to store it")
+        log("Spider Carrier is empty, but spider still present")
+        local logistic_network = spider.logistic_network
+        if logistic_network ~= nil and logistic_network.valid then
+            log("Spider does have logistic network!")
+            local all_construction_robots  = logistic_network.all_construction_robots
+            local available_construction_robots = logistic_network.available_construction_robots
+            log("Construction robots in this network, all: " .. all_construction_robots .. ", available: " .. available_construction_robots)
+            if available_construction_robots < all_construction_robots then
+                log("Still waiting for construction robots to come back!")
+                return false
+            else
+                log("All construction robots are back in trunk!")
+            end
+        end
         return active_carrier:storeSpider()
     elseif not spider_inside and not spider_outside then
         log("Someone stole the spider!")
