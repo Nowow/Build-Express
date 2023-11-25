@@ -54,20 +54,27 @@ end
 function SpiderCarrier:getSpiderStack()
     local wagon = self.wagon
     local wagon_inv = wagon.get_inventory(defines.inventory.cargo_wagon)
-    local spider_name, _ = next(wagon_inv.get_contents())
-    if spider_name == nil then
+    local item_name, _ = next(wagon_inv.get_contents())
+    if item_name == nil then
         log("Cant give spider stack because no contents in this wagon")
         return
     end
-    log("DEBUG: contents of spider wagon: " .. spider_name)
+    log("DEBUG: contents of spider wagon: " .. item_name)
     
-    local spider_stack, _ = wagon_inv.find_item_stack(spider_name)
-    log("DEBUG: contents of spider_stack: " .. spider_stack.prototype.name)
-    if not spider_stack.prototype.place_result.type == 'spider-vehicle' then
-        log("Cant give spider stack because item inside is not spider!!!")
+    local item_stack, _ = wagon_inv.find_item_stack(item_name)
+    log("DEBUG: contents of spider_stack: " .. item_stack.prototype.name)
+    local place_result = item_stack.prototype.place_result
+    if place_result == nil or not item_stack.prototype.place_result.type == 'spider-vehicle' then
+        log("Spider Carrier has something that clearly is not spider, spilling it")
+        local surface = wagon.surface
+        surface.spill_item_stack(
+            wagon.position,
+            item_stack
+        )
+        wagon_inv.clear()
         return
     end
-    return spider_stack
+    return item_stack
 end
 
 function SpiderCarrier:releaseSpider()
