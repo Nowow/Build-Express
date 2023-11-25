@@ -111,14 +111,18 @@ script.on_event(defines.events.on_train_created, function(event)
 
     if old_1 ~= nil then
         old_record_1 = global.fleet_register.trains_in_action[old_1]
-        log("Old train 1 had an active train record, unregistring")
-        FleetRegister.unregisterTrainAsInAction(old_1)
+        if old_record_1 ~= nil then
+            log("Old train 1 had an active train record, unregistring")
+        FleetRegister.unregisterTrainAsInAction(old_1)    
+        end
     end
 
     if old_2 ~= nil then
         old_record_2 = global.fleet_register.trains_in_action[old_2]
-        log("Old train 2 had an active train record, unregistring")
-        FleetRegister.unregisterTrainAsInAction(old_2)
+        if old_record_2 ~= nil then
+            log("Old train 2 had an active train record, unregistring")
+            FleetRegister.unregisterTrainAsInAction(old_2)
+        end
     end
     
 
