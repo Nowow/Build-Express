@@ -3,8 +3,6 @@ require("lib.trains")
 require("lib.blueprints")
 require("lib.gui")
 require("lib.station_manager")
-require("lib.train_register")
-
 require("lib.concepts.task_queue")
 require("lib.concepts.task")
 require("lib.concepts.ecu_task")
