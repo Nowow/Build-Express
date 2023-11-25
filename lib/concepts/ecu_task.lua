@@ -8,6 +8,7 @@ local fleet_manager = require("lib.fleet_manager")
 ---@class EcuTask: Task
 ---@field parking_spot unknown
 ---@field subtask_processing_index integer
+---@field building_spot_candidates table
 EcuTask = {}
 
 EcuTask.__index = EcuTask
@@ -150,33 +151,59 @@ function EcuTask:PARKING()
         self:log("Going to find a parking spot")
         -- find and send to parking_spot
         local search_offset = settings.global["ecu-parking-spot-search-offset"].value
-        local candidates = findNearestRails(self.surface, self.bounding_box, search_offset)
-        if #candidates > 0 then
-            self:log("Parking spot candidates found: " .. #candidates )
-            for _, rail in pairs(candidates) do
-                if rail.valid and not rail.to_be_deconstructed() and checkIfTrainCanGetToRail(train, rail) then
-                    hightlighRail(rail, {r = 0, g = 1, b = 0})
-                    self:log("Found parking spot")
-                    local has_at_least_one_spider = ECU:orderFindSpiders()
-                    if has_at_least_one_spider then
-                        self:log("ECU has at least one spider, dispatching!")
-                        parking_spot = rail
-                        self.parking_spot = parking_spot
-                        ECU:gotoRail(parking_spot)
-                        break
-                    else
-                        self:log("ECU has no spiders, looping back to PARKING")
-                        self:changeState(constants.TASK_STATES.PARKING)
-                        return
-                    end
-                    
-                else
-                    hightlighRail(rail, {r = 1, g = 0, b = 0})
-                end
+        
+        local building_spot_candidates = self.building_spot_candidates or {}
+        local candidates_cnt = table_size(building_spot_candidates)
+        
+
+        if candidates_cnt == 0 then
+            building_spot_candidates = findNearestRails(self.surface, self.bounding_box, search_offset) or {}
+            self:log("Was 0 candidates, starting new iteration, collected " .. table_size(building_spot_candidates))
+            self.building_spot_candidates = building_spot_candidates
+            if table_size(building_spot_candidates) == 0 then
+                self:log("No candidates available right now, looping back")
+            else
+                self:log("Collected pool of possible candidates for building spot, looping back")
             end
+            self:changeState(constants.TASK_STATES.PARKING)
+            return
         end
+
+        self:log("Parking spot candidates left to check: " .. candidates_cnt )
+
+        local cycle_counter = 0
+        local checks_per_cycle = math.min(constants.ecu_max_building_spots_checked_per_cycle, candidates_cnt)
+
+        while cycle_counter < checks_per_cycle do
+
+            local i, rail = next(building_spot_candidates)
+
+            if rail.valid and not rail.to_be_deconstructed() and checkIfTrainCanGetToRail(train, rail) then
+                hightlighRail(rail, {r = 0, g = 1, b = 0})
+                self:log("Found parking spot")
+                local has_at_least_one_spider = ECU:orderFindSpiders()
+                if has_at_least_one_spider then
+                    self:log("ECU has at least one spider, dispatching!")
+                    parking_spot = rail
+                    self.parking_spot = parking_spot
+                    ECU:gotoRail(parking_spot)
+                    break
+                else
+                    self:log("ECU has no spiders, looping back to PARKING")
+                    self:changeState(constants.TASK_STATES.PARKING)
+                    return
+                end
+                
+            else
+                hightlighRail(rail, {r = 1, g = 0, b = 0})
+                building_spot_candidates[i] = nil
+            end
+            cycle_counter = cycle_counter + 1
+        end
+        
+
         if not parking_spot then
-            self:log("No parking spot found :(")
+            self:log("No parking spot found yet :(")
         end
         self:changeState(constants.TASK_STATES.PARKING)
         return
