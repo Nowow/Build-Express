@@ -220,7 +220,7 @@ function ExpressConstructionUnit:supplyResources(resource_cost)
     end
 end
 
-function ExpressConstructionUnit:emptySpiderInventory()
+function ExpressConstructionUnit:emptySpiderBuildingMaterials()
     local train = self.train
     local spider = self.active_carrier.spider
     local spider_inv = spider.get_inventory(defines.inventory.spider_trunk)
@@ -260,7 +260,7 @@ function ExpressConstructionUnit:resupply(args)
 
     if empty_spider then
         log("Emptying spider during resupply")
-        self:emptySpiderInventory()
+        self:emptySpiderBuildingMaterials()
     end
     self:supplyResources(resource_cost)
 
