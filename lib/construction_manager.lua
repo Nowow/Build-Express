@@ -486,7 +486,7 @@ script.on_event(defines.events.on_built_entity, function(event)
     local created_entity = event.created_entity
     local prototype_name = created_entity.prototype.name
 
-    if prototype_name == constants.buex_locomotive or prototype_name == constants.ct_construction_wagon_name then
+    if prototype_name == constants.spider_carrier_prototype_name or prototype_name == constants.ct_construction_wagon_name then
         game.print("AAAAAAAA!")
         fleet_manager.registerNewDrone(created_entity)
     end
@@ -528,7 +528,7 @@ script.on_event(defines.events.on_robot_built_entity, function(event)
     local created_entity = event.created_entity
     local prototype_name = created_entity.prototype.name
 
-    if prototype_name == constants.buex_locomotive or prototype_name == constants.ct_construction_wagon_name then
+    if prototype_name == constants.spider_carrier_prototype_name or prototype_name == constants.ct_construction_wagon_name then
         game.print("AAAAAAAA!")
         fleet_manager.registerNewDrone(created_entity)
     end
