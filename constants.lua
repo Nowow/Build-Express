@@ -43,6 +43,13 @@ constants.ct_construction_wagon_name = "ct-construction-wagon"
 constants.buex_depot_name = "buex-depot"
 constants.buex_locomotive = "buex-locomotive"
 
+constants.WORKER_STATE = {
+    IDLE = "IDLE",
+    MOVING_TO_DESTINATION = "MOVING_TO_DESTINATION",
+    GOING_HOME = "GOING_HOME"
+
+}
+
 
 -- spiders
 constants.spider_carrier_prototype_name = 'buex-spider-carrier-wagon'
