@@ -99,7 +99,19 @@ script.on_event(defines.events.on_entity_destroyed, function(event)
     global.fleet_register[constants.spider_carrier_prototype_name][unit_number] = nil
 end)
 
-
+function FleetRegister.reregisterAllWagons()
+    global.fleet_register.trains_in_action = {}
+    for _, surface in pairs(game.surfaces) do
+        game.print(surface.name)
+        local wagons = surface.find_entities_filtered{
+            name= {constants.spider_carrier_prototype_name, constants.ct_construction_wagon_name}
+        }
+        game.print("Found " .. #wagons .. " wagons to register!")
+        for __, wagon in pairs(wagons) do
+            FleetRegister.registerNewDrone(wagon)
+        end
+    end
+end
 
 script.on_event(defines.events.on_train_created, function(event)
 
@@ -162,18 +174,6 @@ script.on_event(defines.events.on_train_created, function(event)
 
 end)
 
-function FleetRegister.reregisterAllWagons()
-    global.fleet_register.trains_in_action = {}
-    for _, surface in pairs(game.surfaces) do
-        game.print(surface.name)
-        local wagons = surface.find_entities_filtered{
-            name= {constants.spider_carrier_prototype_name, constants.ct_construction_wagon_name}
-        }
-        game.print("Found " .. #wagons .. " wagons to register!")
-        for __, wagon in pairs(wagons) do
-            FleetRegister.registerNewDrone(wagon)
-        end
-    end
-end
 
 return FleetRegister
+
