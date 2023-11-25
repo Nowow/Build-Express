@@ -94,7 +94,7 @@ function EcuTask:callbackWhenTrainCreated(new_train)
     end
     local ECU = self.worker
     ECU:setTrain(new_train)
-    local fits = ECU:aquireSpiderCarriers()
+    local fits = ECU:ensureActiveSpiderCarrierIsStillHere()
     if fits then
         self.worker = ECU
         self:log("Reaquired worker after someone messed with train")

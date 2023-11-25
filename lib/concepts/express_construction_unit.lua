@@ -40,6 +40,24 @@ function ExpressConstructionUnit:setTrain(train)
     self.train = train
 end
 
+function ExpressConstructionUnit:ensureActiveSpiderCarrierIsStillHere()
+    log("Trying to understand whether new assigned train has old active carrier wagon")
+    local active_carrier_wagon = self.active_carrier.wagon
+    if active_carrier_wagon.valid then
+        log("Active carrier wagon still exists and valid!")
+    end
+    local carriages = self.train.carriages
+    for _, carriage in pairs(carriages) do
+        if carriage.unit_number == active_carrier_wagon.unit_number then
+            log("Found old carrier wagon in this ECU train! All is good")
+            return true
+        end
+    end
+    log("This ECU train does not contain old active carrier wagon! Very sad, UB")
+    return false
+end
+
+
 function ExpressConstructionUnit:findSpiderCarriers(train)
     log("Looking for Spider Carriers")
     local carriages = train.carriages
