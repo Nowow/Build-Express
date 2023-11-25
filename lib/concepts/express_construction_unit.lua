@@ -159,7 +159,7 @@ function ExpressConstructionUnit:orderFindSpiders()
         if already_has_spider then
             log("SpiderCarrier already has a spider stored")
         else
-            spider_stored = carrier:findNearestSpider() or at_least_one_spider_stored
+            spider_stored = carrier:findAndStoreNearestSpider() or at_least_one_spider_stored
             at_least_one_spider_stored = spider_stored or at_least_one_spider_stored
             if spider_stored then
                 log("Spider Carrier found and stored a spider!")

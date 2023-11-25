@@ -125,7 +125,7 @@ function SpiderCarrier:startCollectSpider()
     pathfinder.request_path(pathing_request_info)
 end
 
-function SpiderCarrier:findNearestSpider()
+function SpiderCarrier:findAndStoreNearestSpider()
     local wagon = self.wagon
     local candidates = wagon.surface.find_entities_filtered{
         type='spider-vehicle', radius=constants.spider_carrier_spider_search_radius, position=wagon.position
