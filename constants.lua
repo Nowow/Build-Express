@@ -9,10 +9,11 @@ constants.spaceLandfillTypes = { "se-space-platform-scaffold", "se-space-platfor
 -- tasks and blueprints
 constants.unlabeled_blueprints_placeholder_label = "unlabeled blueprint"
 constants.deconstruction_blueprint_label_placeholder = "DECONSTRUCTION"
-constants.task_timeout_ticks = 7200*10
+constants.task_timeout_ticks = 7200*200
 constants.construction_robot_fixed_cost = 200
 constants.cliff_explosives_cost = 40
 constants.construction_train_building_spot_search_area_offset = 8
+constants.ecu_max_building_spots_checked_per_cycle = 1
 -- worker reach is calculated from construction area, accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
 constants.task_flying_text_colors_by_task_type = {
     BUILD = {r=0,g=1,b=0.7},
@@ -31,10 +32,6 @@ constants.TASK_STATES = {
 constants.TASK_TYPES = {
     BUILD = "BUILD",
     DECONSTRUCT = "DECONSTRUCT"
-}
-constants.DRONE_TYPES = {
-    CONSTRUCTION_TRAIN = "CONSTRUCTION_TRAIN",
-    ECU_TRAIN = "ECU_TRAIN"
 }
 constants.CAPTURE_MODES = {
     ADDITIVE = "ADDITIVE",
@@ -60,7 +57,7 @@ constants.max_pathfinding_attempts = 5
 constants.pathfinding_proxy_name = 'buex-pathfinding-proxy'
 constants.spider_carrier_navigate_subtask_action = 'spider_carrier_navigate_subtask'
 constants.spider_carrier_collect_spider_action = 'spider_carrier_collect_spider'
-constants.parking_wait_time = 60*60*10  -- 10 mins
+constants.parking_wait_time = 60*60*200  -- 200 mins
 
 constants.subtask_construction_area_coverage_construction_train_offset = 25
 constants.subtask_construction_area_coverage_ecu_offset = 5
