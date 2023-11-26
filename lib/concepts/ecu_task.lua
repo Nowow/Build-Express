@@ -325,7 +325,7 @@ end
 
 function EcuTask:BUILDING()
     
-    local subtask_finished = self:invalidateTaskEntities()
+    local subtask_finished = self:invalidateSubtaskEntities()
 
     -- removing subtask and either restarting loop or task is finished
     if subtask_finished then

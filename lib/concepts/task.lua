@@ -372,7 +372,7 @@ function Task:dispatchWorkerToNextStop()
     self.timer_tick = game.tick
 end
 
-function Task:invalidateTaskEntities()
+function Task:invalidateSubtaskEntities()
     -- checking if active subtask has valid ghosts
     local active_subtask_index = self.active_subtask_index
     local subtask = self.subtasks[self.active_subtask_index]
@@ -548,7 +548,7 @@ end
 
 function Task:BUILDING()
     
-    local subtask_finished = self:invalidateTaskEntities()
+    local subtask_finished = self:invalidateSubtaskEntities()
 
     -- removing subtask and either restarting loop or task is finished
     if subtask_finished then
