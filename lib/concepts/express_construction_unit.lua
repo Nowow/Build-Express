@@ -316,6 +316,11 @@ function ExpressConstructionUnit:pollRetractSpider()
                 log("Still waiting for construction robots to come back!")
                 return false
             else
+                local construction_robots = logistic_network.construction_robots
+                if #construction_robots > 0 then
+                    log("Still waiting for construction robots to come back, any second now!")
+                return false
+                end
                 log("All construction robots are back in trunk!")
             end
         end
