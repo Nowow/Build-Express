@@ -43,9 +43,10 @@ constants.ct_construction_wagon_name = "ct-construction-wagon"
 constants.buex_depot_name = "buex-depot"
 constants.buex_locomotive = "buex-locomotive"
 
-constants.WORKER_STATE = {
+constants.ECU_STATUS = {
     IDLE = "IDLE",
     ON_TASK = "ON_TASK",
+    RETRACTING_SPIDER = "RETRACTING_SPIDER",
     GOING_HOME = "GOING_HOME"
 }
 
