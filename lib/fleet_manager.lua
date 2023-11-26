@@ -1,6 +1,8 @@
 require("lib.utils")
 
 local constants = require("constants")
+local ECUQueue = require("lib.concepts.ECU_queue")
+
 
 function initFleetRegister(surface)
     if not global.fleet_register then
@@ -9,8 +11,10 @@ function initFleetRegister(surface)
         global.fleet_register[constants.ct_construction_wagon_name] = {}
         global.fleet_register[constants.spider_carrier_prototype_name] = {}
         global.fleet_register.trains_in_action = {}
+        global.fleet_register.ECU_handling_queue = ECUQueue:create()
         
 	end
+    FleetRegister.reregisterAllWagons()
 end
 
 
@@ -113,23 +117,57 @@ function FleetRegister.reregisterAllWagons()
     end
 end
 
+
+function FleetRegister.ECUfinishedTask(ECU)
+    log("ECUfinishedTask got called...")
+    if not ECU then
+        log("But no ECU provided, UB")
+        return
+    end
+    local train = ECU.train
+    if not train or not train.valid then
+        log("There is no train in ECU to handle, aborting")
+        return
+    end
+    
+    -- issuing initial order to retract spider
+    local retract_order = ECU:orderRetractSpider()
+    if retract_order then
+        log("Successfully ordered to retract spider, waiting...")
+        global.fleet_register.ECU_handling_queue:push(ECU)
+        return
+    else
+        log("Spider will not be retracted because it does not exist, ordering goHome")
+        ECU:goHome()
+        FleetRegister.unregisterTrainAsInAction(train)
+        return
+    end
+    
+end
+
+
 script.on_event(defines.events.on_train_created, function(event)
+
+    --- SOOOO MESSYYY
 
     local train = event.train
     local old_1 = event.old_train_id_1
     local old_2 = event.old_train_id_2
 
     local old_record_1, old_record_2, carriages, wagon, task
+    local lookup_old_1, lookup_old_2
 
     if old_1 ~= nil then
+        lookup_old_1 = global.fleet_register.ECU_handling_queue:lookup(old_1)
         old_record_1 = global.fleet_register.trains_in_action[old_1]
         if old_record_1 ~= nil then
             log("Old train 1 had an active train record, unregistring")
-        FleetRegister.unregisterTrainAsInAction(old_1)    
+            FleetRegister.unregisterTrainAsInAction(old_1)
         end
     end
 
     if old_2 ~= nil then
+        lookup_old_2 = global.fleet_register.ECU_handling_queue:lookup(old_2)
         old_record_2 = global.fleet_register.trains_in_action[old_2]
         if old_record_2 ~= nil then
             log("Old train 2 had an active train record, unregistring")
@@ -148,9 +186,18 @@ script.on_event(defines.events.on_train_created, function(event)
         for _, carriage in pairs(carriages) do
             if carriage.unit_number == wagon.unit_number then
                 log("Found the wagon from old train 2!")
-                task:callbackWhenTrainCreated(train)
+
+                -- regular tasks unregister workers in termination, this check is for ECUs that have not finished handling
+                if task.state ~= constants.TASK_STATES.TERMINATING then
+                    task:callbackWhenTrainCreated(train)
+                    
+                else
+                    log("Not calling task callback because it is in TERMINATING state")
+                end
+                -- registring anyway, because old_2 was registred, "callback" hotswap comes later
                 FleetRegister.registerTrainAsInAction(train, wagon, task)
-                return
+                -- instead of return
+                old_record_1 = nil
             end
         end
     end
@@ -165,15 +212,96 @@ script.on_event(defines.events.on_train_created, function(event)
         for _, carriage in pairs(carriages) do
             if carriage.unit_number == wagon.unit_number then
                 log("Found the wagon in old train 1!")
-                task:callbackWhenTrainCreated(train)
+
+                -- regular tasks unregister workers in termination, this check is for ECUs that have not finished handling
+                if task.state ~= constants.TASK_STATES.TERMINATING then
+                    task:callbackWhenTrainCreated(train)
+                    
+                else
+                    log("Not calling task callback because it is in TERMINATING state")
+                end
+                -- registring anyway, because old_2 was registred, "callback" hotswap comes later
                 FleetRegister.registerTrainAsInAction(train, wagon, task)
             end
         end
     end
 
+    
+    if lookup_old_2 then
+        -- hot swap
+        local index = global.fleet_register.ECU_handling_queue.train_id_index[old_2]
+        global.fleet_register.ECU_handling_queue.train_id_index[old_2] = nil
+        lookup_old_2:setTrain(train)
+        global.fleet_register.ECU_handling_queue.train_id_index[train.id] = index
+        lookup_old_1 = nil
+    end
+
+    if lookup_old_1 then
+        -- hot swap
+        local index = global.fleet_register.ECU_handling_queue.train_id_index[old_1]
+        global.fleet_register.ECU_handling_queue.train_id_index[old_1] = nil
+        lookup_old_1:setTrain(train)
+        global.fleet_register.ECU_handling_queue.train_id_index[train.id] = index
+    end
 
 end)
 
+
+script.on_nth_tick(61, function(event)
+    if next(global.fleet_register.ECU_handling_queue.data) == nil then
+        return
+    end
+
+    log("Fleet Manager processes something")
+    local ECU = global.fleet_register.ECU_handling_queue:pop()
+    if not ECU then
+        error("Something has gone horribly wrong with ECU_handling_queue, pop() produced null instead of ECU")
+    end
+
+    local train = ECU.train
+
+    if not train.valid then
+        log("This ECU train is no valid train, aborting")
+        return
+    end
+
+    log("All good, Fleet Manager processes train " .. train.id)
+    local ECU_status = ECU.status
+
+    if ECU_status == constants.ECU_STATUS.RETRACTING_SPIDER then
+        local spider_is_back = ECU:pollRetractSpider()
+        if not spider_is_back then
+            log("Spider not back yet")
+            global.fleet_register.ECU_handling_queue:push(ECU)
+            return
+        else
+            log("Spider is back, sending ECU back home!")
+            ECU:goHome()
+            global.fleet_register.ECU_handling_queue:push(ECU)
+            -- unregistring here, so while train is going home it can be assigned to another task
+            FleetRegister.unregisterTrainAsInAction(train.id)
+            return
+        end
+        
+    elseif ECU_status == constants.ECU_STATUS.GOING_HOME then
+        local is_train_again_in_action = global.fleet_register.trains_in_action[train.id]
+        if is_train_again_in_action then
+            log("Train " .. train.id .. " has been asssigned to some new task, stopping handling")
+            return
+        end
+        local is_home = ECU:checkIfBackHome()
+        if is_home then
+            ECU:deploy()
+            log("Fleet manager finished handling of train " .. train.id)
+            return
+        else
+            log("Train " .. train.id .. " is not home yet")
+            global.fleet_register.ECU_handling_queue:push(ECU)
+            return
+        end
+    end
+
+end)
 
 return FleetRegister
 
