@@ -330,6 +330,7 @@ function ExpressConstructionUnit:pollRetractSpider()
         return true
     else
         log("Unhandled behavior while calling pollRetractSpider")
+        log("spider_inside: " .. spider_inside and 1 or 0 .. ", spider_outside: " .. spider_outside and 1 or 0)
         return true
     end
 
