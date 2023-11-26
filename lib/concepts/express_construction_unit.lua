@@ -3,11 +3,12 @@ local constants = require("constants")
 
 ---@class ExpressConstructionUnit
 ---@field train unknown
+---@field id integer
 ---@field spider_carriers SpiderCarrier[]
 ---@field active_carrier SpiderCarrier
 ---@field parked boolean
 ---@field subtask_processing_result boolean
----@field state string
+---@field status string
 ---@field wrapping_up boolean
 ---@field going_home boolean
 ExpressConstructionUnit = {}
@@ -23,7 +24,7 @@ function ExpressConstructionUnit:create()
     ecu.parked = false
     ecu.wrapping_up = false
     ecu.going_home = false
-
+    
     setmetatable(ecu, ExpressConstructionUnit)
     return ecu
 end
@@ -38,6 +39,7 @@ function ExpressConstructionUnit:setTrain(train)
         error("Trying to set ECU train, but it is NOT VALID")    
     end
     self.train = train
+    self.id = train.id
 end
 
 function ExpressConstructionUnit:ensureActiveSpiderCarrierIsStillHere()
@@ -140,7 +142,7 @@ function ExpressConstructionUnit:goHome()
     log("ECU going back home")
     local train = self.train
     local removed_temps = removeAllTempStops(train)
-    self.going_home = true
+    self.status = constants.ECU_STATUS.GOING_HOME
     log("Temp station removed: " .. removed_temps)
 end
 
@@ -239,6 +241,7 @@ function ExpressConstructionUnit:emptySpiderBuildingMaterials()
 end
 
 function ExpressConstructionUnit:deploy(resource_cost)
+    log("ECU " .. self.id .. " trying to DEPLOY")
     local active_carrier = self.active_carrier
     active_carrier:releaseSpider()
     if not resource_cost then
@@ -289,10 +292,14 @@ end
 
 function ExpressConstructionUnit:orderRetractSpider()
     local active_carrier = self.active_carrier
-    self.wrapping_up = true
     local spider = active_carrier.spider
-    if spider then
+    if spider and spider.valid then
         active_carrier:startCollectSpider()
+        self.status = constants.ECU_STATUS.RETRACTING_SPIDER
+        return true
+    else
+        log("orderRetractSpider called, but either no spider in carrier.spider or spider not valid")
+        return false
     end
 end
 
@@ -321,7 +328,7 @@ function ExpressConstructionUnit:pollRetractSpider()
                     log("Still waiting for construction robots to come back, any second now!")
                 return false
                 end
-                log("All construction robots are back in trunk!")
+                log("All construction rob   ots are back in trunk!")
             end
         end
         return active_carrier:storeSpider()
