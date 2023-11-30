@@ -407,40 +407,14 @@ function EcuTask:RESUPPLYING()
 end
 
 function EcuTask:TERMINATING()
+
+    self:cleanupBeforeEndTask()
+
     local ECU = self.worker
-    if not ECU then
-        update_task_frame(self, true)
-        self:log("Task wrapped up!")
+    if not ECU or not ECU.train or not ECU.train.valid then
+        self:log("During termination task had no ECU, ECU had no train or train was not valid, anyway task wrapped up!")
         return
     end
-    if not ECU.wrapping_up then
-        self:startEndTask()
-        self:changeState(constants.TASK_STATES.TERMINATING)
-        return
-    else
-        local spider_is_back = ECU:pollRetractSpider()
-        if not spider_is_back then
-            self:log("Spider not back yet")
-            self:changeState(constants.TASK_STATES.TERMINATING)
-            return
-        end
 
-        local going_home = ECU.going_home
-        if spider_is_back and not going_home then
-            self:log("Sent ECU back home!")
-            ECU:goHome()
-            self:changeState(constants.TASK_STATES.TERMINATING)
-            return
-        end
-
-        local home = ECU:checkIfBackHome()
-        if home then
-            ECU:deploy()
-            fleet_manager.unregisterTrainAsInAction(ECU.train.id)
-            update_task_frame(self, true)
-            self:log("Task wrapped up!")
-            return
-        end
-        self:changeState(constants.TASK_STATES.TERMINATING)
-    end
+    fleet_manager.ECUfinishedTask(ECU)
 end
