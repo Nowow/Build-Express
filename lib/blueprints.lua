@@ -31,7 +31,7 @@ function convertDummyCostToActualCost(cost_to_build)
     local converted_cost = {}
     for item, cost in pairs(cost_to_build) do
         real_item_name = getOriginalEntityName(item)
-        converted_cost[real_item_name] = cost
+        converted_cost[real_item_name] = (converted_cost[real_item_name] or 0) + cost
     end
     return converted_cost
 end 
