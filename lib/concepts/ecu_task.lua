@@ -60,29 +60,43 @@ function EcuTask:assignWorker()
     return false
 end
 
-function EcuTask:startEndTask()
+
+function EcuTask:cleanupBeforeEndTask()
     self:log("ENDING TASK IN STATE " .. self.state)
+    local task_type = self.type
 
     -- destroying all entities that are left
     local valid_entities_counter = 0
-    for _, entity in pairs(self.entities) do
-        if entity.valid then
-            entity.destroy()
-            valid_entities_counter = valid_entities_counter + 1
+    if task_type == constants.TASK_TYPES.BUILD then
+        
+        for _, entity in pairs(self.entities) do
+            if entity.valid then
+                entity.destroy()
+                valid_entities_counter = valid_entities_counter + 1
+            end    
         end
-    end
-    self:log("VALID GHOSTS LEFT: " .. valid_entities_counter)
+        self:log("VALID GHOSTS LEFT: " .. valid_entities_counter)
 
-    --destroying flying textx
+    elseif task_type == constants.TASK_TYPES.DECONSTRUCT then
+        -- unmarking for deconstruction 
+        local force = game.get_player(self.player_index).force
+        for _, entity in pairs(self.entities) do
+            if entity.valid then
+                entity.cancel_deconstruction(force)
+                valid_entities_counter = valid_entities_counter + 1
+            end
+        
+        end
+        self:log("UNMARKED ENTITIES COUNT: " .. valid_entities_counter)
+    end
+
+
+    --destroying flying text
     for _, render_id in pairs(self.flying_text) do
         rendering.destroy(render_id)
     end
 
-    local ECU = self.worker
-    if ECU ~= nil then
-        ECU:orderRetractSpider()
-    end
-    update_task_frame(self)
+    update_task_frame(self, true)
 end
 
 function EcuTask:callbackWhenTrainCreated(new_train)
