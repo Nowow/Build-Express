@@ -211,7 +211,7 @@ function EcuTask:PARKING()
     local current_rail = train.front_rail
     local path_end_rail = train.path_end_rail
     if parking_spot and path_end_rail then
-        self:log("CHUGA CHUGA,")
+        --self:log("CHUGA CHUGA,")
         self:changeState(constants.TASK_STATES.PARKING)
         return
     end
