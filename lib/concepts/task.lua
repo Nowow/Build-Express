@@ -112,6 +112,7 @@ function Task:checkTrainHasEnoughResources(train)
     local cost_modifier = settings.global["ecu-building-cost-modifier"].value
     self:log("Cost modifier is: " .. cost_modifier)
     for item, cost in pairs(cost_to_build) do
+        -- probably obsolete condition check
         if item ~= "construction-robot" and item ~= "cliff-explosives" then
             cost = math.floor(cost*cost_modifier)
         end
