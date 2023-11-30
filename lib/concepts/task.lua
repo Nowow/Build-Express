@@ -496,6 +496,44 @@ function Task:callbackWhenTrainCreated(new_train)
     end
 end
 
+function Task:invalidateEntitiesAndCalculateCostToBuild(entities)
+    
+    local new_entities = {}
+    -- carrying over landfill cost as fix
+    local cost_to_build = {}
+    local item_to_place, item_name, count
+    local tile_cache = self.tiles
+    local ghosts_under_this_entity
+    local i = 1
+
+    self:log("Before entity invalidation there was: " .. table_size(entities))
+    for _, entity in pairs(entities) do
+        if entity.valid then
+            item_to_place = entity.ghost_prototype.items_to_place_this[1]
+            item_name = item_to_place.name
+            count = item_to_place.count
+            cost_to_build[item_name] = (cost_to_build[item_name] or 0) + count
+            new_entities[i] = entity
+
+            ghosts_under_this_entity = tile_cache[entity.unit_number] or {}
+            for _, tile_ghost in pairs(ghosts_under_this_entity) do
+                if tile_ghost.valid then
+                    item_to_place = tile_ghost.ghost_prototype.items_to_place_this[1]
+                    item_name = item_to_place.name
+                    count = item_to_place.count
+                    cost_to_build[item_name] = (cost_to_build[item_name] or 0) + count
+                end
+            end
+
+            i = i + 1
+        end
+    end
+    self:log("After entity invalidation entities left: " .. #new_entities)
+
+    cost_to_build = convertDummyCostToActualCost(cost_to_build)
+    return new_entities, cost_to_build
+end
+
 ------------------------------------------------------------------
 -----TASK FLOW
 ------------------------------------------------------------------
