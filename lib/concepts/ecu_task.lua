@@ -115,9 +115,10 @@ function EcuTask:callbackWhenTrainCreated(new_train)
         self:log("Reaquired worker after someone messed with train")
     else
         self:log("ECU from provided new train does not fit for some reason, UB")
-        self:log("Unable to reaquire worker after someone messed with train, terminating")
+        self:log("Unable to reaquire worker after someone messed with train, restarting task")
         self.worker = nil
-        self:forceChangeState(constants.TASK_STATES.TERMINATING)
+        self:restartTask()
+        --self:forceChangeState(constants.TASK_STATES.TERMINATING)
     end
 end
 
@@ -129,6 +130,39 @@ function EcuTask:ensureHasValidEntities(subtask)
         end
     end
     return false
+end
+
+function EcuTask:restartTask(invalidate_and_recalculate_cost)
+    invalidate_and_recalculate_cost = invalidate_and_recalculate_cost == nil and true or invalidate_and_recalculate_cost
+    self:log("Restarting task...")
+    local ECU = self.worker
+    if ECU and ECU.train and ECU.train.valid then
+        self:log("ECU is present and has a valid train, relieving it of its duties")
+        fleet_manager.ECUfinishedTask(ECU)
+    else
+        self:log("Task did not have an ECU with valid train")
+    end
+
+    self.worker = nil
+    self.subtasks = nil
+    self.subtask_count = nil
+    self.subtask_processing_index = nil
+    self.active_subtask = nil
+    self.active_subtask_index = nil
+    self.bounding_box = nil
+    self.building_spot = nil
+    self.building_spot_candidates = nil
+    self.parking_spot = nil
+    self.timer_tick = nil
+
+    if invalidate_and_recalculate_cost then
+        local new_entities, new_cost_to_build = self:invalidateEntitiesAndCalculateCostToBuild(self.entities)
+        self.entities = new_entities
+        self.cost_to_build = new_cost_to_build
+    end
+    
+    self:log("Changing task state back to TASK_CREATED to walk path again")
+    self:changeState(constants.TASK_STATES.TASK_CREATED)
 end
 
 
@@ -364,8 +398,8 @@ function EcuTask:BUILDING()
         local spider = worker.active_carrier.spider
         if spider == nil or not spider.valid then
             self:log("No spider present during BUILDING, probably killed/stolen/abudcted by aliens")
-        else
-            self:log("DEBUG: about to crash???")
+            self:log("HERE SHOULD BE LOGIC TO RESTART TASK")
+        elseif self.type == constants.TASK_TYPES.BUILD then
             local spider_contents = spider.get_inventory(defines.inventory.spider_trunk).get_contents()
             local subtask = self.subtasks[self.active_subtask_index]
             local spider_available_count
@@ -375,6 +409,7 @@ function EcuTask:BUILDING()
                 self:log("Spider has: " .. spider_available_count .. ", current cost: " .. count)
                 if count > spider_available_count then
                     self:log("RESUPPLY IS IN ORDER!")
+                    self:log("Invalidating left ghost tiles...")
                     worker:moveSpiderToCarrier()
                     self:changeState(constants.TASK_STATES.RESUPPLYING)
                     return
@@ -396,9 +431,9 @@ end
 
 function EcuTask:RESUPPLYING()
     local ECU = self.worker
-    if not ECU then
+    if not ECU or not ECU.train or not ECU.train.valid then
         self:log("Cant resupply because no ECU, ALARM!")
-        self:changeState(constants.TASK_STATES.RESUPPLYING)
+        self:restartTask()
         return
     end
     local spider_carrier = ECU.active_carrier
@@ -409,9 +444,24 @@ function EcuTask:RESUPPLYING()
         return
     end
     self:log("Spider is near carrier, trying to insert whats left of subtask")
+    self:log("Checking this train has resources to finish task")
+
+    ECU:emptySpiderBuildingMaterials()
+    local new_entities, new_cost_to_build = self:invalidateEntitiesAndCalculateCostToBuild(self.entities)
+    self.entities = new_entities
+    self.cost_to_build = new_cost_to_build
+
+    -- probable point of failure, not checking train
+    local train_still_has_resources = self:checkTrainHasEnoughResources(ECU.train)
+    if not train_still_has_resources then
+        self:log("Current train does not have resources to finish the task, restarting it!")
+        self:restartTask(false)
+        return
+    end
+    self:log(serpent.block(self.cost_to_build))
     ECU:resupply({
         resource_cost=self.cost_to_build,
-        empty_spider=true
+        empty_spider=false
     })
     local current_subtask = self.subtasks[self.active_subtask_index]
     spider_carrier:navigateSpiderToSubtask(current_subtask)
@@ -419,6 +469,7 @@ function EcuTask:RESUPPLYING()
     self:changeState(constants.TASK_STATES.BUILDING)
     
 end
+
 
 function EcuTask:TERMINATING()
 
