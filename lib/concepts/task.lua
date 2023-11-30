@@ -274,7 +274,8 @@ function Task:tileWaterGhosts()
             if not dummy_replaced then
                 global.water_ghosts:push(ghost)
                 local landfill_ghosts = landfill.placeGhostLandfill(ghost)
-                tile_cache[ghost.unit_number] = landfill_ghosts
+                -- this is here for restarted tasks, we do not place new ghost tiles 
+                tile_cache[ghost.unit_number] = tile_cache[ghost.unit_number] or landfill_ghosts
                 hightlightEntity(ghost, 3, {r=1,g=1,b=0})
                 for _, t in pairs(landfill_ghosts) do
                     local tile_name = t.ghost_name
