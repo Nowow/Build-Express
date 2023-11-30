@@ -12,9 +12,9 @@ function initFleetRegister(surface)
         global.fleet_register[constants.spider_carrier_prototype_name] = {}
         global.fleet_register.trains_in_action = {}
         global.fleet_register.ECU_handling_queue = ECUQueue:create()
-        
+        FleetRegister.reregisterAllWagons()
 	end
-    FleetRegister.reregisterAllWagons()
+    
 end
 
 
