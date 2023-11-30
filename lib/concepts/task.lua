@@ -468,7 +468,7 @@ function Task:endTask()
         --removing all temp stops except current, so worker waits for robots to come back
         removeTimePassedConditionFromCurrentStop(worker)
         local temps_removed = removeAllTempStops(worker, true)
-        unregisterTrainAsInAction(worker.id)
+        fleet_manager.unregisterTrainAsInAction(worker.id)
         self:log("REMOVED " .. temps_removed .. " TEMP STOPS")
     end
 
