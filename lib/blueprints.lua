@@ -7,8 +7,10 @@ function log_task(task_id, msg)
 end
 
 function createSubtask(bounding_box)
+    local subtask_center_coords = getBoundingBoxCenter(bounding_box)
     return {
         bounding_box=bounding_box,
+        subtask_coords=subtask_center_coords,
         entities={},
         cost_to_build={}
     }
