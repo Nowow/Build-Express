@@ -22,6 +22,14 @@ function EcuTask:new()
     return task
 end
 
+function EcuTask:setWorker(ECU)
+    -- here worker is ECU
+    self.worker = ECU
+    if ECU then
+        self.cargo_size = getCargoSize(ECU.train)    
+    end    
+end
+
 function EcuTask:assignWorker()
     self:log("Looking for workers")
 
