@@ -38,6 +38,14 @@ function Task:new()
     return task
 end
 
+function Task:setWorker(worker)
+    -- here worker is just LuaTrain
+    self.worker = worker
+    if worker then
+        self.cargo_size = getCargoSize(worker)
+    end
+end
+
 function Task:initialize(params)
     local task = self
     task.id=params.player_index .. '_' .. params.tick
@@ -133,10 +141,7 @@ function Task:findBoundingBox()
     local task_id_flying_text = rendering.draw_text({
         text="TASK " .. self.id,
         surface = self.surface,
-        target = {
-            x=bounding_box.left_top.x + (bounding_box.right_bottom.x - bounding_box.left_top.x)/2,
-            y=bounding_box.left_top.y + (bounding_box.right_bottom.y - bounding_box.left_top.y)/2,
-        },
+        target = getBoundingBoxCenter(bounding_box),
         color=color,
         scale=3.0,
     })
@@ -223,10 +228,7 @@ function Task:assignWorker()
     self:log("Looking for workers")
 
     local bounding_box = self.bounding_box
-    local task_coords = {
-        x=bounding_box.left_top.x + (bounding_box.right_bottom.x - bounding_box.left_top.x)/2,
-        y=bounding_box.left_top.y + (bounding_box.right_bottom.y - bounding_box.left_top.y)/2,
-    }
+    local task_coords = getBoundingBoxCenter(bounding_box)
 
     local available_trains = fleet_manager.getFreeDronesSortedByDistance(task_coords, constants.ct_construction_wagon_name)
 
@@ -256,7 +258,7 @@ function Task:assignWorker()
         return false
     end
 
-    self.worker = worker
+    self:setWorker(worker)
     -- calculating construction area reach , but accounting for the fact that locomotive (8 tiles) is first and 2 more for good measure
     local worker_construction_radius = math.max(getRoboportRange(worker) - constants.subtask_construction_area_coverage_construction_train_offset, 15)
     self:log("worker_construction_radius: " .. worker_construction_radius)
@@ -483,16 +485,16 @@ function Task:callbackWhenTrainCreated(new_train)
     if new_train == nil then
         self:log("No new train provided")
         self:log("Unable to reaquire worker after someone messed with train, terminating")
-        self.worker = nil
+        self:setWorker(nil)
         self:forceChangeState(constants.TASK_STATES.TERMINATING)
     end
     local fits = self:checkTrainFitsTask(new_train)
     if fits then
-        self.worker = new_train
+        self:setWorker(new_train)
         self:log("Reaquired worker after someone messed with train")
     else
         self:log("Unable to reaquire worker after someone messed with train, terminating")
-        self.worker = nil
+        self:setWorker(nil)
         self:forceChangeState(constants.TASK_STATES.TERMINATING)
     end
 end

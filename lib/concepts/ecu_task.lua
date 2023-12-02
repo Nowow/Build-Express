@@ -26,10 +26,7 @@ function EcuTask:assignWorker()
     self:log("Looking for workers")
 
     local bounding_box = self.bounding_box
-    local task_coords = {
-        x=bounding_box.left_top.x + (bounding_box.right_bottom.x - bounding_box.left_top.x)/2,
-        y=bounding_box.left_top.y + (bounding_box.right_bottom.y - bounding_box.left_top.y)/2,
-    }
+    local task_coords = getBoundingBoxCenter(bounding_box)
 
     local available_trains = fleet_manager.getFreeDronesSortedByDistance(task_coords, constants.spider_carrier_prototype_name)
 
@@ -49,7 +46,7 @@ function EcuTask:assignWorker()
             if enough_resources then
                 self:log("Train does have enough resources!")
                 self:log("Express Construction Unit found!")
-                self.worker = ECU
+                self:setWorker(ECU)
                 fleet_manager.registerTrainAsInAction(train, wagon, self)
                 return true
             end
@@ -104,19 +101,19 @@ function EcuTask:callbackWhenTrainCreated(new_train)
     if new_train == nil then
         self:log("No new train provided")
         self:log("Unable to reaquire worker after someone messed with train, terminating")
-        self.worker = nil
+        self:setWorker(nil)
         self:forceChangeState(constants.TASK_STATES.TERMINATING)
     end
     local ECU = self.worker
     ECU:setTrain(new_train)
     local fits = ECU:ensureActiveSpiderCarrierIsStillHere()
     if fits then
-        self.worker = ECU
+        self:setWorker(ECU)
         self:log("Reaquired worker after someone messed with train")
     else
         self:log("ECU from provided new train does not fit for some reason, UB")
         self:log("Unable to reaquire worker after someone messed with train, restarting task")
-        self.worker = nil
+        self:setWorker(nil)
         self:restartTask()
         --self:forceChangeState(constants.TASK_STATES.TERMINATING)
     end
@@ -143,7 +140,7 @@ function EcuTask:restartTask(invalidate_and_recalculate_cost)
         self:log("Task did not have an ECU with valid train")
     end
 
-    self.worker = nil
+    self:setWorker(nil)
     self.subtasks = nil
     self.subtask_count = nil
     self.subtask_processing_index = nil
