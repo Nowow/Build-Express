@@ -230,3 +230,57 @@ function findBuildingSpot(task, offset)
     end
     return task
 end
+
+function spreadBuildingCostIntoCyclicalChunks(cost_to_build)
+    cost_to_build = cost_to_build or {}
+    local item_prototype, stack_size, cycles, current_cycle, residue
+    local max_cycles = 0
+    local cache = {}
+    local result = {}
+
+    for item, cost in pairs(cost_to_build) do
+        item_prototype = nil
+        item_prototype = game.item_prototypes[item] or game.tile_prototypes[item]
+        if not item_prototype then
+            stack_size=cost
+            cycles = 1
+        else
+            stack_size = item_prototype.stack_size
+            cycles = math.floor(cost/stack_size)
+        end
+        cache[item] = {
+            cycles=cycles,
+            stack_size=stack_size,
+            total_cost=cost
+        }
+        if cycles > max_cycles then
+            max_cycles = cycles
+        end
+    end
+
+    -- inserting residue at first
+    for item, info in pairs(cache) do
+        residue = info.total_cost - (info.cycles * info.stack_size)
+        if residue > 0 then
+            table.insert(result, {
+                item=item,
+                count=residue
+            })
+        end
+    end
+
+    current_cycle = 0
+    while current_cycle < max_cycles do
+        for item, info in pairs(cache) do
+            if current_cycle < info.cycles then
+                table.insert(result,{
+                    item=item,
+                    count=info.stack_size
+                })
+            end
+        end
+        current_cycle = current_cycle + 1
+    end
+
+    return result
+end
