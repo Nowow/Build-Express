@@ -79,6 +79,10 @@ function solveBoundingBoxSubdivision(bounding_box, max_side_length)
     local bb_height = bounding_box.right_bottom.y - bounding_box.left_top.y
     local subtask_width = max_side_length
     local subtask_height = max_side_length
+    local x_denumenator = math.ceil(bb_width/subtask_width)
+    local y_denumenator = math.ceil(bb_height/subtask_height)
+    subtask_width = math.ceil(bb_width/x_denumenator)
+    subtask_height = math.ceil(bb_height/y_denumenator)
     local side_x_ceil = math.ceil(bb_width/subtask_width)
     local side_y_ceil = math.ceil(bb_height/subtask_height)
 
