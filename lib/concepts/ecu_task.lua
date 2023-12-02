@@ -298,7 +298,8 @@ function EcuTask:PARKING()
         if parking_spot ~= current_rail then
             self:log("For some reason its a different rail, well whatever, logging for probable UB")
         end
-        ECU:deploy(self.cost_to_build)
+        local cost_to_build_spaced = spreadBuildingCostIntoCyclicalChunks(self.cost_to_build)
+        ECU:deploy(cost_to_build_spaced)
         self:changeState(constants.TASK_STATES.PREPARING)
         return
     end
@@ -487,9 +488,9 @@ function EcuTask:RESUPPLYING()
         self:restartTask(false)
         return
     end
-    self:log(serpent.block(self.cost_to_build))
+    local cost_to_build_spaced = spreadBuildingCostIntoCyclicalChunks(self.cost_to_build)
     ECU:resupply({
-        resource_cost=self.cost_to_build,
+        resource_cost=cost_to_build_spaced,
         empty_spider=false
     })
     local current_subtask = self.subtasks[self.active_subtask_index]

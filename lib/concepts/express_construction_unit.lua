@@ -219,8 +219,10 @@ function ExpressConstructionUnit:supplyResources(resource_cost)
     local train = self.train
     local spider = self.active_carrier.spider
 
-    for item, count in pairs(resource_cost) do
-        count = math.floor(count*cost_modifier)
+    local item, count
+    for _, stack in pairs(resource_cost) do
+        item = stack.item
+        count = math.floor(stack.count*cost_modifier)
         self:attemptInsertInSpider(train, spider, item, count)
     end
 end
