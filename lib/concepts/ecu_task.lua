@@ -330,6 +330,23 @@ end
 
 function EcuTask:ASSIGNED()
     local ECU = self.worker
+    if not ECU then
+        self:log("ASSIGNED state, but no ECU, restarting")
+        self:restartTask()
+        return
+    end
+    local active_carrier = ECU.active_carrier
+    if not active_carrier then
+        self:log("ASSIGNED state, but no ECU active carrier, restarting")
+        self:restartTask()
+        return
+    end
+    local spider = ECU.active_carrier.spider
+    if not spider or not spider.valid then
+        self:log("ASSIGNED state, but no ECU spider or spider invalid, restarting")
+        self:restartTask()
+    end
+
     local subtasks = self.subtasks
     local subtask_processing_index = self.subtask_processing_index
     local subtasks_left = table_size(self.subtasks)
@@ -342,6 +359,10 @@ function EcuTask:ASSIGNED()
     end
 
     if not subtask_processing_index then --assign a new subtasks to be processed
+        if self.type == constants.TASK_TYPES.BUILD then
+            subtasks = self:sortSubtasksByDistance(spider.position, subtasks)
+            self.subtasks = subtasks
+        end
         next_subtask_processing_index, subtask_to_process = next(subtasks)
         has_valid_entities = self:ensureHasValidEntities(subtask_to_process)
         if not has_valid_entities then
