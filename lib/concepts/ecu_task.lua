@@ -170,6 +170,30 @@ function EcuTask:restartTask(invalidate_and_recalculate_cost)
     self:changeState(constants.TASK_STATES.TASK_CREATED)
 end
 
+function EcuTask:sortSubtasksByDistance(train_coords, subtasks)
+    local distances = {}
+    local sorter = {}
+    local result = {}
+
+    local subtask_coords, distance
+
+    for _, subtask in pairs(subtasks) do
+        
+        subtask_coords = subtask.subtask_coords
+        distance = DistanceBetweenTwoPoints(train_coords, subtask_coords)
+        distances[distance] = subtask
+        table.insert(sorter, distance)
+
+    end
+
+    table.sort(sorter)
+
+    for _, distance in pairs(sorter) do
+        table.insert(result, distances[distance])
+    end
+    return result
+end
+
 
 ------------------------------------------------------------------
 -----TASK FLOW
