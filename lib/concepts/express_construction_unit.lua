@@ -303,6 +303,36 @@ function ExpressConstructionUnit:orderRetractSpider()
     end
 end
 
+function ExpressConstructionUnit:checkRobotsAreBack()
+    local spider = self.active_carrier.spider
+    if not spider or not spider.valid then
+        log("checkRobotsAreBack called, but no spider or spider invalid")
+        return
+    end
+    local logistic_network = spider.logistic_network
+    if logistic_network ~= nil and logistic_network.valid then
+        log("Spider does have logistic network!")
+        local all_construction_robots  = logistic_network.all_construction_robots
+        local available_construction_robots = logistic_network.available_construction_robots
+        log("Construction robots in this network, all: " .. all_construction_robots .. ", available: " .. available_construction_robots)
+        if available_construction_robots < all_construction_robots then
+            log("Still waiting for construction robots to come back!")
+            return false
+        else
+            local construction_robots = logistic_network.construction_robots
+            if #construction_robots > 0 then
+                log("Still waiting for construction robots to come back, any second now!")
+            return false
+            end
+            log("All construction robots are back in trunk!")
+        end
+        return true
+    end
+    log("Spider did not have logistic network")
+    return true
+
+end
+
 function ExpressConstructionUnit:pollRetractSpider()
     local active_carrier = self.active_carrier
     local spider = active_carrier.spider
@@ -313,23 +343,10 @@ function ExpressConstructionUnit:pollRetractSpider()
         return true
     elseif not spider_inside and spider_outside then
         log("Spider Carrier is empty, but spider still present")
-        local logistic_network = spider.logistic_network
-        if logistic_network ~= nil and logistic_network.valid then
-            log("Spider does have logistic network!")
-            local all_construction_robots  = logistic_network.all_construction_robots
-            local available_construction_robots = logistic_network.available_construction_robots
-            log("Construction robots in this network, all: " .. all_construction_robots .. ", available: " .. available_construction_robots)
-            if available_construction_robots < all_construction_robots then
-                log("Still waiting for construction robots to come back!")
-                return false
-            else
-                local construction_robots = logistic_network.construction_robots
-                if #construction_robots > 0 then
-                    log("Still waiting for construction robots to come back, any second now!")
-                return false
-                end
-                log("All construction rob   ots are back in trunk!")
-            end
+
+        local robots_are_back = self:checkRobotsAreBack()
+        if not robots_are_back then
+            return false
         end
         return active_carrier:storeSpider()
     elseif not spider_inside and not spider_outside then
