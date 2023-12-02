@@ -1,3 +1,10 @@
+function getBoundingBoxCenter(bounding_box)
+    return {
+        x=bounding_box.left_top.x + (bounding_box.right_bottom.x - bounding_box.left_top.x)/2,
+        y=bounding_box.left_top.y + (bounding_box.right_bottom.y - bounding_box.left_top.y)/2,
+    }
+end
+
 
 function Round(v)
     return v and math.floor(v + 0.5)
