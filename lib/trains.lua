@@ -192,3 +192,20 @@ function findNearestRails(surface, bounding_box, search_offset)
     return found_rails
 end
 
+function getCargoSize(train)
+    if not train or not train.valid then
+        log("ERROR: trying to get cargoSize of nil or invalid train")
+        return
+    end
+    local cargo_wagons = train.cargo_wagons
+    local wagon_prototype_name, this_size
+    local size = 0
+    for _, wagon in pairs(cargo_wagons) do
+        wagon_prototype_name = wagon.name
+        if wagon_prototype_name ~= constants.spider_carrier_prototype_name and wagon_prototype_name ~= constants.ct_construction_wagon_name then
+            this_size = wagon.prototype.get_inventory_size(defines.inventory.cargo_wagon)
+            size = size + this_size
+        end
+    end
+    return size
+end

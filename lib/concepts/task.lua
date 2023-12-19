@@ -26,6 +26,8 @@ local fleet_manager = require("lib.fleet_manager")
 ---@field worker unknown
 ---@field worker_construction_radius integer
 ---@field flying_text table
+---@field cargo_slots integer
+---@field currently_empty_cargo_slots integer
 Task = {}
 Task.__index = Task
 

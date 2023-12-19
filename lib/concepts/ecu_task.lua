@@ -26,7 +26,7 @@ function EcuTask:setWorker(ECU)
     -- here worker is ECU
     self.worker = ECU
     if ECU then
-        self.cargo_size = getCargoSize(ECU.train)    
+        self.cargo_size = getCargoSize(ECU.train)
     end    
 end
 
