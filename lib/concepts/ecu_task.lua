@@ -449,7 +449,8 @@ function EcuTask:BUILDING()
         local spider = worker.active_carrier.spider
         if spider == nil or not spider.valid then
             self:log("No spider present during BUILDING, probably killed/stolen/abudcted by aliens")
-            error("HERE SHOULD BE LOGIC TO RESTART TASK")
+            self:restartTask(true)
+            return
         elseif self.type == constants.TASK_TYPES.BUILD and worker:checkRobotsAreBack() then
             local spider_contents = spider.get_inventory(defines.inventory.spider_trunk).get_contents()
             local subtask = self.subtasks[self.active_subtask_index]
@@ -466,6 +467,8 @@ function EcuTask:BUILDING()
                     return
                 end
             end
+        -- elseif self.type == constants.TASK_TYPES.DECONSTRUCT then
+            
         end
         
         local building_spot = self.building_spot
