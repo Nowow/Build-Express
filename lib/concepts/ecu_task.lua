@@ -461,14 +461,22 @@ function EcuTask:BUILDING()
                 self:log("Spider has: " .. spider_available_count .. ", current cost: " .. count)
                 if count > spider_available_count then
                     self:log("RESUPPLY IS IN ORDER!")
-                    self:log("Invalidating left ghost tiles...")
                     worker:moveSpiderToCarrier()
                     self:changeState(constants.TASK_STATES.RESUPPLYING)
                     return
                 end
             end
-        -- elseif self.type == constants.TASK_TYPES.DECONSTRUCT then
-            
+        elseif self.type == constants.TASK_TYPES.DECONSTRUCT then
+            -- check that spider has no more than allowed stacks taken up
+            local spider_empty_stacks = spider.get_inventory(defines.inventory.spider_trunk).count_empty_stacks(false,false)
+            local spider_cargo_size = spider.prototype.get_inventory_size(defines.inventory.spider_trunk)
+            local stacks_occupied_cnt = spider_cargo_size - spider_empty_stacks
+            if stacks_occupied_cnt >= constants.spider_deconstruct_max_stacks_carried or spider_empty_stacks < 2 then
+                self:log("Spider has too much stuff when deconstructing, RESUPPLY IS IN ORDER!")
+                worker:moveSpiderToCarrier()
+                self:changeState(constants.TASK_STATES.RESUPPLYING)
+                return
+            end
         end
         
         local building_spot = self.building_spot
@@ -501,26 +509,33 @@ function EcuTask:RESUPPLYING()
     self:log("Checking this train has resources to finish task")
 
     ECU:emptySpiderBuildingMaterials()
-    local new_entities, new_cost_to_build = self:invalidateEntitiesAndCalculateCostToBuild(self.entities)
-    self.entities = new_entities
-    self.cost_to_build = new_cost_to_build
 
-    -- probable point of failure, not checking train
-    local train_still_has_resources = self:checkTrainHasEnoughResources(ECU.train)
-    if not train_still_has_resources then
-        self:log("Current train does not have resources to finish the task, restarting it!")
-        self:restartTask(false)
-        return
+    if self.type == constants.TASK_TYPES.BUILD and worker:checkRobotsAreBack() then
+
+        local new_entities, new_cost_to_build = self:invalidateEntitiesAndCalculateCostToBuild(self.entities)
+        self.entities = new_entities
+        self.cost_to_build = new_cost_to_build
+
+        -- probable point of failure, not checking train
+        local train_still_has_resources = self:checkTrainHasEnoughResources(ECU.train)
+        if not train_still_has_resources then
+            self:log("Current train does not have resources to finish the task, restarting it!")
+            self:restartTask(false)
+            return
+        end
+        local cost_to_build_spaced = spreadBuildingCostIntoCyclicalChunks(self.cost_to_build)
+        ECU:resupply({
+            resource_cost=cost_to_build_spaced,
+            empty_spider=false
+        })
+        local current_subtask = self.subtasks[self.active_subtask_index]
+        spider_carrier:navigateSpiderToSubtask(current_subtask)
+        self:log("Resupply finished, sending spider back to subtask")
+        self:changeState(constants.TASK_STATES.BUILDING)
+    
+    elseif self.type == constants.TASK_TYPES.DECONSTRUCT then
+        local 
     end
-    local cost_to_build_spaced = spreadBuildingCostIntoCyclicalChunks(self.cost_to_build)
-    ECU:resupply({
-        resource_cost=cost_to_build_spaced,
-        empty_spider=false
-    })
-    local current_subtask = self.subtasks[self.active_subtask_index]
-    spider_carrier:navigateSpiderToSubtask(current_subtask)
-    self:log("Resupply finished, sending spider back to subtask")
-    self:changeState(constants.TASK_STATES.BUILDING)
     
 end
 
