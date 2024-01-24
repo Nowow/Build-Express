@@ -59,6 +59,7 @@ constants.buex_construction_train_technology = 'buex-construction-train-technolo
 constants.buex_express_construction_unit_technology = 'buex-express-construction-unit-technology'
 constants.spider_carrier_proxy_prototype_name = 'buex-spider-carrier-prototype'
 constants.spider_carrier_spider_search_radius = 8
+constants.spider_deconstruct_max_stacks_carried = 35
 -- pathfinding
 constants.max_pathfinding_attempts = 5
 constants.pathfinding_proxy_name = 'buex-pathfinding-proxy'
